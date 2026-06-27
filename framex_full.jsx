@@ -1214,7 +1214,7 @@ export default function App(){
       documents:{contracts:[],budgets:[],estimates:[],invoices:[],schedules:[]},
       creative:{pitchDecks:[],moodBoards:[],locationScouts:[],storyboards:[]},
       crew:[],talent:[],
-      producer:{vendors:[],permits:[],rentals:[],travel:[],productionNotes:"",postNotes:""},
+      producer_data:{vendors:[],permits:[],rentals:[],travel:[],productionNotes:"",postNotes:""},
       wrap:{finalInvoices:[],expenseReports:[],signedContracts:[],releases:[],deliverables:[],wrapNotes:""},
       clientComments:[],internalNotes:"",posts:[]};
     setProjects(ps=>[...ps,p]);
