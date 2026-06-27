@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import ClientPortal from './ClientPortal';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
@@ -867,6 +868,8 @@ export default function App(){
   const selected=projects.find(p=>p.id===selectedId);
 
   const updateProject=(updated)=>setProjects(ps=>ps.map(p=>p.id===updated.id?updated:p));
+
+  if(isClient) return <ClientPortal user={user} projects={projects} onUpdateProject={updateProject} onSignOut={()=>setUser(null)} logoUrl={logoUrl} onLogoChange={setLogoUrl}/>;
 
   const createProject=()=>{
     if(!np.title.trim())return;
