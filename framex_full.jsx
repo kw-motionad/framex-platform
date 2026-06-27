@@ -216,7 +216,7 @@ function PreviewModal({entry,onClose,onAnnotate,onApprove,onRequestChanges,entry
       <video src={entry.previewUrl} controls autoPlay style={{width:"100%",maxHeight:500,background:"#000",borderRadius:8,display:"block",marginBottom:12}}/>
       {entry.previewUrl&&<div style={{textAlign:"center"}}>{dlBtn}</div>}
     </div>}
-    {type==="image"&&<div style={{textAlign:"center",background:"#06060A",borderRadius:8,padding:12}}>
+    {type==="image"&&<div style={{textAlign:"center",background:"#1A1A22",borderRadius:8,padding:12}}>
       <img src={entry.previewUrl} alt={entry.name} style={{maxWidth:"100%",maxHeight:520,objectFit:"contain",borderRadius:6,display:"block",marginBottom:12}}/>
       {entry.previewUrl&&dlBtn}
     </div>}
@@ -1100,18 +1100,18 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
   return <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
     {/* Project header */}
     <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"14px 24px",flexShrink:0}}>
-      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:10}}>
-        <div>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:10,gap:12}}>
+        <div style={{flex:1,minWidth:0}}>
           <button onClick={onBack} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:12,padding:0,marginBottom:6}}>← All Projects</button>
-          <h2 style={{margin:0,fontSize:18,fontWeight:700,color:C.text}}>{project.title}</h2>
-          <div style={{display:"flex",gap:10,alignItems:"center",marginTop:4}}>
+          <h2 style={{margin:0,fontSize:18,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{project.title}</h2>
+          <div style={{display:"flex",gap:10,alignItems:"center",marginTop:4,flexWrap:"wrap"}}>
             <span style={{fontSize:12,color:C.textSec}}>{project.client}</span>
             {!isClient&&<span style={{fontSize:12,color:C.textMuted}}>Producer: {project.producer}</span>}
             <span style={{fontSize:12,color:C.textMuted}}>Delivery: {project.deliveryDate}</span>
             {!isClient&&<span style={{fontSize:12,fontWeight:700,color:C.green}}>{fmtCurrency(project.budget)}</span>}
           </div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
           {!isClient&&<Btn variant="cyan" onClick={()=>setShowUpload(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>⬆ Upload</Btn>}
           <LifecyclePill stage={project.status}/>
         </div>
