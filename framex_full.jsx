@@ -175,6 +175,22 @@ function doDownload(entry){
   if(!entry?.previewUrl)return;
   const a=document.createElement("a");a.href=entry.previewUrl;a.download=entry.name;a.click();
 }
+function FileIcon({name="",mimeType="",previewUrl,size=36,fallback="📄"}){
+  const type=detectPreviewType(name,mimeType);
+  if(type==="image"&&previewUrl)
+    return <img src={previewUrl} style={{width:size,height:size,objectFit:"cover",borderRadius:7,flexShrink:0}} alt=""/>;
+  if(type==="pdf")
+    return <div style={{width:size,height:size,borderRadius:7,background:"#FF443315",border:"1px solid #FF443330",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+      <span style={{fontSize:10,fontWeight:800,color:"#FF4444",letterSpacing:"-0.02em"}}>PDF</span>
+    </div>;
+  if(type==="video")
+    return <div style={{width:size,height:size,borderRadius:7,background:C.cyan+"15",border:`1px solid ${C.cyan}30`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+      <span style={{fontSize:size>28?16:12}}>🎬</span>
+    </div>;
+  return <div style={{width:size,height:size,borderRadius:7,background:"#1A1A24",border:`1px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+    <span style={{fontSize:size>28?18:14}}>{fallback}</span>
+  </div>;
+}
 function PreviewModal({entry,onClose,onAnnotate,onApprove,onRequestChanges,entryStatus}){
   const type=detectPreviewType(entry.name,entry.mimeType||"");
   const dlBtn=<button onClick={()=>doDownload(entry)} style={{background:"#14141C",border:`1px solid ${C.border}`,color:C.textSec,borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>⬇ Download</button>;
@@ -402,6 +418,110 @@ function LifecycleBar({current,onChange,canEdit}){
   </div>;
 }
 
+// ─── Universal Upload Modal ───────────────────────────────────────────────────
+
+function UploadModal({project,onClose,onUpload}){
+  const [section,setSection]=useState("documents");
+  const [cat,setCat]=useState("contracts");
+  const [files,setFiles]=useState([]);
+  const [version,setVersion]=useState("v01");
+  const [notes,setNotes]=useState("");
+  const [dragging,setDragging]=useState(false);
+  const fileRef=useRef(null);
+
+  const SECS={
+    documents:{label:"Documents",icon:"📁",color:C.cyan,cats:{contracts:"Contracts",budgets:"Budgets",estimates:"Estimates",invoices:"Invoices",schedules:"Schedules"}},
+    creative:{label:"Creative",icon:"🎨",color:C.purple,cats:{pitchDecks:"Pitch Decks",moodBoards:"Mood Boards",locationScouts:"Location Scouts",storyboards:"Storyboards"}},
+    post:{label:"Post / VFX",icon:"✨",color:C.orange,cats:null},
+    wrap:{label:"Wrap",icon:"📦",color:C.green,cats:{finalInvoices:"Final Invoices",expenseReports:"Expense Reports",signedContracts:"Signed Contracts",releases:"Releases",deliverables:"Deliverables"}},
+  };
+  const sec=SECS[section];
+  const changeSection=(s)=>{setSection(s);setCat(Object.keys(SECS[s].cats||{})[0]||"post");};
+  const addFiles=(fs)=>setFiles(prev=>[...prev,...Array.from(fs)]);
+  const removeFile=(i)=>setFiles(prev=>prev.filter((_,j)=>j!==i));
+  const doUpload=()=>{if(!files.length)return;onUpload(section,cat,files,{version,notes});onClose();};
+  const iStyle={background:"#0A0A16",border:`1px solid ${C.border}`,borderRadius:7,padding:"8px 12px",color:C.text,fontSize:12,outline:"none",width:"100%",boxSizing:"border-box"};
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000000CC",zIndex:900,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,width:"100%",maxWidth:560,maxHeight:"88vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"15px 20px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+          <span style={{fontSize:14,fontWeight:700,color:C.text}}>⬆ Upload Files</span>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:20}}>✕</button>
+        </div>
+        <div style={{overflowY:"auto",padding:20,flex:1,display:"flex",flexDirection:"column",gap:16}}>
+          {/* Section picker */}
+          <div>
+            <label style={{fontSize:10,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",display:"block",marginBottom:8}}>Section</label>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {Object.entries(SECS).map(([key,s])=>(
+                <button key={key} onClick={()=>changeSection(key)}
+                  style={{background:section===key?s.color+"20":C.surface,border:`1px solid ${section===key?s.color+"50":C.border}`,color:section===key?s.color:C.textSec,borderRadius:8,padding:"7px 14px",cursor:"pointer",fontSize:12,fontWeight:section===key?700:400,transition:"all 0.15s"}}>
+                  {s.icon} {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Category picker */}
+          {sec.cats&&(
+            <div>
+              <label style={{fontSize:10,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",display:"block",marginBottom:8}}>Category</label>
+              <select value={cat} onChange={e=>setCat(e.target.value)} style={{...iStyle,cursor:"pointer"}}>
+                {Object.entries(sec.cats).map(([k,v])=><option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+          )}
+          {/* Drop zone */}
+          <div
+            onDragOver={e=>{e.preventDefault();setDragging(true);}}
+            onDragLeave={()=>setDragging(false)}
+            onDrop={e=>{e.preventDefault();setDragging(false);addFiles(e.dataTransfer.files);}}
+            onClick={()=>fileRef.current?.click()}
+            style={{border:`2px dashed ${dragging?C.cyan:C.border}`,borderRadius:12,padding:"32px 20px",textAlign:"center",cursor:"pointer",background:dragging?C.cyan+"08":C.surface,transition:"all 0.2s"}}>
+            <div style={{fontSize:32,marginBottom:8}}>📂</div>
+            <div style={{fontSize:13,color:C.text,fontWeight:600,marginBottom:4}}>Drop files here</div>
+            <div style={{fontSize:11,color:C.textMuted}}>or click to browse</div>
+            <input ref={fileRef} type="file" multiple style={{display:"none"}} onChange={e=>addFiles(e.target.files)}/>
+          </div>
+          {/* File list */}
+          {files.length>0&&(
+            <div>
+              <label style={{fontSize:10,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",display:"block",marginBottom:8}}>Selected ({files.length})</label>
+              {files.map((f,i)=>(
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,background:"#0A0A16",borderRadius:7,padding:"8px 12px",marginBottom:5}}>
+                  <FileIcon name={f.name} mimeType={f.type} size={28} fallback="📄"/>
+                  <span style={{flex:1,fontSize:12,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</span>
+                  <span style={{fontSize:10,color:C.textMuted,flexShrink:0}}>{(f.size/1024/1024).toFixed(1)}MB</span>
+                  <button onClick={()=>removeFile(i)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14,flexShrink:0,padding:2}}>✕</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {/* Version + notes */}
+          <div style={{display:"flex",gap:12}}>
+            {section==="post"&&(
+              <div style={{flex:"0 0 110px"}}>
+                <label style={{fontSize:10,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",display:"block",marginBottom:8}}>Version</label>
+                <input value={version} onChange={e=>setVersion(e.target.value)} placeholder="v01" style={iStyle}/>
+              </div>
+            )}
+            <div style={{flex:1}}>
+              <label style={{fontSize:10,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",display:"block",marginBottom:8}}>Notes</label>
+              <input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Optional notes…" style={iStyle}/>
+            </div>
+          </div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:10,padding:"14px 20px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
+          <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
+          <Btn variant="cyan" onClick={doUpload} style={{opacity:files.length?1:0.45,pointerEvents:files.length?"auto":"none"}}>
+            ⬆ Upload{files.length>1?` ${files.length} files`:files.length===1?" 1 file":""}
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Documents Panel ──────────────────────────────────────────────────────────
 
 function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
@@ -463,19 +583,20 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"8px 0"}}>No {cat.label.toLowerCase()} yet.</p>}
         {items.map(doc=>(
-          <div key={doc.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12}}>
-            {detectPreviewType(doc.name,doc.mimeType||"")==="image"&&doc.previewUrl
-              ?<img src={doc.previewUrl} style={{width:36,height:36,objectFit:"cover",borderRadius:7,flexShrink:0}}/>
-              :<span style={{fontSize:18,flexShrink:0}}>{cat.icon}</span>}
+          <div key={doc.id} onClick={()=>doc.previewUrl&&setPreviewEntry({...doc,_cat:cat.id})}
+            style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12,cursor:doc.previewUrl?"pointer":"default",transition:"border-color 0.15s"}}
+            onMouseEnter={e=>{if(doc.previewUrl)e.currentTarget.style.borderColor=C.border+"99";}}
+            onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+            <FileIcon name={doc.name} mimeType={doc.mimeType||""} previewUrl={doc.previewUrl} size={36} fallback={cat.icon}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{doc.name}</div>
               <div style={{fontSize:10,color:C.textMuted}}>{doc.uploader} · {doc.date}{doc.shared&&!isClient?<span style={{color:C.green,marginLeft:8}}>● Shared with client</span>:null}</div>
             </div>
             <Badge status={doc.status} small/>
-            {!isClient&&<button onClick={()=>toggleShared(cat.id,doc.id)} style={{background:doc.shared?C.greenLow:"#1E1E28",border:`1px solid ${doc.shared?C.green+"50":C.border}`,color:doc.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10,whiteSpace:"nowrap"}}>{doc.shared?"👁 Shared":"Share"}</button>}
-            {cat.id==="contracts"&&doc.status!=="signed"&&<Btn variant="cyan" onClick={()=>setEsigModal({...doc,cat:cat.id})} style={{fontSize:10,padding:"4px 10px"}}>✍ Sign</Btn>}
-            {canApprove&&doc.status==="pending"&&<Btn variant="green" onClick={()=>updateDocStatus(cat.id,doc.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
-            <Btn variant="ghost" onClick={()=>doc.previewUrl&&setPreviewEntry({...doc,_cat:cat.id})} style={{fontSize:10,padding:"4px 8px",opacity:doc.previewUrl?1:0.4}}>{doc.previewUrl?"👁":"⬇"}</Btn>
+            {!isClient&&<button onClick={e=>{e.stopPropagation();toggleShared(cat.id,doc.id);}} style={{background:doc.shared?C.greenLow:"#1E1E28",border:`1px solid ${doc.shared?C.green+"50":C.border}`,color:doc.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10,whiteSpace:"nowrap"}}>{doc.shared?"👁 Shared":"Share"}</button>}
+            {cat.id==="contracts"&&doc.status!=="signed"&&<Btn variant="cyan" onClick={e=>{e.stopPropagation();setEsigModal({...doc,cat:cat.id});}} style={{fontSize:10,padding:"4px 10px"}}>✍ Sign</Btn>}
+            {canApprove&&doc.status==="pending"&&<Btn variant="green" onClick={e=>{e.stopPropagation();updateDocStatus(cat.id,doc.id,"approved");}} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
+            {doc.previewUrl&&<span style={{fontSize:10,color:C.textMuted,flexShrink:0}}>👁</span>}
           </div>
         ))}
       </div>;
@@ -548,10 +669,8 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
           const ck=`${cat.id}_${item.id}`;
           return <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-              {detectPreviewType(item.name,item.mimeType||"")==="image"&&item.previewUrl
-                ?<img src={item.previewUrl} style={{width:28,height:28,objectFit:"cover",borderRadius:5,flexShrink:0}}/>
-                :<span style={{fontSize:16,flexShrink:0}}>{cat.icon}</span>}
-              <span style={{fontSize:12,fontWeight:600,color:C.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</span>
+              <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
+              <span style={{fontSize:12,fontWeight:600,color:C.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",cursor:item.previewUrl?"pointer":"default"}} onClick={()=>item.previewUrl&&setPreviewEntry(item)}>{item.name}</span>
               {item.previewUrl&&<Btn variant="ghost" onClick={()=>setPreviewEntry(item)} style={{fontSize:10,padding:"4px 8px"}}>👁</Btn>}
               <Badge status={item.status} small/>
               {!isClient&&<button onClick={()=>toggleShared(cat.id,item.id)} style={{background:item.shared?C.greenLow:"#1E1E28",border:`1px solid ${item.shared?C.green+"50":C.border}`,color:item.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>{item.shared?"👁 Shared":"Share"}</button>}
@@ -766,9 +885,7 @@ function WrapPanel({wrap,onUpdate,isClient}){
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12}}>No {cat.label.toLowerCase()} yet.</p>}
         {items.map(item=>(
           <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-            {detectPreviewType(item.name,item.mimeType||"")==="image"&&item.previewUrl
-              ?<img src={item.previewUrl} style={{width:28,height:28,objectFit:"cover",borderRadius:5,flexShrink:0}}/>
-              :<span style={{fontSize:16,flexShrink:0}}>{cat.icon}</span>}
+            <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
             <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
             <div style={{fontSize:10,color:C.textMuted}}>{item.date}</div></div>
             <Badge status={item.status} small/>
@@ -962,6 +1079,23 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
   const [tab,setTab]=useState("overview");
 
   const up=(field,val)=>onUpdate({...project,[field]:val});
+  const [showUpload,setShowUpload]=useState(false);
+  const handleUpload=(section,category,files,meta)=>{
+    const now=Date.now();
+    if(section==="documents"){
+      const newDocs=files.map((f,i)=>({id:`doc${now+i}`,name:f.name,status:"pending",uploader:currentUser.name,date:new Date().toISOString().slice(0,10),shared:false,esig:false,mimeType:f.type,previewUrl:URL.createObjectURL(f),notes:meta.notes}));
+      up("documents",{...project.documents,[category]:[...(project.documents[category]||[]),...newDocs]});
+    } else if(section==="creative"){
+      const newItems=files.map((f,i)=>({id:`cr${now+i}`,name:f.name,status:"pending",shared:false,uploader:currentUser.name,mimeType:f.type,previewUrl:URL.createObjectURL(f),notes:meta.notes}));
+      up("creative",{...project.creative,[category]:[...(project.creative[category]||[]),...newItems]});
+    } else if(section==="post"){
+      const newPosts=files.map((f,i)=>({id:`pa${now+i}`,type:f.type.startsWith("video")?"video":"board",name:f.name,version:meta.version||"v01",status:"pending",uploader:currentUser.name,duration:f.type.startsWith("video")?120:undefined,editNotes:meta.notes||"",shared:false,comments:[],mimeType:f.type,previewUrl:URL.createObjectURL(f)}));
+      up("posts",[...project.posts,...newPosts]);
+    } else if(section==="wrap"){
+      const newItems=files.map((f,i)=>({id:`w${now+i}`,name:f.name,status:"pending",date:new Date().toISOString().slice(0,10),mimeType:f.type,previewUrl:URL.createObjectURL(f),notes:meta.notes}));
+      up("wrap",{...project.wrap,[category]:[...(project.wrap[category]||[]),...newItems]});
+    }
+  };
 
   return <div style={{display:"flex",flexDirection:"column",height:"100%"}}>
     {/* Project header */}
@@ -977,7 +1111,10 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
             {!isClient&&<span style={{fontSize:12,fontWeight:700,color:C.green}}>{fmtCurrency(project.budget)}</span>}
           </div>
         </div>
-        <LifecyclePill stage={project.status}/>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {!isClient&&<Btn variant="cyan" onClick={()=>setShowUpload(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>⬆ Upload</Btn>}
+          <LifecyclePill stage={project.status}/>
+        </div>
       </div>
       {canSeeInternal&&<LifecycleBar current={project.status} onChange={s=>up("status",s)} canEdit={!isClient}/>}
       {/* Tabs */}
@@ -1044,6 +1181,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
       {tab==="wrap"&&<WrapPanel wrap={project.wrap} onUpdate={w=>up("wrap",w)} isClient={isClient}/>}
       {tab==="comments"&&<ClientComments comments={project.clientComments} onUpdate={c=>up("clientComments",c)} currentUser={currentUser}/>}
     </div>
+    {showUpload&&<UploadModal project={project} onClose={()=>setShowUpload(false)} onUpload={handleUpload}/>}
   </div>;
 }
 
