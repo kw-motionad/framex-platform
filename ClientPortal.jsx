@@ -149,6 +149,194 @@ function Empty({ icon, msg, sub }) {
   );
 }
 
+// ─── Preview helpers ─────────────────────────────────────────────────────────
+
+function detectPreviewType(name="",mimeType=""){
+  const ext=name.split(".").pop().toLowerCase();
+  if(mimeType.startsWith("video/")||["mp4","mov","webm","avi","mkv"].includes(ext))return "video";
+  if(mimeType.startsWith("image/")||["jpg","jpeg","png","gif","webp","svg","bmp"].includes(ext))return "image";
+  if(ext==="pdf"||mimeType==="application/pdf")return "pdf";
+  return null;
+}
+function doDownload(entry){
+  if(!entry?.previewUrl)return;
+  const a=document.createElement("a");a.href=entry.previewUrl;a.download=entry.name;a.click();
+}
+function PreviewModal({entry,onClose,onAnnotate,authorName="You",onApprove,onRequestChanges,entryStatus}){
+  const type=detectPreviewType(entry.name,entry.mimeType||"");
+  const dlBtn=<button onClick={()=>doDownload(entry)} style={{background:C.card,border:`1px solid ${C.border}`,color:C.textSec,borderRadius:7,padding:"5px 11px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>⬇ Download</button>;
+  if(type==="pdf"&&onAnnotate){
+    return (
+      <div style={{position:"fixed",inset:0,background:"#000000E0",zIndex:600,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,width:"100%",maxWidth:1140,maxHeight:"94vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+            <span style={{fontSize:13,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{entry.name}</span>
+            {entryStatus&&<Badge status={entryStatus} small/>}
+            {onApprove&&<Btn variant="green" onClick={onApprove} style={{fontSize:10,padding:"4px 10px",whiteSpace:"nowrap"}}>✓ Approve</Btn>}
+            {onRequestChanges&&<Btn variant="red" onClick={onRequestChanges} style={{fontSize:10,padding:"4px 10px",whiteSpace:"nowrap"}}>✗ Changes</Btn>}
+            {entry.previewUrl&&dlBtn}
+            <button onClick={onClose} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:20,flexShrink:0}}>✕</button>
+          </div>
+          <div style={{flex:1,overflow:"hidden",display:"flex",minHeight:0}}>
+            <PdfAnnotator entry={entry} onAnnotate={onAnnotate} authorName={authorName}/>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{position:"fixed",inset:0,background:"#000000E0",zIndex:600,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,width:"100%",maxWidth:900,maxHeight:"90vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+          <span style={{fontSize:14,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{entry.name}</span>
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:20,flexShrink:0,marginLeft:12}}>✕</button>
+        </div>
+        <div style={{overflowY:"auto",padding:20,flex:1}}>
+          {type==="video"&&<div>
+            <video src={entry.previewUrl} controls autoPlay style={{width:"100%",maxHeight:500,background:"#000",borderRadius:8,display:"block",marginBottom:12}}/>
+            {entry.previewUrl&&<div style={{textAlign:"center"}}>{dlBtn}</div>}
+          </div>}
+          {type==="image"&&<div style={{textAlign:"center",background:"#06060A",borderRadius:8,padding:12}}>
+            <img src={entry.previewUrl} alt={entry.name} style={{maxWidth:"100%",maxHeight:520,objectFit:"contain",borderRadius:6,display:"block",marginBottom:12}}/>
+            {entry.previewUrl&&dlBtn}
+          </div>}
+          {type==="pdf"&&<iframe src={entry.previewUrl} title={entry.name} style={{width:"100%",height:600,border:"none",borderRadius:6}}/>}
+          {!type&&<div style={{textAlign:"center",padding:"40px 0",color:C.textMuted}}><div style={{fontSize:40,marginBottom:12}}>📄</div><p>No preview available for this file type.</p></div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PdfAnnotator({entry, onAnnotate, authorName="You"}){
+  const [page,setPage]=useState(1);
+  const [mode,setMode]=useState("view");
+  const [pending,setPending]=useState(null);
+  const [noteText,setNoteText]=useState("");
+  const [activePin,setActivePin]=useState(null);
+  const [reply,setReply]=useState("");
+  const overlayRef=useRef(null);
+
+  const annotations=entry.annotations||[];
+  const pageAnnotations=annotations.filter(a=>a.page===page);
+  const accent=C.blue;
+
+  const handleCapture=(e)=>{
+    if(mode!=="pin")return;
+    const rect=overlayRef.current.getBoundingClientRect();
+    setPending({x:((e.clientX-rect.left)/rect.width)*100,y:((e.clientY-rect.top)/rect.height)*100});
+    setNoteText("");
+  };
+  const savePin=()=>{
+    if(!pending||!noteText.trim())return;
+    onAnnotate({type:"add",ann:{id:`ann${Date.now()}`,page,x:pending.x,y:pending.y,author:authorName,text:noteText,replies:[],resolved:false}});
+    setPending(null);setNoteText("");setMode("view");
+  };
+  const saveReply=(pinId)=>{
+    if(!reply.trim())return;
+    onAnnotate({type:"reply",pinId,reply:{id:`r${Date.now()}`,author:authorName,text:reply,date:new Date().toISOString().slice(0,10)}});
+    setReply("");
+  };
+  const resolve=(pinId)=>onAnnotate({type:"resolve",pinId});
+  const iStyle={background:"#0A0A16",border:`1px solid ${C.border}`,borderRadius:5,padding:"6px 9px",color:C.text,fontSize:11,outline:"none"};
+
+  const Pin=({num,x,y,resolved,active,onClick})=>(
+    <div onClick={onClick} title={`Pin ${num}`}
+      style={{position:"absolute",left:`${x}%`,top:`${y}%`,transform:"translate(-50%,-100%)",display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer",pointerEvents:"all",zIndex:12,filter:resolved?"grayscale(1) opacity(0.35)":"none"}}>
+      <div style={{width:24,height:24,borderRadius:"50%",background:active?"#fff":accent,border:active?`2.5px solid ${accent}`:"2.5px solid rgba(255,255,255,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:active?accent:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.7)"}}>{num}</div>
+      <div style={{width:0,height:0,borderLeft:"5px solid transparent",borderRight:"5px solid transparent",borderTop:`6px solid ${active?"#fff":accent}`}}/>
+    </div>
+  );
+
+  return (
+    <div style={{display:"flex",flex:1,minHeight:0,overflow:"hidden"}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,overflow:"hidden"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderBottom:`1px solid ${C.border}`,flexShrink:0,background:C.surface,flexWrap:"wrap"}}>
+          <button onClick={()=>{setPage(p=>Math.max(1,p-1));setPending(null);}} disabled={page<=1}
+            style={{background:C.card,border:`1px solid ${C.border}`,color:page<=1?C.textMuted:C.text,borderRadius:5,padding:"4px 10px",cursor:page<=1?"default":"pointer",fontSize:12}}>◀</button>
+          <span style={{fontSize:12,color:C.textSec,minWidth:54,textAlign:"center"}}>Page {page}</span>
+          <button onClick={()=>{setPage(p=>p+1);setPending(null);}}
+            style={{background:C.card,border:`1px solid ${C.border}`,color:C.text,borderRadius:5,padding:"4px 10px",cursor:"pointer",fontSize:12}}>▶</button>
+          <span style={{flex:1}}/>
+          {mode==="pin"&&<span style={{fontSize:10,color:accent,fontWeight:600}}>Click to place pin #{annotations.length+1}</span>}
+          <button onClick={()=>{setMode(m=>m==="pin"?"view":"pin");setPending(null);}}
+            style={{background:mode==="pin"?accent+"22":C.card,border:`1px solid ${mode==="pin"?accent+"40":C.border}`,color:mode==="pin"?accent:C.textSec,borderRadius:7,padding:"5px 13px",cursor:"pointer",fontSize:11,fontWeight:600}}>
+            {mode==="pin"?"👁 Done":"📌 Add Pin"}
+          </button>
+        </div>
+
+        <div ref={overlayRef} style={{flex:1,position:"relative",overflow:"hidden",background:"#06060A",minHeight:0}}>
+          <iframe src={`${entry.previewUrl}#page=${page}`} style={{width:"100%",height:"100%",border:"none",display:"block"}}/>
+          <div style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+            {pageAnnotations.map(a=>{
+              const num=annotations.findIndex(x=>x.id===a.id)+1;
+              return <Pin key={a.id} num={num} x={a.x} y={a.y} resolved={a.resolved} active={activePin?.id===a.id}
+                onClick={e=>{if(mode!=="pin"){e.stopPropagation();setActivePin(activePin?.id===a.id?null:a);}}}/>;
+            })}
+            {pending&&<div style={{position:"absolute",left:`${pending.x}%`,top:`${pending.y}%`,transform:"translate(-50%,-100%)",display:"flex",flexDirection:"column",alignItems:"center",pointerEvents:"none",zIndex:13,opacity:0.8}}>
+              <div style={{width:24,height:24,borderRadius:"50%",background:accent,border:"2.5px solid rgba(255,255,255,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.7)"}}>{annotations.length+1}</div>
+              <div style={{width:0,height:0,borderLeft:"5px solid transparent",borderRight:"5px solid transparent",borderTop:`6px solid ${accent}`}}/>
+            </div>}
+          </div>
+          {mode==="pin"&&<div onClick={handleCapture} style={{position:"absolute",inset:0,zIndex:11,cursor:"crosshair",background:`${accent}05`,border:`2px dashed ${accent}30`}}/>}
+        </div>
+
+        {pending&&(
+          <div style={{padding:"10px 12px",borderTop:`1px solid ${C.border}`,display:"flex",gap:8,background:C.surface,flexShrink:0,alignItems:"center"}}>
+            <span style={{width:22,height:22,borderRadius:"50%",background:accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:"#fff",flexShrink:0}}>{annotations.length+1}</span>
+            <input autoFocus value={noteText} onChange={e=>setNoteText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&savePin()} placeholder="Type a note for this pin…" style={{flex:1,...iStyle}}/>
+            <button onClick={savePin} disabled={!noteText.trim()} style={{background:accent,border:"none",color:"#fff",borderRadius:7,padding:"6px 13px",cursor:noteText.trim()?"pointer":"default",fontSize:12,fontWeight:600,opacity:noteText.trim()?1:0.5}}>Pin it</button>
+            <button onClick={()=>setPending(null)} style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,borderRadius:7,padding:"6px 10px",cursor:"pointer",fontSize:12}}>✕</button>
+          </div>
+        )}
+      </div>
+
+      <div style={{width:278,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,overflow:"hidden"}}>
+        <div style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+          <span style={{fontSize:11,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em"}}>Pins </span>
+          <span style={{fontSize:11,fontWeight:700,color:accent}}>{annotations.length}</span>
+        </div>
+        <div style={{flex:1,overflowY:"auto"}}>
+          {annotations.length===0&&(
+            <div style={{padding:"40px 16px",textAlign:"center",color:C.textMuted,fontSize:12,lineHeight:1.7}}>
+              No pins yet.<br/>Click "Add Pin" then click<br/>anywhere on the PDF.
+            </div>
+          )}
+          {annotations.map((a,idx)=>{
+            const isActive=activePin?.id===a.id;
+            return (
+              <div key={a.id} onClick={()=>setActivePin(isActive?null:a)}
+                style={{borderBottom:`1px solid ${C.border}22`,padding:"12px 14px",borderLeft:`3px solid ${a.resolved?"#3A3A55":accent}`,background:isActive?accent+"10":"transparent",cursor:"pointer"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+                  <span style={{width:20,height:20,borderRadius:"50%",background:a.resolved?"#3A3A55":accent,color:"#fff",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,flexShrink:0}}>{idx+1}</span>
+                  <span style={{fontSize:11,fontWeight:600,color:C.text}}>{a.author}</span>
+                  <span style={{marginLeft:"auto",fontSize:10,color:C.textMuted,background:"#111120",padding:"1px 6px",borderRadius:3,whiteSpace:"nowrap"}}>p.{a.page}</span>
+                </div>
+                <p style={{margin:"0 0 4px",fontSize:12,color:C.textSec,lineHeight:1.4}}>{a.text}</p>
+                {(a.replies||[]).map(r=>(
+                  <div key={r.id} style={{paddingLeft:8,borderLeft:`2px solid ${C.border}`,marginTop:4}}>
+                    <span style={{fontSize:10,fontWeight:600,color:C.textSec}}>{r.author}: </span>
+                    <span style={{fontSize:10,color:C.textSec}}>{r.text}</span>
+                  </div>
+                ))}
+                {isActive&&(
+                  <div onClick={e=>e.stopPropagation()} style={{marginTop:8}}>
+                    <div style={{display:"flex",gap:5,marginBottom:6}}>
+                      <input value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>e.key==="Enter"&&saveReply(a.id)} onClick={e=>e.stopPropagation()} placeholder="Reply…" style={{flex:1,...iStyle}}/>
+                      <button onClick={()=>saveReply(a.id)} disabled={!reply.trim()} style={{background:accent,border:"none",color:"#fff",borderRadius:5,padding:"5px 10px",cursor:reply.trim()?"pointer":"default",fontSize:11,opacity:reply.trim()?1:0.5}}>→</button>
+                    </div>
+                    {!a.resolved&&<button onClick={()=>resolve(a.id)} style={{background:C.greenLow,border:`1px solid ${C.green}28`,color:C.green,borderRadius:5,padding:"3px 10px",cursor:"pointer",fontSize:10,fontWeight:600}}>✓ Resolve</button>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
 const NAV = [
   { id: "home",         label: "Home",         sym: "⌂" },
@@ -500,11 +688,18 @@ function DeliverablesView({ user, projects, onUpdate }) {
           </div>
 
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12, padding: 24 }}>
-            <div onClick={togglePlay} style={{ width: 72, height: 72, borderRadius: "50%", background: C.blueLow, border: `2px solid ${C.blue}40`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 28, color: C.blue }}>
-              {running ? "⏸" : "▶"}
-            </div>
-            <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "monospace" }}>{fmtTime(t)} / {fmtTime(dur)}</span>
-            <p style={{ fontSize: 11, color: C.textMuted, margin: 0 }}>Simulated playback — add timecode notes below</p>
+            {playing.previewUrl && playing.mimeType?.startsWith("video/")
+              ? <video src={playing.previewUrl} controls style={{ maxWidth: "100%", maxHeight: 340, borderRadius: 8, background: "#000", display: "block" }} />
+              : playing.previewUrl && playing.mimeType?.startsWith("image/")
+              ? <img src={playing.previewUrl} alt={playing.name} style={{ maxWidth: "100%", maxHeight: 340, objectFit: "contain", borderRadius: 8 }} />
+              : <>
+                  <div onClick={togglePlay} style={{ width: 72, height: 72, borderRadius: "50%", background: C.blueLow, border: `2px solid ${C.blue}40`, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 28, color: C.blue }}>
+                    {running ? "⏸" : "▶"}
+                  </div>
+                  <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "monospace" }}>{fmtTime(t)} / {fmtTime(dur)}</span>
+                  <p style={{ fontSize: 11, color: C.textMuted, margin: 0 }}>Simulated playback — add timecode notes below</p>
+                </>
+            }
           </div>
 
           {/* Scrubber */}
@@ -551,6 +746,7 @@ function DeliverablesView({ user, projects, onUpdate }) {
 
 // ─── Creative View ────────────────────────────────────────────────────────────
 function CreativeView({ user, projects }) {
+  const [previewEntry, setPreviewEntry] = useState(null);
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const CAT_META = {
     pitchDecks:     { label: "Pitch Decks",    icon: "🎯", color: C.blue },
@@ -578,7 +774,9 @@ function CreativeView({ user, projects }) {
               {items.map(item => (
                 <div key={item.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
                   <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 8, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{meta.icon}</div>
+                    {detectPreviewType(item.name, item.mimeType||"")==="image" && item.previewUrl
+                      ? <img src={item.previewUrl} style={{width:38,height:38,objectFit:"cover",borderRadius:8,flexShrink:0}} alt=""/>
+                      : <div style={{ width: 38, height: 38, borderRadius: 8, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{meta.icon}</div>}
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
                       <div style={{ fontSize: 10, color: C.textMuted }}>{item.projectTitle}</div>
@@ -586,7 +784,7 @@ function CreativeView({ user, projects }) {
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Badge status={item.status} small />
-                    <Btn variant="ghost" style={{ fontSize: 10, padding: "3px 8px" }}>View</Btn>
+                    <Btn variant="ghost" onClick={() => item.previewUrl && setPreviewEntry(item)} style={{ fontSize: 10, padding: "3px 8px", opacity: item.previewUrl ? 1 : 0.45 }}>{item.previewUrl ? "👁 View" : "View"}</Btn>
                   </div>
                 </div>
               ))}
@@ -594,6 +792,7 @@ function CreativeView({ user, projects }) {
           </div>
         );
       })}
+      {previewEntry && <PreviewModal entry={previewEntry} onClose={() => setPreviewEntry(null)} />}
     </div>
   );
 }
@@ -603,6 +802,7 @@ function DocumentsView({ user, projects, onUpdate }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const [esig, setEsig] = useState(null);
   const [sigName, setSigName] = useState("");
+  const [previewEntry, setPreviewEntry] = useState(null);
 
   const CAT_META = {
     contracts: { label: "Contracts", icon: "📝", color: C.blue },
@@ -622,6 +822,25 @@ function DocumentsView({ user, projects, onUpdate }) {
     const proj = mine.find(p => p.id === esig.projectId);
     if (proj) onUpdate({ ...proj, documents: { ...proj.documents, [esig.catKey]: proj.documents[esig.catKey].map(d => d.id === esig.id ? { ...d, status: "signed" } : d) } });
     setEsig(null); setSigName("");
+  };
+
+  const updateDocStatus = (cat, docId, status) => {
+    const proj = mine.find(p => p.documents[cat]?.some(d => d.id === docId));
+    if (!proj) return;
+    onUpdate({...proj, documents: {...proj.documents, [cat]: proj.documents[cat].map(d => d.id === docId ? {...d, status} : d)}});
+  };
+
+  const handleAnnotate = (action) => {
+    const proj = mine.find(p => p.id === previewEntry?.projectId);
+    if (!proj) return;
+    const cat = previewEntry.catKey;
+    let anns;
+    if (action.type === "add") anns = [...(previewEntry.annotations||[]), action.ann];
+    else if (action.type === "reply") anns = (previewEntry.annotations||[]).map(a => a.id === action.pinId ? {...a, replies:[...(a.replies||[]),action.reply]} : a);
+    else if (action.type === "resolve") anns = (previewEntry.annotations||[]).map(a => a.id === action.pinId ? {...a, resolved:true} : a);
+    else return;
+    setPreviewEntry(prev => ({...prev, annotations: anns}));
+    onUpdate({...proj, documents: {...proj.documents, [cat]: proj.documents[cat].map(d => d.id === previewEntry.id ? {...d, annotations: anns} : d)}});
   };
 
   if (all.length === 0) return <Empty icon="▣" msg="No documents shared yet." sub="Contracts, estimates, and invoices will appear here." />;
@@ -650,7 +869,9 @@ function DocumentsView({ user, projects, onUpdate }) {
             <div style={{ fontSize: 11, fontWeight: 700, color: meta.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>{meta.icon} {meta.label}</div>
             {docs.map(doc => (
               <div key={doc.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 7, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{meta.icon}</div>
+                {detectPreviewType(doc.name, doc.mimeType||"")==="image" && doc.previewUrl
+                  ? <img src={doc.previewUrl} style={{width:36,height:36,objectFit:"cover",borderRadius:7,flexShrink:0}} alt=""/>
+                  : <div style={{ width: 36, height: 36, borderRadius: 7, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{meta.icon}</div>}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
                   <div style={{ fontSize: 10, color: C.textMuted }}>{doc.projectTitle} · {doc.date} · {doc.uploader}</div>
@@ -659,13 +880,20 @@ function DocumentsView({ user, projects, onUpdate }) {
                 {key === "contracts" && doc.status !== "signed" && (
                   <Btn variant="blue" onClick={() => setEsig(doc)} style={{ fontSize: 10, padding: "4px 10px" }}>✍ Sign</Btn>
                 )}
-                <Btn variant="ghost" style={{ fontSize: 10, padding: "4px 8px" }}>⬇</Btn>
+                <Btn variant="ghost" onClick={() => doc.previewUrl && setPreviewEntry(doc)} style={{ fontSize: 10, padding: "4px 8px", opacity: doc.previewUrl ? 1 : 0.4 }}>{doc.previewUrl ? "👁" : "⬇"}</Btn>
               </div>
             ))}
           </div>
         );
       })}
 
+      {previewEntry && <PreviewModal entry={previewEntry} onClose={() => setPreviewEntry(null)}
+        onAnnotate={detectPreviewType(previewEntry.name,previewEntry.mimeType||"")==="pdf"?handleAnnotate:undefined}
+        authorName={user.name}
+        entryStatus={previewEntry.status}
+        onApprove={previewEntry.status!=="approved"?()=>{updateDocStatus(previewEntry.catKey,previewEntry.id,"approved");setPreviewEntry(p=>({...p,status:"approved"}));}:undefined}
+        onRequestChanges={previewEntry.status!=="changes"?()=>{updateDocStatus(previewEntry.catKey,previewEntry.id,"changes");setPreviewEntry(p=>({...p,status:"changes"}));}:undefined}
+      />}
       {/* E-signature modal */}
       {esig && (
         <div style={{ position: "fixed", inset: 0, background: "#000000E0", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>

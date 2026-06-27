@@ -162,6 +162,170 @@ function Modal({title,onClose,children,wide}){
   </div>;
 }
 
+// ─── Preview helpers ─────────────────────────────────────────────────────────
+
+function detectPreviewType(name="",mimeType=""){
+  const ext=name.split(".").pop().toLowerCase();
+  if(mimeType.startsWith("video/")||["mp4","mov","webm","avi","mkv"].includes(ext))return "video";
+  if(mimeType.startsWith("image/")||["jpg","jpeg","png","gif","webp","svg","bmp"].includes(ext))return "image";
+  if(ext==="pdf"||mimeType==="application/pdf")return "pdf";
+  return null;
+}
+function doDownload(entry){
+  if(!entry?.previewUrl)return;
+  const a=document.createElement("a");a.href=entry.previewUrl;a.download=entry.name;a.click();
+}
+function PreviewModal({entry,onClose,onAnnotate,onApprove,onRequestChanges,entryStatus}){
+  const type=detectPreviewType(entry.name,entry.mimeType||"");
+  const dlBtn=<button onClick={()=>doDownload(entry)} style={{background:"#14141C",border:`1px solid ${C.border}`,color:C.textSec,borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>⬇ Download</button>;
+  if(type==="pdf"&&onAnnotate){
+    return <div style={{position:"fixed",inset:0,background:"#000000E0",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,width:"100%",maxWidth:1140,maxHeight:"94vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 16px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+          <span style={{fontSize:13,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{entry.name}</span>
+          {entryStatus&&<Badge status={entryStatus} small/>}
+          {onApprove&&<Btn variant="green" onClick={onApprove} style={{fontSize:10,padding:"4px 10px",whiteSpace:"nowrap"}}>✓ Approve</Btn>}
+          {onRequestChanges&&<Btn variant="red" onClick={onRequestChanges} style={{fontSize:10,padding:"4px 10px",whiteSpace:"nowrap"}}>✗ Changes</Btn>}
+          {entry.previewUrl&&dlBtn}
+          <button onClick={onClose} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:18,flexShrink:0}}>✕</button>
+        </div>
+        <div style={{flex:1,overflow:"hidden",display:"flex",minHeight:0}}>
+          <PdfAnnotator entry={entry} onAnnotate={onAnnotate}/>
+        </div>
+      </div>
+    </div>;
+  }
+  return <Modal title={entry.name} onClose={onClose} wide>
+    {type==="video"&&<div>
+      <video src={entry.previewUrl} controls autoPlay style={{width:"100%",maxHeight:500,background:"#000",borderRadius:8,display:"block",marginBottom:12}}/>
+      {entry.previewUrl&&<div style={{textAlign:"center"}}>{dlBtn}</div>}
+    </div>}
+    {type==="image"&&<div style={{textAlign:"center",background:"#06060A",borderRadius:8,padding:12}}>
+      <img src={entry.previewUrl} alt={entry.name} style={{maxWidth:"100%",maxHeight:520,objectFit:"contain",borderRadius:6,display:"block",marginBottom:12}}/>
+      {entry.previewUrl&&dlBtn}
+    </div>}
+    {type==="pdf"&&<iframe src={entry.previewUrl} title={entry.name} style={{width:"100%",height:600,border:"none",borderRadius:6}}/>}
+    {!type&&<div style={{textAlign:"center",padding:"40px 0",color:C.textMuted}}><div style={{fontSize:40,marginBottom:12}}>📄</div><p>No preview available for this file type.</p></div>}
+  </Modal>;
+}
+
+function PdfAnnotator({entry,onAnnotate}){
+  const [page,setPage]=useState(1);
+  const [mode,setMode]=useState("view");
+  const [pending,setPending]=useState(null);
+  const [noteText,setNoteText]=useState("");
+  const [activePin,setActivePin]=useState(null);
+  const [reply,setReply]=useState("");
+  const overlayRef=useRef(null);
+
+  const annotations=entry.annotations||[];
+  const pageAnnotations=annotations.filter(a=>a.page===page);
+  const accent=C.cyan;
+
+  const handleCapture=(e)=>{
+    if(mode!=="pin")return;
+    const rect=overlayRef.current.getBoundingClientRect();
+    setPending({x:((e.clientX-rect.left)/rect.width)*100,y:((e.clientY-rect.top)/rect.height)*100});
+    setNoteText("");
+  };
+  const savePin=()=>{
+    if(!pending||!noteText.trim())return;
+    onAnnotate({type:"add",ann:{id:`ann${Date.now()}`,page,x:pending.x,y:pending.y,author:"You",text:noteText,replies:[],resolved:false}});
+    setPending(null);setNoteText("");setMode("view");
+  };
+  const saveReply=(pinId)=>{
+    if(!reply.trim())return;
+    onAnnotate({type:"reply",pinId,reply:{id:`r${Date.now()}`,author:"You",text:reply,date:new Date().toISOString().slice(0,10)}});
+    setReply("");
+  };
+  const resolve=(pinId)=>onAnnotate({type:"resolve",pinId});
+  const iStyle={background:"#0A0A14",border:`1px solid ${C.border}`,borderRadius:5,padding:"6px 9px",color:C.text,fontSize:11,outline:"none"};
+
+  const Pin=({num,x,y,resolved,active,onClick})=>(
+    <div onClick={onClick} title={`Pin ${num}`}
+      style={{position:"absolute",left:`${x}%`,top:`${y}%`,transform:"translate(-50%,-100%)",display:"flex",flexDirection:"column",alignItems:"center",cursor:"pointer",pointerEvents:"all",zIndex:12,filter:resolved?"grayscale(1) opacity(0.35)":"none"}}>
+      <div style={{width:24,height:24,borderRadius:"50%",background:active?"#fff":accent,border:active?`2.5px solid ${accent}`:"2.5px solid rgba(255,255,255,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:active?accent:"#fff",boxShadow:"0 2px 10px rgba(0,0,0,0.7)"}}>{num}</div>
+      <div style={{width:0,height:0,borderLeft:"5px solid transparent",borderRight:"5px solid transparent",borderTop:`6px solid ${active?"#fff":accent}`}}/>
+    </div>
+  );
+
+  return <div style={{display:"flex",flex:1,minHeight:0,overflow:"hidden"}}>
+    <div style={{flex:1,display:"flex",flexDirection:"column",minWidth:0,overflow:"hidden"}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderBottom:`1px solid ${C.border}`,flexShrink:0,background:"#09090F",flexWrap:"wrap"}}>
+        <button onClick={()=>{setPage(p=>Math.max(1,p-1));setPending(null);}} disabled={page<=1}
+          style={{background:"#14141C",border:`1px solid ${C.border}`,color:page<=1?C.textMuted:C.text,borderRadius:5,padding:"4px 10px",cursor:page<=1?"default":"pointer",fontSize:12}}>◀</button>
+        <span style={{fontSize:12,color:C.textSec,minWidth:54,textAlign:"center"}}>Page {page}</span>
+        <button onClick={()=>{setPage(p=>p+1);setPending(null);}}
+          style={{background:"#14141C",border:`1px solid ${C.border}`,color:C.text,borderRadius:5,padding:"4px 10px",cursor:"pointer",fontSize:12}}>▶</button>
+        <span style={{flex:1}}/>
+        {mode==="pin"&&<span style={{fontSize:10,color:accent,fontWeight:600}}>Click to place pin #{annotations.length+1}</span>}
+        <button onClick={()=>{setMode(m=>m==="pin"?"view":"pin");setPending(null);}}
+          style={{background:mode==="pin"?accent+"22":"#14141C",border:`1px solid ${mode==="pin"?accent+"40":C.border}`,color:mode==="pin"?accent:C.textSec,borderRadius:6,padding:"5px 12px",cursor:"pointer",fontSize:11,fontWeight:600}}>
+          {mode==="pin"?"👁 Done":"📌 Add Pin"}
+        </button>
+      </div>
+
+      <div ref={overlayRef} style={{flex:1,position:"relative",overflow:"hidden",background:"#06060A",minHeight:0}}>
+        <iframe src={`${entry.previewUrl}#page=${page}`} style={{width:"100%",height:"100%",border:"none",display:"block"}}/>
+        <div style={{position:"absolute",inset:0,pointerEvents:"none"}}>
+          {pageAnnotations.map(a=>{
+            const num=annotations.findIndex(x=>x.id===a.id)+1;
+            return <Pin key={a.id} num={num} x={a.x} y={a.y} resolved={a.resolved} active={activePin?.id===a.id}
+              onClick={e=>{if(mode!=="pin"){e.stopPropagation();setActivePin(activePin?.id===a.id?null:a);}}}/>;
+          })}
+          {pending&&<div style={{position:"absolute",left:`${pending.x}%`,top:`${pending.y}%`,transform:"translate(-50%,-100%)",display:"flex",flexDirection:"column",alignItems:"center",pointerEvents:"none",zIndex:13,opacity:0.8}}>
+            <div style={{width:24,height:24,borderRadius:"50%",background:accent,border:"2.5px solid rgba(255,255,255,0.9)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:"#fff",boxShadow:"0 2px 8px rgba(0,0,0,0.7)"}}>{annotations.length+1}</div>
+            <div style={{width:0,height:0,borderLeft:"5px solid transparent",borderRight:"5px solid transparent",borderTop:`6px solid ${accent}`}}/>
+          </div>}
+        </div>
+        {mode==="pin"&&<div onClick={handleCapture} style={{position:"absolute",inset:0,zIndex:11,cursor:"crosshair",background:`${accent}05`,border:`2px dashed ${accent}30`}}/>}
+      </div>
+
+      {pending&&<div style={{padding:"10px 12px",borderTop:`1px solid ${C.border}`,display:"flex",gap:8,background:"#08080E",flexShrink:0,alignItems:"center"}}>
+        <span style={{width:22,height:22,borderRadius:"50%",background:accent,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:"#fff",flexShrink:0}}>{annotations.length+1}</span>
+        <input autoFocus value={noteText} onChange={e=>setNoteText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&savePin()} placeholder="Type a note for this pin…" style={{flex:1,...iStyle}}/>
+        <button onClick={savePin} disabled={!noteText.trim()} style={{background:accent,border:"none",color:"#fff",borderRadius:6,padding:"6px 12px",cursor:noteText.trim()?"pointer":"default",fontSize:12,fontWeight:600,opacity:noteText.trim()?1:0.5}}>Pin it</button>
+        <button onClick={()=>setPending(null)} style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,borderRadius:6,padding:"6px 10px",cursor:"pointer",fontSize:12}}>✕</button>
+      </div>}
+    </div>
+
+    <div style={{width:274,borderLeft:`1px solid ${C.border}`,display:"flex",flexDirection:"column",flexShrink:0,overflow:"hidden"}}>
+      <div style={{padding:"10px 14px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+        <span style={{fontSize:11,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em"}}>Pins </span>
+        <span style={{fontSize:11,fontWeight:700,color:accent}}>{annotations.length}</span>
+      </div>
+      <div style={{flex:1,overflowY:"auto"}}>
+        {annotations.length===0&&<div style={{padding:"40px 14px",textAlign:"center",color:C.textMuted,fontSize:12,lineHeight:1.7}}>No pins yet.<br/>Click "Add Pin" then click<br/>anywhere on the PDF.</div>}
+        {annotations.map((a,idx)=>{
+          const isActive=activePin?.id===a.id;
+          return <div key={a.id} onClick={()=>setActivePin(isActive?null:a)}
+            style={{borderBottom:`1px solid ${C.border}22`,padding:"11px 13px",borderLeft:`3px solid ${a.resolved?"#3A3A55":accent}`,background:isActive?accent+"12":"transparent",cursor:"pointer"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:5}}>
+              <span style={{width:20,height:20,borderRadius:"50%",background:a.resolved?"#3A3A55":accent,color:"#fff",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,flexShrink:0}}>{idx+1}</span>
+              <span style={{fontSize:11,fontWeight:600,color:C.text}}>{a.author}</span>
+              <span style={{marginLeft:"auto",fontSize:10,color:C.textMuted,background:"#1A1A28",padding:"1px 6px",borderRadius:3,whiteSpace:"nowrap"}}>p.{a.page}</span>
+            </div>
+            <p style={{margin:"0 0 4px",fontSize:12,color:C.textSec,lineHeight:1.4}}>{a.text}</p>
+            {(a.replies||[]).map(r=>(
+              <div key={r.id} style={{paddingLeft:8,borderLeft:`2px solid ${C.border}`,marginTop:4}}>
+                <span style={{fontSize:10,fontWeight:600,color:C.textSec}}>{r.author}: </span>
+                <span style={{fontSize:10,color:C.textSec}}>{r.text}</span>
+              </div>
+            ))}
+            {isActive&&<div onClick={e=>e.stopPropagation()} style={{marginTop:8}}>
+              <div style={{display:"flex",gap:5,marginBottom:6}}>
+                <input value={reply} onChange={e=>setReply(e.target.value)} onKeyDown={e=>e.key==="Enter"&&saveReply(a.id)} onClick={e=>e.stopPropagation()} placeholder="Reply…" style={{flex:1,...iStyle}}/>
+                <button onClick={()=>saveReply(a.id)} disabled={!reply.trim()} style={{background:accent,border:"none",color:"#fff",borderRadius:5,padding:"5px 10px",cursor:reply.trim()?"pointer":"default",fontSize:11,opacity:reply.trim()?1:0.5}}>→</button>
+              </div>
+              {!a.resolved&&<button onClick={()=>resolve(a.id)} style={{background:C.greenLow,border:`1px solid ${C.green}30`,color:C.green,borderRadius:5,padding:"3px 10px",cursor:"pointer",fontSize:10,fontWeight:600}}>✓ Resolve</button>}
+            </div>}
+          </div>;
+        })}
+      </div>
+    </div>
+  </div>;
+}
+
 // ─── Sign In ──────────────────────────────────────────────────────────────────
 
 function SignIn({onSignIn,logoUrl}){
@@ -243,6 +407,7 @@ function LifecycleBar({current,onChange,canEdit}){
 function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
   const [esigModal,setEsigModal]=useState(null);
   const [esigName,setEsigName]=useState("");
+  const [previewEntry,setPreviewEntry]=useState(null);
   const cats=[
     {id:"contracts",label:"Contracts",icon:"📝",color:C.cyan},
     {id:"budgets",label:"Budgets",icon:"💰",color:C.green,hideFromClient:true},
@@ -254,7 +419,7 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
 
   const updateDocStatus=(cat,id,status)=>onUpdate({...docs,[cat]:docs[cat].map(d=>d.id===id?{...d,status}:d)});
   const addDoc=(cat,file)=>{
-    const nd={id:`doc${Date.now()}`,name:file.name,status:"pending",uploader:"You",date:new Date().toISOString().slice(0,10),shared:false,esig:false};
+    const nd={id:`doc${Date.now()}`,name:file.name,status:"pending",uploader:"You",date:new Date().toISOString().slice(0,10),shared:false,esig:false,mimeType:file.type,previewUrl:URL.createObjectURL(file)};
     onUpdate({...docs,[cat]:[...(docs[cat]||[]),nd]});
   };
   const signDoc=()=>{
@@ -263,6 +428,17 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
     setEsigModal(null);setEsigName("");
   };
   const toggleShared=(cat,id)=>onUpdate({...docs,[cat]:docs[cat].map(d=>d.id===id?{...d,shared:!d.shared}:d)});
+  const handleAnnotate=(action)=>{
+    const cat=previewEntry?._cat;
+    if(!cat)return;
+    let anns;
+    if(action.type==="add")anns=[...(previewEntry.annotations||[]),action.ann];
+    else if(action.type==="reply")anns=(previewEntry.annotations||[]).map(a=>a.id===action.pinId?{...a,replies:[...(a.replies||[]),action.reply]}:a);
+    else if(action.type==="resolve")anns=(previewEntry.annotations||[]).map(a=>a.id===action.pinId?{...a,resolved:true}:a);
+    else return;
+    setPreviewEntry(prev=>({...prev,annotations:anns}));
+    onUpdate({...docs,[cat]:docs[cat].map(d=>d.id===previewEntry.id?{...d,annotations:anns}:d)});
+  };
 
   const totalDocs=visibleCats.reduce((n,c)=>(docs[c.id]||[]).length+n,0);
 
@@ -288,7 +464,9 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"8px 0"}}>No {cat.label.toLowerCase()} yet.</p>}
         {items.map(doc=>(
           <div key={doc.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12}}>
-            <span style={{fontSize:18}}>{cat.icon}</span>
+            {detectPreviewType(doc.name,doc.mimeType||"")==="image"&&doc.previewUrl
+              ?<img src={doc.previewUrl} style={{width:36,height:36,objectFit:"cover",borderRadius:7,flexShrink:0}}/>
+              :<span style={{fontSize:18,flexShrink:0}}>{cat.icon}</span>}
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{doc.name}</div>
               <div style={{fontSize:10,color:C.textMuted}}>{doc.uploader} · {doc.date}{doc.shared&&!isClient?<span style={{color:C.green,marginLeft:8}}>● Shared with client</span>:null}</div>
@@ -297,12 +475,18 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
             {!isClient&&<button onClick={()=>toggleShared(cat.id,doc.id)} style={{background:doc.shared?C.greenLow:"#1E1E28",border:`1px solid ${doc.shared?C.green+"50":C.border}`,color:doc.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10,whiteSpace:"nowrap"}}>{doc.shared?"👁 Shared":"Share"}</button>}
             {cat.id==="contracts"&&doc.status!=="signed"&&<Btn variant="cyan" onClick={()=>setEsigModal({...doc,cat:cat.id})} style={{fontSize:10,padding:"4px 10px"}}>✍ Sign</Btn>}
             {canApprove&&doc.status==="pending"&&<Btn variant="green" onClick={()=>updateDocStatus(cat.id,doc.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
-            <Btn variant="ghost" style={{fontSize:10,padding:"4px 8px"}}>⬇</Btn>
+            <Btn variant="ghost" onClick={()=>doc.previewUrl&&setPreviewEntry({...doc,_cat:cat.id})} style={{fontSize:10,padding:"4px 8px",opacity:doc.previewUrl?1:0.4}}>{doc.previewUrl?"👁":"⬇"}</Btn>
           </div>
         ))}
       </div>;
     })}
 
+    {previewEntry&&<PreviewModal entry={previewEntry} onClose={()=>setPreviewEntry(null)}
+      onAnnotate={detectPreviewType(previewEntry.name,previewEntry.mimeType||"")==="pdf"?handleAnnotate:undefined}
+      entryStatus={previewEntry.status}
+      onApprove={canApprove&&previewEntry.status!=="approved"?()=>{updateDocStatus(previewEntry._cat,previewEntry.id,"approved");setPreviewEntry(p=>({...p,status:"approved"}));}:undefined}
+      onRequestChanges={canApprove&&previewEntry.status!=="changes"?()=>{updateDocStatus(previewEntry._cat,previewEntry.id,"changes");setPreviewEntry(p=>({...p,status:"changes"}));}:undefined}
+    />}
     {esigModal&&<Modal title="✍ E-Signature" onClose={()=>setEsigModal(null)}>
       <p style={{color:C.textSec,fontSize:13,marginBottom:16}}>Signing: <strong style={{color:C.text}}>{esigModal.name}</strong></p>
       <Input label="Type your full name to sign" value={esigName} onChange={e=>setEsigName(e.target.value)} placeholder="Your full legal name"/>
@@ -326,7 +510,7 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
     {id:"storyboards",label:"Storyboards",icon:"📋",color:C.cyan},
   ];
   const addItem=(cat,file)=>{
-    const item={id:`cr${Date.now()}`,name:file.name,status:"pending",shared:false,uploader:"You"};
+    const item={id:`cr${Date.now()}`,name:file.name,status:"pending",shared:false,uploader:"You",mimeType:file.type,previewUrl:URL.createObjectURL(file)};
     onUpdate({...creative,[cat]:[...(creative[cat]||[]),item]});
   };
   const updateStatus=(cat,id,status)=>onUpdate({...creative,[cat]:creative[cat].map(i=>i.id===id?{...i,status}:i)});
@@ -336,6 +520,7 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
     onUpdate({...creative,[cat]:creative[cat].map(i=>i.id===id?{...i,comments:[...(i.comments||[]),comment]}:i)});
   };
   const [commentInputs,setCommentInputs]=useState({});
+  const [previewEntry,setPreviewEntry]=useState(null);
 
   return <div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
@@ -363,8 +548,11 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
           const ck=`${cat.id}_${item.id}`;
           return <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-              <span style={{fontSize:16}}>{cat.icon}</span>
+              {detectPreviewType(item.name,item.mimeType||"")==="image"&&item.previewUrl
+                ?<img src={item.previewUrl} style={{width:28,height:28,objectFit:"cover",borderRadius:5,flexShrink:0}}/>
+                :<span style={{fontSize:16,flexShrink:0}}>{cat.icon}</span>}
               <span style={{fontSize:12,fontWeight:600,color:C.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</span>
+              {item.previewUrl&&<Btn variant="ghost" onClick={()=>setPreviewEntry(item)} style={{fontSize:10,padding:"4px 8px"}}>👁</Btn>}
               <Badge status={item.status} small/>
               {!isClient&&<button onClick={()=>toggleShared(cat.id,item.id)} style={{background:item.shared?C.greenLow:"#1E1E28",border:`1px solid ${item.shared?C.green+"50":C.border}`,color:item.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>{item.shared?"👁 Shared":"Share"}</button>}
               {canApprove&&<Btn variant="green" onClick={()=>updateStatus(cat.id,item.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓ Approve</Btn>}
@@ -385,6 +573,7 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
         })}
       </div>;
     })}
+    {previewEntry&&<PreviewModal entry={previewEntry} onClose={()=>setPreviewEntry(null)}/>}
   </div>;
 }
 
@@ -548,8 +737,9 @@ function WrapPanel({wrap,onUpdate,isClient}){
     {id:"deliverables",label:"Deliverables",icon:"📦",color:C.green,clientVisible:true},
   ];
   const visible=isClient?cats.filter(c=>c.clientVisible):cats;
+  const [previewEntry,setPreviewEntry]=useState(null);
   const addItem=(cat,file)=>{
-    const item={id:`w${Date.now()}`,name:file.name,status:"pending",date:new Date().toISOString().slice(0,10)};
+    const item={id:`w${Date.now()}`,name:file.name,status:"pending",date:new Date().toISOString().slice(0,10),mimeType:file.type,previewUrl:URL.createObjectURL(file)};
     onUpdate({...wrap,[cat]:[...(wrap[cat]||[]),item]});
   };
   const totalDelivered=(wrap.deliverables||[]).filter(d=>d.status==="delivered").length;
@@ -576,16 +766,19 @@ function WrapPanel({wrap,onUpdate,isClient}){
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12}}>No {cat.label.toLowerCase()} yet.</p>}
         {items.map(item=>(
           <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:16}}>{cat.icon}</span>
-            <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{item.name}</div>
+            {detectPreviewType(item.name,item.mimeType||"")==="image"&&item.previewUrl
+              ?<img src={item.previewUrl} style={{width:28,height:28,objectFit:"cover",borderRadius:5,flexShrink:0}}/>
+              :<span style={{fontSize:16,flexShrink:0}}>{cat.icon}</span>}
+            <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
             <div style={{fontSize:10,color:C.textMuted}}>{item.date}</div></div>
             <Badge status={item.status} small/>
-            <Btn variant="ghost" style={{fontSize:10,padding:"4px 8px"}}>⬇</Btn>
+            <Btn variant="ghost" onClick={()=>item.previewUrl?setPreviewEntry(item):doDownload(item)} style={{fontSize:10,padding:"4px 8px",opacity:item.previewUrl?1:0.4}}>{item.previewUrl?"👁":"⬇"}</Btn>
           </div>
         ))}
       </div>;
     })}
 
+    {previewEntry&&<PreviewModal entry={previewEntry} onClose={()=>setPreviewEntry(null)}/>}
     <div style={{marginTop:16}}>
       <label style={{fontSize:10,color:C.textMuted,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Wrap Notes</label>
       <textarea value={wrap.wrapNotes||""} onChange={e=>onUpdate({...wrap,wrapNotes:e.target.value})} rows={3}
@@ -628,7 +821,8 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
   const toggleShare=(id)=>onUpdate(posts.map(p=>p.id===id?{...p,shared:!p.shared}:p));
   const updateStatus=(id,status)=>{onUpdate(posts.map(p=>p.id===id?{...p,status}:p));if(playing?.id===id)setPlaying(prev=>({...prev,status}));};
   const addPost=(file)=>{
-    onUpdate([...posts,{id:`pa${Date.now()}`,type:file.type.startsWith("video")?"video":"board",name:file.name,version:"v01",status:"pending",uploader:"You",duration:file.type.startsWith("video")?120:undefined,editNotes:"",shared:false,comments:[]}]);
+    const previewUrl=URL.createObjectURL(file);
+    onUpdate([...posts,{id:`pa${Date.now()}`,type:file.type.startsWith("video")?"video":"board",name:file.name,version:"v01",status:"pending",uploader:"You",duration:file.type.startsWith("video")?120:undefined,editNotes:"",shared:false,comments:[],mimeType:file.type,previewUrl}]);
   };
 
   return <div style={{display:"flex",gap:20,minHeight:0}}>
@@ -667,8 +861,12 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
         </div>
       </div>
       <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:10,padding:20}}>
-        <div style={{width:64,height:64,borderRadius:"50%",background:"#16161E",border:`2px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:24}} onClick={togglePlay}>{running?"⏸":"▶"}</div>
-        <span style={{fontSize:11,color:C.textMuted,fontFamily:"monospace"}}>{fmtTime(t)} / {fmtTime(dur)}</span>
+        {playing.previewUrl&&playing.mimeType?.startsWith("video/")
+          ?<video src={playing.previewUrl} controls style={{maxWidth:"100%",maxHeight:340,borderRadius:8,background:"#000",display:"block"}}/>
+          :playing.previewUrl&&playing.mimeType?.startsWith("image/")
+          ?<img src={playing.previewUrl} alt={playing.name} style={{maxWidth:"100%",maxHeight:340,objectFit:"contain",borderRadius:8}}/>
+          :<><div style={{width:64,height:64,borderRadius:"50%",background:"#16161E",border:`2px solid ${C.border}`,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:24}} onClick={togglePlay}>{running?"⏸":"▶"}</div>
+          <span style={{fontSize:11,color:C.textMuted,fontFamily:"monospace"}}>{fmtTime(t)} / {fmtTime(dur)}</span></>}
       </div>
       {/* Scrubber */}
       <div style={{padding:"10px 14px",borderTop:`1px solid ${C.border}`}}>

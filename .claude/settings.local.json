@@ -5,7 +5,8 @@
       "Bash(gh repo *)",
       "Bash(npm install *)",
       "Bash(npm run *)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(node *)"
     ]
   }
 }
