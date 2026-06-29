@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import ClientPortal from './ClientPortal';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
-const C_DARK_BASE={
+const C = {
   bg:"#08080B",surface:"#0F0F14",card:"#141419",
   border:"#252530",borderHover:"#383848",
   orange:"#FF5500",orangeLow:"#FF550018",
@@ -15,40 +15,6 @@ const C_DARK_BASE={
   pink:"#FF6EC7",pinkLow:"#FF6EC715",
   text:"#EEEEF5",textSec:"#8A8A9A",textMuted:"#484858",
 };
-const C_LIGHT_BASE={
-  bg:"#F2F2F8",surface:"#FFFFFF",card:"#FFFFFF",
-  border:"#E0E0EE",borderHover:"#C8C8E0",
-  orange:"#FF5500",orangeLow:"#FF550015",
-  cyan:"#007ACC",cyanLow:"#007ACC15",
-  green:"#16A870",greenLow:"#16A87015",
-  yellow:"#C08800",yellowLow:"#C0880015",
-  red:"#E03030",redLow:"#E0303015",
-  purple:"#7050CC",purpleLow:"#7050CC15",
-  teal:"#009980",tealLow:"#00998015",
-  pink:"#D04090",pinkLow:"#D0409015",
-  text:"#1A1A2E",textSec:"#5858A0",textMuted:"#9898C0",
-};
-const BRAND_DEFAULTS={
-  primaryColor:"#FF5500",secondaryColor:"#00C2FF",
-  bgColor:"",surfaceColor:"",
-  companyName:"FRAMEX",platformName:"POST PRODUCTION",
-  logoUrl:null,loginBgUrl:null,loginHeadline:"",
-  theme:"dark",
-};
-let C={...C_DARK_BASE};
-function buildC(brand={}){
-  const b={...BRAND_DEFAULTS,...brand};
-  const base=b.theme==="light"?{...C_LIGHT_BASE}:{...C_DARK_BASE};
-  const primary=b.primaryColor||base.orange;
-  const secondary=b.secondaryColor||base.cyan;
-  return {
-    ...base,
-    orange:primary,orangeLow:primary+"18",
-    cyan:secondary,cyanLow:secondary+"15",
-    ...(b.bgColor?{bg:b.bgColor}:{}),
-    ...(b.surfaceColor?{surface:b.surfaceColor,card:b.surfaceColor}:{}),
-  };
-}
 
 const STATUS_META = {
   approved:  {label:"Approved",      color:C.green,  bg:C.greenLow},
@@ -105,6 +71,12 @@ const SEED_PROJECTS = [
    clientComments:[{id:"cc1",author:"Jordan Lee",date:"2026-06-10",text:"Love the explosion effect at 0:47 — can we hold that frame a bit longer?",resolved:false}],
    internalNotes:"Client has final approval gate on grade. Delivery deadline firm.",
    posts:[{id:"pa1",type:"video",name:"TitanA_comp_v04.mp4",version:"v04",status:"in_review",uploader:"Tom R.",duration:124,editNotes:"Explosion edge needs scatter.",shared:true,comments:[{id:"c1",time:12,author:"Sarah D.",text:"More scatter on edge",color:"#FF5500",resolved:false}]}],
+   milestones:[
+     {date:"2026-04-15",label:"Kickoff Complete"},
+     {date:"2026-05-01",label:"VFX Rough Cut"},
+     {date:"2026-06-01",label:"Picture Lock"},
+     {date:"2026-06-20",label:"Delivery"},
+   ],
   },
   {id:2,title:"Dragon Awakening",client:"Disney",clientId:null,status:"pre",producer:"Ana P.",startDate:"2026-06-01",deliveryDate:"2026-08-15",budget:720000,
    documents:{contracts:[],budgets:[{id:"doc6",name:"Dragon_Budget_Draft.xlsx",status:"draft",uploader:"Mike J.",date:"2026-06-05",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[{id:"doc7",name:"VFX_Estimate_v1.pdf",status:"draft",uploader:"Ana P.",date:"2026-06-04",shared:false,esig:false,mimeType:"application/pdf"}],invoices:[],schedules:[]},
@@ -114,6 +86,7 @@ const SEED_PROJECTS = [
    wrap:{finalInvoices:[],expenseReports:[],signedContracts:[],releases:[],deliverables:[],wrapNotes:""},
    clientComments:[],internalNotes:"Greenlight pending Disney legal review.",
    posts:[],
+   milestones:[],
   },
   {id:3,title:"Neon City Commercial",client:"Netflix",clientId:null,status:"wrap",producer:"Ana P.",startDate:"2026-02-01",deliveryDate:"2026-06-15",budget:210000,
    documents:{contracts:[{id:"doc8",name:"Netflix_Contract.pdf",status:"signed",uploader:"Ana P.",date:"2026-02-01",shared:true,esig:true,mimeType:"application/pdf"}],budgets:[{id:"doc9",name:"NeonCity_Final_Budget.xlsx",status:"approved",uploader:"Mike J.",date:"2026-06-01",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[],invoices:[{id:"doc10",name:"Final_Invoice_100pct.pdf",status:"sent",uploader:"Mike J.",date:"2026-06-14",shared:true,esig:false,mimeType:"application/pdf"}],schedules:[]},
@@ -123,6 +96,7 @@ const SEED_PROJECTS = [
    wrap:{finalInvoices:[{id:"wi1",name:"Final_Invoice_100pct.pdf",status:"sent",date:"2026-06-14"}],expenseReports:[{id:"we1",name:"Expense_Summary.xlsx",status:"pending",date:"2026-06-15"}],signedContracts:[{id:"wc1",name:"Netflix_Contract_Signed.pdf",date:"2026-02-02"}],releases:[{id:"wr1",name:"Talent_Release_All.pdf",status:"signed",date:"2026-05-20"}],deliverables:[{id:"wd1",name:"NeonCity_Master_4K.mp4",status:"delivered",date:"2026-06-14"}],wrapNotes:"All deliverables sent. Awaiting final payment."},
    clientComments:[],internalNotes:"Final payment due Jul 1.",
    posts:[{id:"pa2",type:"video",name:"NeonCity_final_v07.mp4",version:"v07",status:"approved",uploader:"Sam K.",duration:210,editNotes:"Picture locked.",shared:true,comments:[]}],
+   milestones:[],
   },
 ];
 
@@ -406,236 +380,14 @@ function PdfAnnotator({entry,onAnnotate}){
   </div>;
 }
 
-// ─── Project Action Components ────────────────────────────────────────────────
-
-function ProjectActionsMenu({project,currentUser,onEdit,onDuplicate,onArchive,onDelete}){
-  const [open,setOpen]=useState(false);
-  if(currentUser.role!=="admin"&&currentUser.role!=="producer")return null;
-  const close=()=>setOpen(false);
-  const item=(label,icon,handler,red)=>(
-    <button onClick={e=>{e.stopPropagation();close();handler();}}
-      style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"7px 12px",background:"none",border:"none",cursor:"pointer",color:red?C.red:C.text,fontSize:12,textAlign:"left"}}
-      onMouseEnter={e=>e.currentTarget.style.background=red?C.redLow:"#1A1A28"}
-      onMouseLeave={e=>e.currentTarget.style.background="none"}>
-      <span>{icon}</span>{label}
-    </button>
-  );
-  return (
-    <div style={{position:"relative"}} onClick={e=>e.stopPropagation()}>
-      <button onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}
-        style={{background:"none",border:`1px solid ${C.border}`,borderRadius:6,color:C.textSec,cursor:"pointer",fontSize:16,padding:"2px 7px",lineHeight:1}}>⋯</button>
-      {open&&<>
-        <div style={{position:"fixed",inset:0,zIndex:199}} onClick={e=>{e.stopPropagation();close();}}/>
-        <div style={{position:"absolute",right:0,top:"calc(100% + 4px)",zIndex:200,background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,minWidth:170,boxShadow:"0 8px 24px #00000060",overflow:"hidden"}}>
-          {item("Edit Project","✏️",onEdit)}
-          {item("Duplicate","⎘",onDuplicate)}
-          {item("Archive","🗄️",onArchive)}
-          <div style={{height:1,background:C.border,margin:"4px 0"}}/>
-          {item("Delete Project","🗑️",onDelete,true)}
-        </div>
-      </>}
-    </div>
-  );
-}
-
-function DeleteConfirmModal({project,onConfirm,onClose}){
-  return (
-    <Modal title="Delete Project" onClose={onClose}>
-      <div style={{padding:"4px 0 20px"}}>
-        <p style={{margin:"0 0 8px",fontSize:14,color:C.text}}>Are you sure you want to delete <strong>"{project.title}"</strong>?</p>
-        <p style={{margin:0,fontSize:12,color:C.textMuted}}>This cannot be undone. All documents, assets, and settings will be permanently removed.</p>
-      </div>
-      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-        <Btn onClick={onClose}>Cancel</Btn>
-        <Btn variant="red" onClick={onConfirm}>Delete Project</Btn>
-      </div>
-    </Modal>
-  );
-}
-
-function EditProjectModal({project,onSave,onClose}){
-  const [form,setForm]=useState({
-    title:project.title||"",client:project.client||"",
-    producer:project.producer||"",deliveryDate:project.deliveryDate||"",
-    budget:project.budget||0,status:project.status||"inquiry",
-  });
-  const fset=(k,v)=>setForm(f=>({...f,[k]:v}));
-  const save=()=>{if(!form.title.trim())return;onSave({...project,...form,budget:parseInt(form.budget)||0});};
-  return (
-    <Modal title="Edit Project" onClose={onClose}>
-      <Input label="Project Title" value={form.title} onChange={e=>fset("title",e.target.value)} placeholder="Dragon Awakening — VFX Package"/>
-      <Input label="Client Name" value={form.client} onChange={e=>fset("client",e.target.value)} placeholder="Paramount Pictures"/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-        <Input label="Lead Producer" value={form.producer} onChange={e=>fset("producer",e.target.value)}/>
-        <Input label="Delivery Date" value={form.deliveryDate} onChange={e=>fset("deliveryDate",e.target.value)} type="date"/>
-        <Input label="Budget (£)" value={form.budget} onChange={e=>fset("budget",e.target.value)} type="number"/>
-        <div>
-          <label style={{fontSize:10,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Lifecycle Stage</label>
-          <select value={form.status} onChange={e=>fset("status",e.target.value)}
-            style={{width:"100%",background:"#0D0D14",border:`1px solid ${C.border}`,borderRadius:6,padding:"8px 10px",color:C.text,fontSize:13,outline:"none"}}>
-            {LIFECYCLE.map(s=><option key={s} value={s}>{LIFECYCLE_META[s].icon} {LIFECYCLE_META[s].label}</option>)}
-          </select>
-        </div>
-      </div>
-      <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16}}>
-        <Btn onClick={onClose}>Cancel</Btn>
-        <Btn variant="primary" onClick={save} disabled={!form.title.trim()}>Save Changes</Btn>
-      </div>
-    </Modal>
-  );
-}
-
-function BrandSettingsModal({brand,onUpdate,onClose}){
-  const b={...BRAND_DEFAULTS,...brand};
-  const set=(k,v)=>onUpdate({...b,[k]:v});
-  const pickImg=(key)=>{
-    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
-    inp.onchange=(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>set(key,ev.target.result);r.readAsDataURL(f);};
-    inp.click();
-  };
-  const pC=buildC(b);
-  const cn=b.companyName||"FRAMEX";
-  const pn=b.platformName||"POST PRODUCTION";
-  const effLogo=b.logoUrl;
-  const is={width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:6,color:C.text,padding:"7px 10px",fontSize:12,boxSizing:"border-box",outline:"none"};
-  const sl={fontSize:9,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10,display:"block"};
-  const sc={marginBottom:20,paddingBottom:18,borderBottom:`1px solid ${C.border}`};
-  const colorRow=(label,key,ph)=>(
-    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-      <input type="color" value={b[key]||(key==="primaryColor"?pC.orange:key==="secondaryColor"?pC.cyan:key==="bgColor"?pC.bg:pC.surface)}
-        onChange={e=>set(key,e.target.value)} style={{width:34,height:26,border:"none",background:"none",cursor:"pointer",padding:0,flexShrink:0}}/>
-      <input value={b[key]||""} onChange={e=>{if(/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value))set(key,e.target.value);}}
-        placeholder={ph} style={{...is,width:96,fontFamily:"monospace"}}/>
-      <span style={{fontSize:11,color:C.textMuted,flexShrink:0}}>{label}</span>
-    </div>
-  );
-  const imgZone=(key,h)=>(
-    <div onClick={()=>pickImg(key)} style={{height:h,background:C.card,border:`1px dashed ${C.border}`,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",transition:"border-color 0.15s",marginBottom:4}}
-      onMouseEnter={e=>e.currentTarget.style.borderColor=C.orange}
-      onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-      {b[key]?<img src={b[key]} alt="" style={{width:"100%",height:"100%",objectFit:key==="logoUrl"||key==="loginBgUrl"&&false?"contain":"cover",padding:key==="logoUrl"?"4px":0}}/>
-        :<span style={{fontSize:11,color:C.textMuted}}>Click to upload</span>}
-    </div>
-  );
-  return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
-      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,width:"100%",maxWidth:1000,maxHeight:"calc(100vh - 40px)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 24px 80px #00000080"}}>
-        <div style={{padding:"14px 22px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
-          <span style={{fontSize:14,fontWeight:700,color:C.text}}>⚙️ Brand Settings</span>
-          <span style={{fontSize:11,color:C.textMuted}}>Changes apply immediately across the platform</span>
-          <div style={{marginLeft:"auto",display:"flex",gap:8}}>
-            <button onClick={()=>onUpdate({})} style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:6,padding:"4px 12px",fontSize:11}}>Reset to defaults</button>
-            <button onClick={onClose} style={{background:"none",border:`1px solid ${C.border}`,color:C.textSec,cursor:"pointer",borderRadius:6,padding:"4px 12px",fontSize:12}}>✕ Close</button>
-          </div>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"320px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
-          <div style={{padding:"18px 20px",overflowY:"auto",borderRight:`1px solid ${C.border}`}}>
-            <div style={sc}>
-              <span style={sl}>Company Identity</span>
-              <div style={{marginBottom:10}}><div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Company Name</div><input value={b.companyName} onChange={e=>set("companyName",e.target.value)} placeholder="FRAMEX" style={is}/></div>
-              <div style={{marginBottom:10}}><div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Platform Subtitle</div><input value={b.platformName} onChange={e=>set("platformName",e.target.value)} placeholder="POST PRODUCTION" style={is}/></div>
-              <div><div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Logo</div>{imgZone("logoUrl",58)}
-                {b.logoUrl&&<button onClick={()=>set("logoUrl",null)} style={{fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ Remove</button>}</div>
-            </div>
-            <div style={sc}>
-              <span style={sl}>Colors</span>
-              {colorRow("Primary Accent","primaryColor","#FF5500")}
-              {colorRow("Secondary","secondaryColor","#00C2FF")}
-              {colorRow("Background","bgColor","(default)")}
-              {colorRow("Surface / Cards","surfaceColor","(default)")}
-            </div>
-            <div style={sc}>
-              <span style={sl}>Theme</span>
-              <div style={{display:"flex",gap:8}}>
-                {[{val:"dark",label:"🌙 Dark"},{val:"light",label:"☀️ Light"}].map(opt=>(
-                  <button key={opt.val} onClick={()=>set("theme",opt.val)} style={{flex:1,padding:"8px 0",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",background:b.theme===opt.val?C.orange+"20":"none",border:`1.5px solid ${b.theme===opt.val?C.orange:C.border}`,color:b.theme===opt.val?C.orange:C.textSec}}>{opt.label}</button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <span style={sl}>Login Screen</span>
-              <div style={{marginBottom:10}}><div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Background Image</div>{imgZone("loginBgUrl",56)}
-                {b.loginBgUrl&&<button onClick={()=>set("loginBgUrl",null)} style={{fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ Remove</button>}</div>
-              <div><div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Login Headline</div><input value={b.loginHeadline} onChange={e=>set("loginHeadline",e.target.value)} placeholder="Sign in to your workspace" style={is}/></div>
-            </div>
-          </div>
-          <div style={{overflowY:"auto",background:"#06060E",padding:"18px"}}>
-            <div style={{fontSize:9,color:"#3A3A55",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.12em"}}>Live Preview</div>
-            <div style={{borderRadius:10,overflow:"hidden",border:"1px solid #1A1A28",marginBottom:14,boxShadow:"0 8px 32px #00000060"}}>
-              <div style={{height:42,background:pC.surface,borderBottom:`1px solid ${pC.border}`,display:"flex",alignItems:"center",padding:"0 14px",gap:10}}>
-                {effLogo?<img src={effLogo} alt="Logo" style={{height:22,objectFit:"contain"}}/>
-                  :<div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{width:24,height:24,background:pC.orange,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10}}>🎬</div>
-                    <div>
-                      <div style={{fontSize:10,fontWeight:800,color:pC.text,letterSpacing:"-0.03em"}}>{cn.slice(0,-1)}<span style={{color:pC.orange}}>{cn.slice(-1)}</span></div>
-                      <div style={{fontSize:7,color:pC.textMuted,letterSpacing:"0.08em",textTransform:"uppercase"}}>{pn.slice(0,18)}</div>
-                    </div>
-                  </div>}
-                <div style={{marginLeft:"auto",display:"flex",gap:6,alignItems:"center"}}>
-                  <div style={{fontSize:9,background:pC.orange,color:"#fff",borderRadius:4,padding:"2px 8px",fontWeight:700}}>+ New</div>
-                  <div style={{width:20,height:20,borderRadius:"50%",background:pC.orange+"30",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:pC.orange,fontWeight:700}}>SA</div>
-                </div>
-              </div>
-              <div style={{padding:"10px 12px",background:pC.bg}}>
-                <div style={{display:"flex",gap:5,marginBottom:9}}>
-                  {["Inquiry","Awarded","Pre-Pro","Production","Post"].map((s,i)=>(
-                    <div key={s} style={{flex:1,background:pC.card,border:`1px solid ${i===3?pC.orange+"50":pC.border}`,borderRadius:6,padding:"5px 6px",textAlign:"center"}}>
-                      <div style={{fontSize:12,fontWeight:700,color:i===3?pC.orange:pC.text}}>3</div>
-                      <div style={{fontSize:7,color:pC.textMuted}}>{s}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-                  {[{t:"Dragon Awakening",c:"Paramount",s:"Production",a:true},{t:"Brand Refresh",c:"Nike Corp",s:"Post VFX",a:false}].map(p=>(
-                    <div key={p.t} style={{background:pC.card,border:`1px solid ${pC.border}`,borderRadius:7,padding:"8px 10px"}}>
-                      <div style={{fontSize:8,background:p.a?pC.orange+"20":pC.cyan+"20",color:p.a?pC.orange:pC.cyan,borderRadius:3,padding:"1px 5px",display:"inline-block",marginBottom:4,fontWeight:600}}>{p.s}</div>
-                      <div style={{fontSize:10,fontWeight:600,color:pC.text,marginBottom:1}}>{p.t}</div>
-                      <div style={{fontSize:9,color:pC.textMuted}}>{p.c}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div style={{borderRadius:10,overflow:"hidden",border:"1px solid #1A1A28",boxShadow:"0 8px 32px #00000060"}}>
-              <div style={{position:"relative",padding:"18px 14px",background:b.loginBgUrl?`url(${b.loginBgUrl}) center/cover no-repeat`:pC.bg,textAlign:"center",minHeight:140}}>
-                {b.loginBgUrl&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.58)"}}/>}
-                <div style={{position:"relative"}}>
-                  {effLogo?<img src={effLogo} alt="" style={{height:28,objectFit:"contain",marginBottom:8}}/>
-                    :<div style={{display:"inline-flex",alignItems:"center",gap:7,marginBottom:8}}>
-                      <div style={{width:28,height:28,background:pC.orange,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>🎬</div>
-                      <div style={{textAlign:"left"}}>
-                        <div style={{fontSize:12,fontWeight:800,color:b.loginBgUrl?"#fff":pC.text,letterSpacing:"-0.04em"}}>{cn.slice(0,-1)}<span style={{color:pC.orange}}>{cn.slice(-1)}</span></div>
-                        <div style={{fontSize:7,color:b.loginBgUrl?"#ffffff70":pC.textMuted,textTransform:"uppercase",letterSpacing:"0.12em"}}>{pn}</div>
-                      </div>
-                    </div>}
-                  <div style={{fontSize:10,color:b.loginBgUrl?"#ffffffA0":pC.textMuted,marginBottom:10}}>{b.loginHeadline||"Sign in to your workspace"}</div>
-                  <div style={{background:pC.card,border:`1px solid ${pC.border}`,borderRadius:9,padding:"10px",maxWidth:180,margin:"0 auto"}}>
-                    <div style={{background:pC.surface,border:`1px solid ${pC.border}`,borderRadius:5,padding:"4px 8px",fontSize:9,color:pC.textMuted,marginBottom:5,textAlign:"left"}}>email@studio.com</div>
-                    <div style={{background:pC.surface,border:`1px solid ${pC.border}`,borderRadius:5,padding:"4px 8px",fontSize:9,color:pC.textMuted,marginBottom:7,textAlign:"left"}}>••••••••</div>
-                    <div style={{background:pC.orange,borderRadius:5,padding:"6px",fontSize:10,fontWeight:700,color:"#fff"}}>Sign In →</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Sign In ──────────────────────────────────────────────────────────────────
 
-function SignIn({onSignIn,brand,logoUrl}){
+function SignIn({onSignIn,logoUrl}){
   const [email,setEmail]=useState("");
   const [pass,setPass]=useState("");
   const [err,setErr]=useState("");
   const [loading,setLoading]=useState(false);
   const [showPass,setShowPass]=useState(false);
-  const b={...BRAND_DEFAULTS,...brand};
-  const effLogo=b.logoUrl||logoUrl;
-  const cn=b.companyName||"FRAMEX";
-  const pn=b.platformName||"Production Suite";
 
   const attempt=()=>{
     setErr("");setLoading(true);
@@ -646,17 +398,16 @@ function SignIn({onSignIn,brand,logoUrl}){
     },500);
   };
 
-  return <div style={{minHeight:"100vh",background:b.loginBgUrl?`url(${b.loginBgUrl}) center/cover no-repeat`:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",padding:20,position:"relative"}}>
-    {b.loginBgUrl&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:0}}/>}
-    <div style={{width:"100%",maxWidth:420,position:"relative",zIndex:1}}>
+  return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",padding:20}}>
+    <div style={{width:"100%",maxWidth:420}}>
       <div style={{textAlign:"center",marginBottom:32}}>
-        {effLogo?<img src={effLogo} alt="Logo" style={{height:52,objectFit:"contain",marginBottom:12}}/>:
+        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:52,objectFit:"contain",marginBottom:12}}/>:
           <div style={{display:"inline-flex",alignItems:"center",gap:12,marginBottom:12}}>
             <div style={{width:42,height:42,background:C.orange,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🎬</div>
-            <div style={{textAlign:"left"}}><div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.04em"}}>{cn.slice(0,-1)}<span style={{color:C.orange}}>{cn.slice(-1)}</span></div>
-            <div style={{fontSize:9,color:C.textMuted,letterSpacing:"0.12em",textTransform:"uppercase"}}>{pn}</div></div>
+            <div style={{textAlign:"left"}}><div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.04em"}}>FRAME<span style={{color:C.orange}}>X</span></div>
+            <div style={{fontSize:9,color:C.textMuted,letterSpacing:"0.12em",textTransform:"uppercase"}}>Production Suite</div></div>
           </div>}
-        <p style={{margin:0,fontSize:13,color:C.textMuted}}>{b.loginHeadline||"Sign in to your workspace"}</p>
+        <p style={{margin:0,fontSize:13,color:C.textMuted}}>Sign in to your workspace</p>
       </div>
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:26,marginBottom:14}}>
         <Input label="Email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@studio.com" type="email"/>
@@ -835,6 +586,35 @@ function PortalCustomizeModal({project,settings,onUpdate,onClose}){
   };
   const set=(k,v)=>onUpdate({...s,[k]:v});
 
+  const NAV_DEFAULTS_LOCAL = [
+    { id:"home",         label:"Home",         sym:"⌂",  visible:true },
+    { id:"projects",     label:"Projects",     sym:"◈",  visible:true },
+    { id:"deliverables", label:"Deliverables", sym:"▶",  visible:true },
+    { id:"creative",     label:"Creative",     sym:"✦",  visible:true },
+    { id:"documents",    label:"Documents",    sym:"▣",  visible:true },
+    { id:"messages",     label:"Messages",     sym:"◉",  visible:true },
+  ];
+  const NAV_ADDABLE_LOCAL = [
+    { id:"vfx",label:"VFX & 3D",sym:"✺" },
+    { id:"design",label:"Design",sym:"◇" },
+    { id:"final",label:"Final Outputs",sym:"★" },
+    { id:"billing",label:"Billing",sym:"$" },
+    { id:"contacts",label:"Contacts",sym:"◎" },
+    { id:"locations",label:"Locations",sym:"⊕" },
+    { id:"guide",label:"Guide",sym:"?" },
+  ];
+  const [navCfg,setNavCfg]=useState(()=>{
+    try{ return JSON.parse(localStorage.getItem("framex_portal_nav")||"null")||NAV_DEFAULTS_LOCAL; }
+    catch{ return NAV_DEFAULTS_LOCAL; }
+  });
+  const [addingCustomNav,setAddingCustomNav]=useState(false);
+  const [customNavLabel,setCustomNavLabel]=useState("");
+  const saveNavCfg=(items)=>{
+    setNavCfg(items);
+    localStorage.setItem("framex_portal_nav",JSON.stringify(items));
+  };
+  const NAV_CORE_IDS=["home","projects","deliverables","creative","documents","messages"];
+
   const pickImg=(key)=>{
     const inp=document.createElement("input");
     inp.type="file";inp.accept="image/*";
@@ -964,6 +744,46 @@ function PortalCustomizeModal({project,settings,onUpdate,onClose}){
                   }}>{opt.label}</button>
                 ))}
               </div>
+            </div>
+
+            {/* Navigation */}
+            <div style={{...sec,marginTop:22,borderBottom:"none",paddingBottom:0}}>
+              <span style={lbl}>Portal Navigation</span>
+              {navCfg.map(item=>(
+                <div key={item.id} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                  <input type="checkbox" checked={item.visible} onChange={e=>saveNavCfg(navCfg.map(i=>i.id===item.id?{...i,visible:e.target.checked}:i))}
+                    style={{width:14,height:14,cursor:"pointer"}}/>
+                  <input value={item.label} onChange={e=>saveNavCfg(navCfg.map(i=>i.id===item.id?{...i,label:e.target.value}:i))}
+                    style={{...inp,flex:1,padding:"4px 8px"}}/>
+                  {!NAV_CORE_IDS.includes(item.id)&&
+                    <button onClick={()=>saveNavCfg(navCfg.filter(i=>i.id!==item.id))}
+                      style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14,padding:"0 2px"}}>✕</button>}
+                </div>
+              ))}
+              {!addingCustomNav
+                ? <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
+                    {NAV_ADDABLE_LOCAL.filter(a=>!navCfg.find(n=>n.id===a.id)).map(a=>(
+                      <button key={a.id} onClick={()=>saveNavCfg([...navCfg,{...a,visible:true}])}
+                        style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:5,padding:"3px 8px",fontSize:10}}>
+                        + {a.label}
+                      </button>
+                    ))}
+                    <button onClick={()=>setAddingCustomNav(true)}
+                      style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:5,padding:"3px 8px",fontSize:10}}>
+                      + Custom…
+                    </button>
+                  </div>
+                : <div style={{display:"flex",gap:6,marginTop:8}}>
+                    <input value={customNavLabel} onChange={e=>setCustomNavLabel(e.target.value)}
+                      placeholder="Section name" style={{...inp,flex:1,padding:"4px 8px"}}
+                      onKeyDown={e=>{
+                        if(e.key==="Enter"&&customNavLabel.trim()){
+                          saveNavCfg([...navCfg,{id:"custom_"+Date.now(),label:customNavLabel.trim(),sym:"◈",visible:true}]);
+                          setCustomNavLabel(""); setAddingCustomNav(false);
+                        }
+                      }}/>
+                    <button onClick={()=>setAddingCustomNav(false)} style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:5,padding:"4px 8px",fontSize:11}}>Cancel</button>
+                  </div>}
             </div>
           </div>
 
@@ -1586,7 +1406,7 @@ function ClientComments({comments,onUpdate,currentUser}){
 
 // ─── Project Detail ───────────────────────────────────────────────────────────
 
-function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onEdit,onDuplicate,onArchive}){
+function ProjectDetail({project,onUpdate,currentUser,onBack}){
   const isClient=ROLES[currentUser.role].isClient;
   const canApprove=ROLES[currentUser.role].canApprove;
   const canSeeInternal=ROLES[currentUser.role].canSeeInternal;
@@ -1646,12 +1466,6 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onEdit,onDu
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
-          {(currentUser.role==="admin"||currentUser.role==="producer")&&<ProjectActionsMenu project={project} currentUser={currentUser}
-            onEdit={onEdit||(() => {})}
-            onDuplicate={onDuplicate||(() => {})}
-            onArchive={onArchive||(() => {})}
-            onDelete={onDelete||(() => {})}
-          />}
           {(currentUser.role==="admin"||currentUser.role==="producer")&&<Btn variant="primary" onClick={()=>setShowPortalCustomize(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>🎨 Customize Portal</Btn>}
           {!isClient&&<Btn variant="cyan" onClick={()=>setShowUpload(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>⬆ Upload</Btn>}
           <LifecyclePill stage={project.status}/>
@@ -1730,10 +1544,6 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onEdit,onDu
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App(){
-  const [brand,setBrand]=useState(()=>{try{return JSON.parse(localStorage.getItem("framex_brand")||"{}");}catch{return {};}});
-  const [showBrandSettings,setShowBrandSettings]=useState(false);
-  const [deleteModal,setDeleteModal]=useState(null);
-  const [editModal,setEditModal]=useState(null);
   const [user,setUser]=useState(null);
   const [logoUrl,setLogoUrl]=useState(null);
   const logoRef=useRef(null);
@@ -1744,22 +1554,14 @@ export default function App(){
   const [showNewProject,setShowNewProject]=useState(false);
   const [np,setNp]=useState({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry"});
 
-  if(!user) return <SignIn onSignIn={setUser} brand={brand} logoUrl={logoUrl}/>;
-
-  C=buildC(brand);
-  const saveBrand=(b)=>{setBrand(b);localStorage.setItem("framex_brand",JSON.stringify(b));};
-  const effectiveLogo=brand.logoUrl||logoUrl;
-  const brd={...BRAND_DEFAULTS,...brand};
+  if(!user) return <SignIn onSignIn={setUser} logoUrl={logoUrl}/>;
 
   const isClient=ROLES[user.role].isClient;
   const selected=projects.find(p=>p.id===selectedId);
 
   const updateProject=(updated)=>setProjects(ps=>ps.map(p=>p.id===updated.id?updated:p));
-  const deleteProject=(id)=>setProjects(ps=>ps.filter(p=>p.id!==id));
-  const duplicateProject=(id)=>{const p=projects.find(p=>p.id===id);if(!p)return;setProjects(ps=>[...ps,{...p,id:Date.now(),title:p.title+" (Copy)",status:"inquiry",portalSettings:{}}]);};
-  const archiveProject=(id)=>setProjects(ps=>ps.map(p=>p.id===id?{...p,status:"archived"}:p));
 
-  if(isClient) return <ClientPortal user={user} projects={projects} onUpdateProject={updateProject} onSignOut={()=>setUser(null)} logoUrl={effectiveLogo} onLogoChange={url=>{setLogoUrl(url);saveBrand({...brand,logoUrl:url});}}/>;
+  if(isClient) return <ClientPortal user={user} projects={projects} onUpdateProject={updateProject} onSignOut={()=>setUser(null)} logoUrl={logoUrl} onLogoChange={setLogoUrl}/>;
 
   const createProject=()=>{
     if(!np.title.trim())return;
@@ -1784,29 +1586,20 @@ export default function App(){
   if(selected) return (
     <div style={{height:"100vh",background:C.bg,fontFamily:"'Inter',system-ui,sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div style={{height:50,background:C.surface,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",padding:"0 20px",gap:14,flexShrink:0}}>
-        {effectiveLogo?<img src={effectiveLogo} alt="Logo" style={{height:28,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>:
-          <div style={{fontSize:14,fontWeight:800,color:C.text,cursor:"pointer",letterSpacing:"-0.03em"}} onClick={()=>logoRef.current?.click()}>{brd.companyName.slice(0,-1)}<span style={{color:C.orange}}>{brd.companyName.slice(-1)}</span></div>}
-        <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{setLogoUrl(ev.target.result);saveBrand({...brand,logoUrl:ev.target.result});};r.readAsDataURL(f);}}}/>
+        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:28,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>:
+          <div style={{fontSize:14,fontWeight:800,color:C.text,cursor:"pointer",letterSpacing:"-0.03em"}} onClick={()=>logoRef.current?.click()}>FRAME<span style={{color:C.orange}}>X</span></div>}
+        <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
         <div style={{width:1,height:20,background:C.border}}/>
         <span style={{fontSize:12,color:C.textSec}}>{selected.title}</span>
         <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
           <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}35`,borderRadius:4,padding:"2px 8px",fontWeight:600}}>{ROLES[user.role].label}</span>
           <Avatar name={user.name} size={28}/>
-          {user.role==="admin"&&<button onClick={()=>setShowBrandSettings(true)} title="Brand Settings" style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",fontSize:13,borderRadius:6,padding:"3px 8px"}}>⚙</button>}
           <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14}}>⏏</button>
         </div>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
-        <ProjectDetail project={selected} onUpdate={updateProject} currentUser={user} onBack={()=>setSelectedId(null)}
-          onDelete={()=>setDeleteModal(selected)}
-          onEdit={()=>setEditModal(selected)}
-          onDuplicate={()=>duplicateProject(selected.id)}
-          onArchive={()=>archiveProject(selected.id)}
-        />
+        <ProjectDetail project={selected} onUpdate={updateProject} currentUser={user} onBack={()=>setSelectedId(null)}/>
       </div>
-      {deleteModal&&<DeleteConfirmModal project={deleteModal} onConfirm={()=>{deleteProject(deleteModal.id);setSelectedId(null);setDeleteModal(null);}} onClose={()=>setDeleteModal(null)}/>}
-      {editModal&&<EditProjectModal project={editModal} onSave={p=>{updateProject(p);setEditModal(null);}} onClose={()=>setEditModal(null)}/>}
-      {showBrandSettings&&<BrandSettingsModal brand={brand} onUpdate={saveBrand} onClose={()=>setShowBrandSettings(false)}/>}
     </div>
   );
 
@@ -1815,13 +1608,13 @@ export default function App(){
     <div style={{height:"100vh",background:C.bg,fontFamily:"'Inter',system-ui,sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       {/* Top bar */}
       <div style={{height:54,background:C.surface,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",padding:"0 24px",gap:14,flexShrink:0}}>
-        <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{setLogoUrl(ev.target.result);saveBrand({...brand,logoUrl:ev.target.result});};r.readAsDataURL(f);}}}/>
-        {effectiveLogo
-          ?<img src={effectiveLogo} alt="Logo" style={{height:34,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
+        <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
+        {logoUrl
+          ?<img src={logoUrl} alt="Logo" style={{height:34,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
           :<div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>logoRef.current?.click()}>
             <div style={{width:30,height:30,background:C.orange,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>🎬</div>
-            <div><div style={{fontSize:13,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>{brd.companyName.slice(0,-1)}<span style={{color:C.orange}}>{brd.companyName.slice(-1)}</span></div>
-            <div style={{fontSize:8,color:C.textMuted,letterSpacing:"0.1em",textTransform:"uppercase"}}>{brd.platformName}</div></div>
+            <div><div style={{fontSize:13,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>FRAME<span style={{color:C.orange}}>X</span></div>
+            <div style={{fontSize:8,color:C.textMuted,letterSpacing:"0.1em",textTransform:"uppercase"}}>click to add logo</div></div>
           </div>}
         <div style={{width:1,height:24,background:C.border}}/>
         <span style={{fontSize:15,fontWeight:700,color:C.text}}>{isClient?"Client Portal":"Project Dashboard"}</span>
@@ -1829,7 +1622,6 @@ export default function App(){
           {!isClient&&<Btn variant="primary" onClick={()=>setShowNewProject(true)}>+ New Project</Btn>}
           <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}35`,borderRadius:4,padding:"2px 8px",fontWeight:600}}>{ROLES[user.role].label}</span>
           <Avatar name={user.name} size={30}/>
-          {user.role==="admin"&&<button onClick={()=>setShowBrandSettings(true)} title="Brand Settings" style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",fontSize:13,borderRadius:6,padding:"3px 8px"}}>⚙</button>}
           <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16}}>⏏</button>
         </div>
       </div>
@@ -1881,15 +1673,7 @@ export default function App(){
               onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
                 <LifecyclePill stage={p.status}/>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  {openComments>0&&<span style={{fontSize:10,background:C.yellowLow,color:C.yellow,border:`1px solid ${C.yellow}35`,borderRadius:8,padding:"2px 7px"}}>{openComments} comment{openComments!==1?"s":""}</span>}
-                  <ProjectActionsMenu project={p} currentUser={user}
-                    onEdit={()=>setEditModal(p)}
-                    onDuplicate={()=>duplicateProject(p.id)}
-                    onArchive={()=>archiveProject(p.id)}
-                    onDelete={()=>setDeleteModal(p)}
-                  />
-                </div>
+                {openComments>0&&<span style={{fontSize:10,background:C.yellowLow,color:C.yellow,border:`1px solid ${C.yellow}35`,borderRadius:8,padding:"2px 7px"}}>{openComments} comment{openComments!==1?"s":""}</span>}
               </div>
               <h3 style={{margin:"0 0 3px",fontSize:15,fontWeight:700,color:C.text,lineHeight:1.3}}>{p.title}</h3>
               <p style={{margin:"0 0 12px",fontSize:12,color:C.textMuted}}>{p.client}</p>
@@ -1926,9 +1710,6 @@ export default function App(){
           <Btn variant="primary" onClick={createProject}>Create Project</Btn>
         </div>
       </Modal>}
-      {deleteModal&&<DeleteConfirmModal project={deleteModal} onConfirm={()=>{deleteProject(deleteModal.id);setDeleteModal(null);}} onClose={()=>setDeleteModal(null)}/>}
-      {editModal&&<EditProjectModal project={editModal} onSave={p=>{updateProject(p);setEditModal(null);}} onClose={()=>setEditModal(null)}/>}
-      {showBrandSettings&&<BrandSettingsModal brand={brand} onUpdate={saveBrand} onClose={()=>setShowBrandSettings(false)}/>}
     </div>
   );
 }

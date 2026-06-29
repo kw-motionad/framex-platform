@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 // ─── Motion Adrenaline Design Tokens ─────────────────────────────────────────
 const C_DARK = {
@@ -366,17 +366,123 @@ function PdfAnnotator({entry, onAnnotate, authorName="You"}){
   );
 }
 
+// ─── Asset Thumbnail Grid (Frame.io style) ──────────────────────────────────
+function ProgressCard({ file }) {
+  const [pulse, setPulse] = useState(0.6);
+  useEffect(() => {
+    let up = true;
+    const iv = setInterval(() => {
+      setPulse(p => {
+        if (p >= 1) up = false;
+        else if (p <= 0.6) up = true;
+        return up ? Math.min(1, p + 0.08) : Math.max(0.6, p - 0.08);
+      });
+    }, 140);
+    return () => clearInterval(iv);
+  }, []);
+  const done = file.progress >= 100;
+  return (
+    <div style={{
+      position: "relative", borderRadius: 10, overflow: "hidden", aspectRatio: "1",
+      background: C.card, border: `1px solid ${C.border}`, opacity: pulse,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      gap: 8, padding: 14, transition: "opacity 0.14s linear",
+    }}>
+      <div style={{ fontSize: 28, opacity: 0.5 }}>⬆</div>
+      <div style={{ fontSize: 11, color: C.textMuted, maxWidth: "90%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>{file.name}</div>
+      <div style={{ width: "70%", height: 3, background: C.border, borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ width: `${file.progress}%`, height: "100%", background: C.blue, transition: "width 0.3s" }} />
+      </div>
+      <div style={{ fontSize: 10, color: C.textMuted }}>{done ? "Processing…" : "Uploading…"}</div>
+    </div>
+  );
+}
+
+function AssetThumbGrid({ assets, onOpen, uploading = [] }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(170px,1fr))", gap: 12 }}>
+      {assets.map(asset => {
+        const type = detectPreviewType(asset.name, asset.mimeType || "");
+        return (
+          <div key={asset.id} onClick={() => onOpen(asset)}
+            style={{
+              position: "relative", borderRadius: 10, overflow: "hidden", cursor: "pointer",
+              aspectRatio: "1", background: C.card, border: `1px solid ${C.border}`,
+              transition: "transform 0.15s, box-shadow 0.15s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.02)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.5)"; e.currentTarget.style.borderColor = C.blue; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.borderColor = C.border; }}>
+
+            {/* Content by type */}
+            {type === "image" && asset.previewUrl
+              ? <img src={asset.previewUrl} alt={asset.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : type === "video"
+              ? <div style={{ width: "100%", height: "100%", background: "#03030A", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {asset.previewUrl && <video src={asset.previewUrl} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.35 }} muted />}
+                  <div style={{ position: "relative", width: 52, height: 52, borderRadius: "50%", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, color: "#fff" }}>▶</div>
+                </div>
+              : type === "pdf"
+              ? <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #1E0E35, #080816)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 36, color: "#FF4D6D" }}>📄</span>
+                </div>
+              : <div style={{ width: "100%", height: "100%", background: `linear-gradient(135deg, ${C.card}, ${C.surface})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36 }}>📁</div>
+            }
+
+            {/* Version tag top-left */}
+            {asset.version && (
+              <span style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.6)", color: "#fff", borderRadius: 4, padding: "2px 6px", fontSize: 10, fontFamily: "monospace", zIndex: 2 }}>{asset.version}</span>
+            )}
+
+            {/* Status badge top-right */}
+            <div style={{ position: "absolute", top: 8, right: 8, zIndex: 2 }}>
+              <Badge status={asset.status} small />
+            </div>
+
+            {/* Bottom label bar */}
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "24px 10px 8px", background: "linear-gradient(transparent,rgba(0,0,0,0.9))" }}>
+              <div style={{ fontSize: 11, color: "#fff", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.name}</div>
+              {type === "video" && asset.duration != null && (
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.7)", fontFamily: "monospace", marginTop: 2 }}>{fmtTime(asset.duration)}</div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+
+      {uploading.map(f => <ProgressCard key={f.id} file={f} />)}
+    </div>
+  );
+}
+
 // ─── Navigation ───────────────────────────────────────────────────────────────
-const NAV = [
-  { id: "home",         label: "Home",         sym: "⌂" },
-  { id: "projects",     label: "Projects",     sym: "◈" },
-  { id: "deliverables", label: "Deliverables", sym: "▶" },
-  { id: "creative",     label: "Creative",     sym: "✦" },
-  { id: "documents",    label: "Documents",    sym: "▣" },
-  { id: "messages",     label: "Messages",     sym: "◉" },
+const NAV_DEFAULTS = [
+  { id:"home",         label:"Home",         sym:"⌂",  visible:true },
+  { id:"projects",     label:"Projects",     sym:"◈",  visible:true },
+  { id:"deliverables", label:"Deliverables", sym:"▶",  visible:true },
+  { id:"creative",     label:"Creative",     sym:"✦",  visible:true },
+  { id:"documents",    label:"Documents",    sym:"▣",  visible:true },
+  { id:"messages",     label:"Messages",     sym:"◉",  visible:true },
 ];
 
-function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav, portalSettings }) {
+const NAV_ADDABLE = [
+  { id:"vfx",       label:"VFX & 3D",      sym:"✺" },
+  { id:"design",    label:"Design",        sym:"◇" },
+  { id:"final",     label:"Final Outputs", sym:"★" },
+  { id:"billing",   label:"Billing",       sym:"$" },
+  { id:"contacts",  label:"Contacts",      sym:"◎" },
+  { id:"locations", label:"Locations",     sym:"⊕" },
+  { id:"guide",     label:"Guide",         sym:"?" },
+];
+
+const NAV_CORE_IDS = ["home","projects","deliverables","creative","documents","messages"];
+
+function readNavItems() {
+  try { return JSON.parse(localStorage.getItem("framex_portal_nav") || "null") || NAV_DEFAULTS; }
+  catch { return NAV_DEFAULTS; }
+}
+
+function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav, portalSettings, navItems }) {
+  const items = (navItems || NAV_DEFAULTS).filter(i => i.visible);
   const ps = portalSettings || {};
   const displayLogo = ps.logoUrl || logoUrl;
   const accent = ps.accentColor || C.blue;
@@ -413,7 +519,7 @@ function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav
 
       {/* Nav items */}
       <nav style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-        {NAV.map(item => {
+        {items.map(item => {
           const on = active === item.id;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
@@ -598,17 +704,23 @@ function HomeView({ user, projects, onSelect }) {
           : mine.map(p => {
               const sm = LIFECYCLE_META[p.status] || LIFECYCLE_META.post;
               const pending = p.posts.filter(a => a.shared && a.status === "in_review").length;
+              const bg = p.portalSettings?.bgImageUrl
+                ? `url(${p.portalSettings.bgImageUrl}) center/cover no-repeat`
+                : `linear-gradient(135deg, ${sm.color}28 0%, #06060E 100%)`;
               return (
                 <div key={p.id} onClick={() => onSelect(p.id, "overview")}
-                  style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, cursor: "pointer" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = sm.color + "50"; e.currentTarget.style.background = C.cardHover; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.card; }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                  style={{ position: "relative", height: 140, borderRadius: 12, overflow: "hidden", marginBottom: 10, cursor: "pointer", background: bg, transition: "transform 0.2s, box-shadow 0.2s" }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 12px 30px rgba(0,0,0,0.5)`; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.72) 70%, rgba(0,0,0,0.88) 100%)" }} />
+                  <div style={{ position: "absolute", top: 10, left: 10, zIndex: 2 }}>
                     <LifecyclePill stage={p.status} />
-                    {pending > 0 && <span style={{ fontSize: 10, background: C.yellowLow, color: C.yellow, border: `1px solid ${C.yellow}28`, borderRadius: 5, padding: "2px 7px", fontWeight: 600 }}>{pending} to review</span>}
                   </div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 3 }}>{p.title}</div>
-                  <div style={{ fontSize: 11, color: C.textMuted }}>Delivery: {p.deliveryDate}</div>
+                  {pending > 0 && <span style={{ position: "absolute", top: 10, right: 10, zIndex: 2, fontSize: 10, background: C.yellowLow, color: C.yellow, border: `1px solid ${C.yellow}28`, borderRadius: 5, padding: "2px 7px", fontWeight: 600, backdropFilter: "blur(4px)" }}>{pending} to review</span>}
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "12px 14px", zIndex: 2 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", textShadow: "0 2px 8px rgba(0,0,0,0.5)", marginBottom: 3 }}>{p.title}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>Producer: {p.producer} · Delivery: {p.deliveryDate}</div>
+                  </div>
                 </div>
               );
             })
@@ -623,37 +735,56 @@ function ProjectsView({ user, projects, onSelect }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   if (mine.length === 0) return <Empty icon="◈" msg="No projects shared with you yet." sub="Contact your Motion Adrenaline representative to get started." />;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 16 }}>
       {mine.map(p => {
         const sm = LIFECYCLE_META[p.status] || LIFECYCLE_META.post;
         const assets    = p.posts.filter(a => a.shared).length;
         const docs      = Object.values(p.documents).flat().filter(d => d.shared).length;
         const msgs      = p.clientComments.filter(c => !c.resolved).length;
         const toReview  = p.posts.filter(a => a.shared && a.status === "in_review").length;
+        const bg = p.portalSettings?.bgImageUrl
+          ? `url(${p.portalSettings.bgImageUrl}) center/cover no-repeat`
+          : `linear-gradient(135deg, ${sm.color}28 0%, #06060E 100%)`;
         return (
           <div key={p.id} onClick={() => onSelect(p.id, "overview")}
-            style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, cursor: "pointer" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = sm.color + "55"; e.currentTarget.style.background = C.cardHover; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.card; }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+            style={{ position: "relative", height: 220, borderRadius: 14, overflow: "hidden", cursor: "pointer", background: bg, transition: "transform 0.2s, box-shadow 0.2s" }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 14px 36px rgba(0,0,0,0.55)`; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+
+            {/* Dark gradient overlay */}
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.72) 70%, rgba(0,0,0,0.88) 100%)" }} />
+
+            {/* Top left pill */}
+            <div style={{ position: "absolute", top: 12, left: 12, zIndex: 2 }}>
               <LifecyclePill stage={p.status} />
-              {toReview > 0 && <span style={{ fontSize: 10, background: C.yellowLow, color: C.yellow, border: `1px solid ${C.yellow}28`, borderRadius: 5, padding: "2px 8px", fontWeight: 600 }}>{toReview} to review</span>}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>{p.title}</div>
-            <div style={{ fontSize: 12, color: C.textSec, marginBottom: 16 }}>Delivery: {p.deliveryDate}</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                { val: docs,   label: "docs",     sym: "▣" },
-                { val: assets, label: "assets",   sym: "▶" },
-                { val: msgs,   label: "messages", sym: "◉", hi: msgs > 0 },
-              ].map(s => (
-                <span key={s.label} style={{
-                  background: s.hi ? C.orangeLow : "#111120",
-                  color: s.hi ? C.orange : C.textSec,
-                  border: `1px solid ${s.hi ? C.orange + "28" : C.border}`,
-                  borderRadius: 5, padding: "3px 9px", fontSize: 10,
-                }}>{s.sym} {s.val} {s.label}</span>
-              ))}
+
+            {/* Top right review badge */}
+            {toReview > 0 && (
+              <div style={{ position: "absolute", top: 12, right: 12, zIndex: 2, fontSize: 10, background: C.yellowLow, color: C.yellow, border: `1px solid ${C.yellow}28`, borderRadius: 5, padding: "3px 8px", fontWeight: 600, backdropFilter: "blur(4px)" }}>{toReview} to review</div>
+            )}
+
+            {/* Bottom content */}
+            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 18px", zIndex: 2 }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", textShadow: "0 2px 8px rgba(0,0,0,0.5)", marginBottom: 4 }}>{p.title}</div>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 10 }}>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>Producer: {p.producer}</span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", marginLeft: 12 }}>Delivery: {p.deliveryDate}</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { val: assets, label: "assets",   sym: "▶" },
+                  { val: docs,   label: "docs",     sym: "▣" },
+                  { val: msgs,   label: "msgs",     sym: "◉", hi: msgs > 0 },
+                ].map(s => (
+                  <span key={s.label} style={{
+                    background: s.hi ? "rgba(255,122,53,0.25)" : "rgba(255,255,255,0.12)",
+                    color: s.hi ? "#FFB088" : "rgba(255,255,255,0.85)",
+                    border: `1px solid ${s.hi ? C.orange + "40" : "rgba(255,255,255,0.18)"}`,
+                    borderRadius: 5, padding: "3px 9px", fontSize: 10, backdropFilter: "blur(4px)",
+                  }}>{s.sym} {s.val} {s.label}</span>
+                ))}
+              </div>
             </div>
           </div>
         );
@@ -666,11 +797,43 @@ function ProjectsView({ user, projects, onSelect }) {
 function DeliverablesView({ user, projects, onUpdate }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const [playing, setPlaying] = useState(null);
+  const [previewEntry, setPreviewEntry] = useState(null);
+  const [uploadingFiles, setUploadingFiles] = useState([]);
   const [t, setT] = useState(0);
   const [running, setRunning] = useState(false);
   const timerRef = useRef(null);
   const [newNote, setNewNote] = useState("");
   const [noteTime, setNoteTime] = useState("");
+
+  const handleNewFiles = (files) => {
+    const newUploads = Array.from(files).map(f => ({
+      id: Date.now() + Math.random(), name: f.name, progress: 0, file: f
+    }));
+    setUploadingFiles(prev => [...prev, ...newUploads]);
+    newUploads.forEach(u => {
+      let p = 0;
+      const iv = setInterval(() => {
+        p += Math.random() * 18 + 5;
+        if (p >= 100) {
+          p = 100;
+          clearInterval(iv);
+          setTimeout(() => {
+            setUploadingFiles(prev => prev.filter(x => x.id !== u.id));
+          }, 800);
+        }
+        setUploadingFiles(prev => prev.map(x => x.id === u.id ? { ...x, progress: Math.min(100, Math.round(p)) } : x));
+      }, 200);
+    });
+  };
+
+  const openAsset = (asset) => {
+    const type = detectPreviewType(asset.name, asset.mimeType || "");
+    if (type === "video" || type === null) {
+      setPlaying(asset); setT(0); setRunning(false); clearInterval(timerRef.current);
+    } else {
+      setPreviewEntry(asset);
+    }
+  };
 
   const allAssets = mine.flatMap(p =>
     p.posts.filter(a => a.shared).map(a => ({ ...a, projectTitle: p.title, projectId: p.id }))
@@ -701,38 +864,26 @@ function DeliverablesView({ user, projects, onUpdate }) {
     if (playing?.id === assetId) setPlaying(prev => ({ ...prev, status }));
   };
 
-  if (allAssets.length === 0) return <Empty icon="▶" msg="No deliverables yet." sub="Assets will appear here when the team shares them for your review." />;
+  if (allAssets.length === 0 && uploadingFiles.length === 0) {
+    return (
+      <div>
+        <DropZone onFiles={handleNewFiles} label="Drop files to upload" compact />
+        <Empty icon="▶" msg="No deliverables yet." sub="Assets will appear here when the team shares them for your review." />
+      </div>
+    );
+  }
 
   return (
-    <div style={{ display: "flex", gap: 20, minHeight: 0 }}>
-      {/* Asset list */}
-      <div style={{ flex: playing ? 0 : 1, width: playing ? "320px" : "100%", flexShrink: 0 }}>
-        {allAssets.map(asset => (
-          <div key={asset.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 9, background: C.blueLow, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🎬</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.name}</div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 3 }}>
-                <span style={{ fontSize: 10, color: C.textMuted }}>{asset.projectTitle}</span>
-                <span style={{ fontSize: 10, color: C.textMuted, fontFamily: "monospace" }}>{asset.version}</span>
-                {asset.comments.filter(c => !c.resolved).length > 0 && (
-                  <span style={{ fontSize: 10, background: C.orangeLow, color: C.orange, borderRadius: 6, padding: "1px 6px", border: `1px solid ${C.orange}28` }}>
-                    {asset.comments.filter(c => !c.resolved).length} notes
-                  </span>
-                )}
-              </div>
-            </div>
-            <Badge status={asset.status} small />
-            <Btn variant="blue" onClick={() => { setPlaying(asset); setT(0); setRunning(false); clearInterval(timerRef.current); }} style={{ fontSize: 11, padding: "5px 12px" }}>▶ Review</Btn>
-            {asset.status !== "approved" && <Btn variant="green" onClick={() => setStatus(asset.projectId, asset.id, "approved")} style={{ fontSize: 10, padding: "4px 8px" }}>✓</Btn>}
-            {asset.status !== "changes" && <Btn variant="red" onClick={() => setStatus(asset.projectId, asset.id, "changes")} style={{ fontSize: 10, padding: "4px 8px" }}>✗</Btn>}
-          </div>
-        ))}
-      </div>
+    <div>
+      {/* Upload drop zone */}
+      <DropZone onFiles={handleNewFiles} label="Drop files to upload" compact />
 
-      {/* Player */}
+      {/* Asset grid */}
+      <AssetThumbGrid assets={allAssets} onOpen={openAsset} uploading={uploadingFiles} />
+
+      {/* Full-width player panel below grid */}
       {playing && (
-        <div style={{ flex: 1, background: "#030307", borderRadius: 12, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", minHeight: 400 }}>
+        <div style={{ marginTop: 20, background: "#030307", borderRadius: 12, border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", minHeight: 400 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderBottom: `1px solid ${C.border}` }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 700, color: C.text, fontFamily: "monospace" }}>{playing.name}</div>
@@ -799,6 +950,8 @@ function DeliverablesView({ user, projects, onUpdate }) {
           </div>
         </div>
       )}
+
+      {previewEntry && <PreviewModal entry={previewEntry} onClose={() => setPreviewEntry(null)} />}
     </div>
   );
 }
@@ -829,25 +982,7 @@ function CreativeView({ user, projects }) {
         return (
           <div key={key} style={{ marginBottom: 28 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: meta.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>{meta.icon} {meta.label}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 12 }}>
-              {items.map(item => (
-                <div key={item.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    {detectPreviewType(item.name, item.mimeType||"")==="image" && item.previewUrl
-                      ? <img src={item.previewUrl} style={{width:38,height:38,objectFit:"cover",borderRadius:8,flexShrink:0}} alt=""/>
-                      : <div style={{ width: 38, height: 38, borderRadius: 8, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{meta.icon}</div>}
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
-                      <div style={{ fontSize: 10, color: C.textMuted }}>{item.projectTitle}</div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Badge status={item.status} small />
-                    <Btn variant="ghost" onClick={() => item.previewUrl && setPreviewEntry(item)} style={{ fontSize: 10, padding: "3px 8px", opacity: item.previewUrl ? 1 : 0.45 }}>{item.previewUrl ? "👁 View" : "View"}</Btn>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AssetThumbGrid assets={items} onOpen={item => setPreviewEntry(item)} />
           </div>
         );
       })}
@@ -1061,104 +1196,284 @@ function MessagesView({ user, projects, onUpdate }) {
   );
 }
 
+// ─── Project Timeline ─────────────────────────────────────────────────────────
+function ProjectTimeline({ project }) {
+  const start = project.startDate || project.deliveryDate;
+  const end   = project.deliveryDate;
+  const today = new Date().toISOString().slice(0, 10);
+  const milestones = project.milestones || [];
+
+  const pct = (date) => {
+    const s = new Date(start).getTime();
+    const e = new Date(end).getTime();
+    const d = new Date(date).getTime();
+    if (e === s) return 0;
+    return Math.max(0, Math.min(100, ((d - s) / (e - s)) * 100));
+  };
+
+  const allPoints = [
+    { date: start, label: "Project Start", color: C.blue, icon: "◎" },
+    ...milestones.map(m => ({ date: m.date, label: m.label, color: C.orange, icon: "◆" })),
+    { date: today, label: "Today", color: C.green, icon: "●" },
+    { date: end,   label: "Delivery", color: C.purple, icon: "★" },
+  ].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const daysLeft = Math.ceil((new Date(end) - new Date(today)) / 86400000);
+
+  return (
+    <div style={{ padding: "8px 0" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 20 }}>Project Timeline</div>
+
+      {/* Timeline bar */}
+      <div style={{ position: "relative", marginBottom: 40, paddingBottom: 32 }}>
+        <div style={{ height: 4, background: C.border, borderRadius: 2, position: "relative", margin: "24px 0" }}>
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${pct(today)}%`, background: `linear-gradient(to right, ${C.blue}, ${C.green})`, borderRadius: 2 }} />
+          {allPoints.map((p, i) => (
+            <div key={i} style={{ position: "absolute", left: `${pct(p.date)}%`, transform: "translateX(-50%)", top: -10 }}>
+              <div style={{ width: 20, height: 20, borderRadius: "50%", background: p.color, border: `2px solid ${C.bg}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#fff" }}>{p.icon}</div>
+              <div style={{ position: "absolute", top: 26, left: "50%", transform: "translateX(-50%)", whiteSpace: "nowrap", textAlign: "center" }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: p.color }}>{p.label}</div>
+                <div style={{ fontSize: 9, color: C.textMuted }}>{p.date}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Days remaining card */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 20px", marginBottom: 8, display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ fontSize: 28, fontWeight: 800, color: daysLeft > 0 ? C.green : C.red }}>{daysLeft > 0 ? daysLeft : "—"}</div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{daysLeft > 0 ? `${daysLeft} days until delivery` : "Past delivery date"}</div>
+          <div style={{ fontSize: 11, color: C.textMuted }}>Delivery: {end}</div>
+        </div>
+      </div>
+
+      {/* Milestone list */}
+      <div style={{ marginTop: 20 }}>
+        {allPoints.map((p, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", marginBottom: 6, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9 }}>
+            <div style={{ width: 28, height: 28, borderRadius: "50%", background: p.color + "20", border: `1.5px solid ${p.color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: p.color, flexShrink: 0 }}>{p.icon}</div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{p.label}</div>
+              <div style={{ fontSize: 11, color: C.textMuted }}>{p.date}</div>
+            </div>
+            {p.date === today && <span style={{ marginLeft: "auto", fontSize: 10, background: C.greenLow, color: C.green, border: `1px solid ${C.green}35`, borderRadius: 4, padding: "2px 8px", fontWeight: 600 }}>Today</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Project Updates ──────────────────────────────────────────────────────────
+function ProjectUpdates({ project }) {
+  const items = [];
+
+  project.posts.filter(a => a.shared).forEach(a => {
+    items.push({ type: "upload", icon: "📤", text: `${a.uploader} uploaded ${a.name}`, sub: a.version, date: project.startDate, color: C.blue });
+    if (a.status === "approved") items.push({ type: "approved", icon: "✅", text: `${a.name} approved`, sub: "Asset", date: project.deliveryDate, color: C.green });
+    if (a.status === "changes") items.push({ type: "changes", icon: "🔁", text: `Changes requested on ${a.name}`, sub: "Asset", date: project.deliveryDate, color: C.orange });
+    (a.comments || []).forEach(c => {
+      items.push({ type: "comment", icon: "💬", text: `${c.author} commented on ${a.name}`, sub: c.text.slice(0, 60) + (c.text.length > 60 ? "…" : ""), date: project.startDate, color: C.yellow });
+    });
+  });
+
+  project.clientComments.forEach(c => {
+    items.push({ type: "message", icon: "✉️", text: `${c.author} sent a message`, sub: c.text.slice(0, 80) + (c.text.length > 80 ? "…" : ""), date: c.date || project.startDate, color: C.purple });
+  });
+
+  Object.values(project.documents).flat().filter(d => d.shared).forEach(d => {
+    items.push({ type: "doc", icon: "📄", text: `${d.uploader} shared ${d.name}`, sub: d.status, date: d.date, color: C.teal });
+    if (d.status === "signed") items.push({ type: "signed", icon: "✍️", text: `${d.name} was signed`, sub: "Document", date: d.date, color: C.green });
+  });
+
+  items.push({ type: "status", icon: "🚀", text: `Project moved to ${LIFECYCLE_META[project.status]?.label || project.status}`, sub: "Status update", date: project.startDate, color: LIFECYCLE_META[project.status]?.color || C.blue });
+
+  if (items.length === 0) return <Empty icon="◉" msg="No activity yet." sub="Activity will appear here as the project progresses." />;
+
+  return (
+    <div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: C.text, marginBottom: 16 }}>Project Activity</div>
+      {items.map((item, i) => (
+        <div key={i} style={{ display: "flex", gap: 12, marginBottom: 12, position: "relative" }}>
+          {i < items.length - 1 && <div style={{ position: "absolute", left: 14, top: 32, bottom: -12, width: 1, background: C.border }} />}
+          <div style={{ width: 28, height: 28, borderRadius: "50%", background: item.color + "18", border: `1px solid ${item.color}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, flexShrink: 0, position: "relative", zIndex: 1 }}>{item.icon}</div>
+          <div style={{ flex: 1, background: C.card, border: `1px solid ${C.border}`, borderRadius: 9, padding: "10px 12px" }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 2 }}>{item.text}</div>
+            {item.sub && <div style={{ fontSize: 11, color: C.textMuted }}>{item.sub}</div>}
+            <div style={{ fontSize: 10, color: C.textMuted, marginTop: 4 }}>{item.date}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Quick Actions ────────────────────────────────────────────────────────────
+function QuickActions({ project, onTabChange, user }) {
+  const [msgSent, setMsgSent] = useState(false);
+  const [reqSent, setReqSent] = useState(false);
+
+  const actions = [
+    {
+      icon: "✉️", label: "Message Team", color: C.blue,
+      desc: "Send a message to your production team",
+      action: () => onTabChange("messages"),
+    },
+    {
+      icon: "⬇", label: "Download All Assets", color: C.green,
+      desc: `${project.posts.filter(a => a.shared && a.status === "approved").length} approved assets`,
+      action: () => { alert("Download feature requires server integration."); },
+    },
+    {
+      icon: "🔁", label: "Request Changes", color: C.orange,
+      desc: "Submit a change request to the team",
+      action: () => { setReqSent(true); setTimeout(() => setReqSent(false), 2000); onTabChange("messages"); },
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Quick Actions</div>
+      {actions.map((a, i) => (
+        <button key={i} onClick={a.action} style={{
+          display: "block", width: "100%", textAlign: "left", marginBottom: 10,
+          background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
+          padding: "12px 14px", cursor: "pointer", transition: "all 0.15s",
+        }}
+          onMouseEnter={e => { e.currentTarget.style.borderColor = a.color + "50"; e.currentTarget.style.background = a.color + "10"; }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.card; }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 16 }}>{a.icon}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: C.text }}>{a.label}</span>
+          </div>
+          <div style={{ fontSize: 11, color: C.textMuted, paddingLeft: 24 }}>{a.desc}</div>
+        </button>
+      ))}
+
+      {/* Project stats */}
+      <div style={{ marginTop: 20 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Project Stats</div>
+        {[
+          { label: "Shared Files", val: Object.values(project.documents).flat().filter(d => d.shared).length, color: C.blue },
+          { label: "Assets",       val: project.posts.filter(a => a.shared).length, color: C.yellow },
+          { label: "Approved",     val: project.posts.filter(a => a.status === "approved").length, color: C.green },
+          { label: "In Review",    val: project.posts.filter(a => a.shared && a.status === "in_review").length, color: C.orange },
+        ].map(s => (
+          <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${C.border}18` }}>
+            <span style={{ fontSize: 12, color: C.textMuted }}>{s.label}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Portal Project Detail ────────────────────────────────────────────────────
 function PortalProjectDetail({ project, user, onUpdate, onBack, initTab }) {
   const [tab, setTab] = useState(initTab || "overview");
   const TABS = [
-    { id: "overview",      label: "Overview",      sym: "⌂" },
-    { id: "deliverables",  label: "Deliverables",  sym: "▶" },
-    { id: "creative",      label: "Creative",      sym: "✦" },
-    { id: "documents",     label: "Documents",     sym: "▣" },
-    { id: "messages",      label: "Messages",      sym: "◉" },
+    { id: "overview",     label: "Overview",     sym: "⌂" },
+    { id: "deliverables", label: "Deliverables", sym: "▶" },
+    { id: "creative",     label: "Creative",     sym: "✦" },
+    { id: "documents",    label: "Documents",    sym: "▣" },
+    { id: "timeline",     label: "Timeline",     sym: "◷" },
+    { id: "updates",      label: "Updates",      sym: "◉" },
+    { id: "messages",     label: "Messages",     sym: "✉" },
   ];
 
   const sm = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
+  const ps = project.portalSettings || {};
+  const accent = ps.accentColor || C.blue;
   const sharedDocs   = Object.values(project.documents).flat().filter(d => d.shared);
   const sharedAssets = project.posts.filter(p => p.shared);
   const openMsgs     = project.clientComments.filter(c => !c.resolved).length;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      {/* Header */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "16px 28px", flexShrink: 0 }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: C.textSec, cursor: "pointer", fontSize: 12, padding: 0, marginBottom: 10 }}>
-          ← Back
-        </button>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-          <div>
-            <h2 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: "-0.02em" }}>{project.title}</h2>
-            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <span style={{ fontSize: 13, color: C.textSec }}>{project.client}</span>
-              <span style={{ fontSize: 12, color: C.textMuted }}>Delivery: {project.deliveryDate}</span>
-            </div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflowY: "auto" }}>
+
+      {/* Hero Banner */}
+      <div style={{ position: "relative", height: 200, flexShrink: 0, overflow: "hidden",
+        background: ps.bgImageUrl ? `url(${ps.bgImageUrl}) center/cover no-repeat` : `linear-gradient(135deg, ${sm.color}18, ${C.bg})` }}>
+        {ps.bgImageUrl && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7) 100%)" }} />
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "20px 28px" }}>
+          <button onClick={onBack} style={{ background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", cursor: "pointer", fontSize: 12, borderRadius: 6, padding: "4px 10px", backdropFilter: "blur(4px)" }}>← Back to Portal</button>
+          <h2 style={{ margin: "10px 0 6px", fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>{project.title}</h2>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.8)" }}>{project.client}</span>
+            <LifecyclePill stage={project.status} />
           </div>
-          <LifecyclePill stage={project.status} />
-        </div>
-        {/* Mini stats */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-          {[
-            { label: "Shared Files", val: sharedDocs.length, color: C.blue },
-            { label: "Assets",       val: sharedAssets.length, color: C.yellow },
-            { label: "Open Messages", val: openMsgs,          color: C.orange },
-          ].map(s => (
-            <div key={s.label} style={{ background: "#07071280", border: `1px solid ${C.border}`, borderRadius: 7, padding: "7px 14px", display: "flex", gap: 8, alignItems: "center" }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.val}</span>
-              <span style={{ fontSize: 11, color: C.textMuted }}>{s.label}</span>
-            </div>
-          ))}
-        </div>
-        {/* Tab bar */}
-        <div style={{ display: "flex", gap: 2 }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
-              background: tab === t.id ? C.blueLow : "none",
-              border: `1px solid ${tab === t.id ? C.blue + "35" : "transparent"}`,
-              borderRadius: 7, color: tab === t.id ? C.blue : C.textSec,
-              padding: "6px 14px", cursor: "pointer", fontSize: 12,
-              fontWeight: tab === t.id ? 600 : 400, display: "flex", alignItems: "center", gap: 5,
-            }}>{t.sym} {t.label}</button>
-          ))}
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
-        {tab === "overview" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
-              {[
-                { label: "Stage",    val: `${sm.icon} ${sm.label}`, color: sm.color },
-                { label: "Delivery", val: project.deliveryDate,      color: C.text },
-              ].map(s => (
-                <div key={s.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.val}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 20px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Ready for You</div>
-              {sharedAssets.length === 0 && sharedDocs.length === 0
-                ? <p style={{ color: C.textMuted, fontSize: 13, margin: 0 }}>Nothing shared yet — the team will notify you when content is ready.</p>
-                : [...sharedAssets.map(a => ({ icon: "🎬", name: a.name, sub: `${a.version} · Asset`, status: a.status })),
-                    ...sharedDocs.map(d => ({ icon: "📄", name: d.name, sub: `Document · ${d.date}`, status: d.status }))
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.border}18` }}>
-                      <span style={{ fontSize: 18 }}>{item.icon}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{item.name}</div>
-                        <div style={{ fontSize: 10, color: C.textMuted }}>{item.sub}</div>
-                      </div>
-                      <Badge status={item.status} small />
-                    </div>
-                  ))
-              }
-            </div>
+      {/* Two-column body */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", flex: 1, minHeight: 0, gap: 0 }}>
+
+        {/* Main content */}
+        <div style={{ display: "flex", flexDirection: "column", minHeight: 0, overflowY: "auto", padding: "20px 24px" }}>
+
+          {/* Tab bar */}
+          <div style={{ display: "flex", gap: 2, marginBottom: 20, borderBottom: `1px solid ${C.border}`, paddingBottom: 8, flexWrap: "wrap" }}>
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{
+                background: tab === t.id ? accent + "18" : "none",
+                border: `1px solid ${tab === t.id ? accent + "35" : "transparent"}`,
+                borderRadius: 7, color: tab === t.id ? accent : C.textSec,
+                padding: "6px 14px", cursor: "pointer", fontSize: 12,
+                fontWeight: tab === t.id ? 600 : 400, display: "flex", alignItems: "center", gap: 5,
+              }}>{t.sym} {t.label}</button>
+            ))}
           </div>
-        )}
-        {tab === "deliverables" && <DeliverablesView user={user} projects={[project]} onUpdate={onUpdate} />}
-        {tab === "creative"     && <CreativeView     user={user} projects={[project]} />}
-        {tab === "documents"    && <DocumentsView    user={user} projects={[project]} onUpdate={onUpdate} />}
-        {tab === "messages"     && <MessagesView     user={user} projects={[project]} onUpdate={onUpdate} />}
+
+          {/* Tab content */}
+          {tab === "overview" && (
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
+                {[
+                  { label: "Stage",    val: `${sm.icon} ${sm.label}`, color: sm.color },
+                  { label: "Delivery", val: project.deliveryDate,      color: C.text },
+                ].map(s => (
+                  <div key={s.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 4 }}>{s.label}</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 20px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Ready for You</div>
+                {sharedAssets.length === 0 && sharedDocs.length === 0
+                  ? <p style={{ color: C.textMuted, fontSize: 13, margin: 0 }}>Nothing shared yet — the team will notify you when content is ready.</p>
+                  : [...sharedAssets.map(a => ({ icon: "🎬", name: a.name, sub: `${a.version} · Asset`, status: a.status })),
+                      ...sharedDocs.map(d => ({ icon: "📄", name: d.name, sub: `Document · ${d.date}`, status: d.status }))
+                    ].map((item, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.border}18` }}>
+                        <span style={{ fontSize: 18 }}>{item.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{item.name}</div>
+                          <div style={{ fontSize: 10, color: C.textMuted }}>{item.sub}</div>
+                        </div>
+                        <Badge status={item.status} small />
+                      </div>
+                    ))
+                }
+              </div>
+            </div>
+          )}
+          {tab === "deliverables" && <DeliverablesView user={user} projects={[project]} onUpdate={onUpdate} />}
+          {tab === "creative"     && <CreativeView     user={user} projects={[project]} />}
+          {tab === "documents"    && <DocumentsView    user={user} projects={[project]} onUpdate={onUpdate} />}
+          {tab === "timeline"     && <ProjectTimeline  project={project} />}
+          {tab === "updates"      && <ProjectUpdates   project={project} />}
+          {tab === "messages"     && <MessagesView     user={user} projects={[project]} onUpdate={onUpdate} />}
+        </div>
+
+        {/* Quick Actions sidebar */}
+        <div style={{ borderLeft: `1px solid ${C.border}`, padding: "20px 16px", flexShrink: 0 }}>
+          <QuickActions project={project} onTabChange={setTab} user={user} />
+        </div>
       </div>
     </div>
   );
@@ -1167,6 +1482,7 @@ function PortalProjectDetail({ project, user, onUpdate, onBack, initTab }) {
 // ─── ClientPortal (default export) ───────────────────────────────────────────
 export default function ClientPortal({ user, projects, onUpdateProject, onSignOut, logoUrl, onLogoChange }) {
   const [nav, setNav] = useState("home");
+  const [navItems, setNavItems] = useState(() => readNavItems());
   const [selectedId, setSelectedId] = useState(null);
   const [selectedTab, setSelectedTab] = useState("overview");
   const logoRef = useRef(null);
@@ -1195,6 +1511,7 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
         onLogoChange={onLogoChange} onSignOut={onSignOut}
         active={nav} onNav={handleNavChange}
         portalSettings={portalSettings}
+        navItems={navItems}
       />
 
       {selected
@@ -1213,6 +1530,12 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
               {nav === "creative"     && <CreativeView     user={user} projects={projects} />}
               {nav === "documents"    && <DocumentsView    user={user} projects={projects} onUpdate={onUpdateProject} />}
               {nav === "messages"     && <MessagesView     user={user} projects={projects} onUpdate={onUpdateProject} />}
+              {!NAV_CORE_IDS.includes(nav) && (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, gap: 16, minHeight: 280 }}>
+                  <div style={{ fontSize: 48, opacity: 0.2 }}>{navItems.find(i => i.id === nav)?.sym || "◈"}</div>
+                  <div style={{ fontSize: 14, color: C.textMuted }}>{navItems.find(i => i.id === nav)?.label} section coming soon.</div>
+                </div>
+              )}
             </div>
           </>
       }
