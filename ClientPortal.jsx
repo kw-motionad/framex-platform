@@ -755,19 +755,14 @@ function PortalGridCard({ project, onOpen }) {
 // ─── Projects View ────────────────────────────────────────────────────────────
 function ProjectsView({ user, projects, onSelect }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
-  const [viewMode, setViewMode] = useState(() => localStorage.getItem("framex_portal_view") || "grid");
-  const switchView = m => { setViewMode(m); localStorage.setItem("framex_portal_view", m); };
+  const [viewMode, setViewMode] = useViewPref("framex_portal_view", "grid");
   if (mine.length === 0) return <Empty icon="◈" msg="No projects shared with you yet." sub="Contact your Motion Adrenaline representative to get started." />;
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 1, background: C.card, borderRadius: 7, padding: 2 }}>
-          {[{ m: "strip", icon: "☰", title: "List view" }, { m: "grid", icon: "⊞", title: "Grid view" }].map(v => (
-            <button key={v.m} title={v.title} onClick={() => switchView(v.m)} style={{ background: viewMode === v.m ? C.surface : "none", border: "none", borderRadius: 5, color: viewMode === v.m ? C.text : C.textMuted, cursor: "pointer", padding: "4px 10px", fontSize: 15, lineHeight: 1 }}>{v.icon}</button>
-          ))}
-        </div>
+        <ViewToggle value={viewMode} onChange={setViewMode} />
       </div>
-      {viewMode === "strip"
+      {viewMode === "list"
         ? <div>{mine.map(p => <PortalStripCard key={p.id} project={p} onClick={() => onSelect(p.id, "overview")} />)}</div>
         : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 14 }}>
             {mine.map(p => <PortalGridCard key={p.id} project={p} onOpen={tab => onSelect(p.id, tab)} />)}

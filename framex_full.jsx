@@ -1058,71 +1058,139 @@ function CrewPanel({crew,talent,onUpdateCrew,onUpdateTalent,isClient}){
 
   if(isClient) return <div style={{padding:"40px 0",textAlign:"center",color:C.textMuted}}><div style={{fontSize:40,marginBottom:12}}>🔒</div><p>Crew & talent details are internal only.</p></div>;
 
-  return <div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-      {/* Crew */}
-      <div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <span style={{fontSize:12,fontWeight:700,color:C.yellow,textTransform:"uppercase",letterSpacing:"0.08em"}}>👥 Crew ({crew.length})</span>
-          <Btn variant="ghost" onClick={()=>setAddingCrew(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
+  const [viewMode,setViewMode]=useViewPref("framex_view_crew");
+
+  const CrewCard=({person,color,badge})=>{
+    const [hov,setHov]=useState(false);
+    return (
+      <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+        style={{position:"relative",borderRadius:10,overflow:"hidden",background:C.card,border:`1px solid ${hov?C.borderHover:C.border}`,transition:"border-color 0.15s,transform 0.15s,box-shadow 0.15s",transform:hov?"translateY(-2px)":"none",boxShadow:hov?"0 8px 24px rgba(0,0,0,0.4)":"none",padding:"20px 12px 14px",display:"flex",flexDirection:"column",alignItems:"center",gap:8,cursor:"default"}}>
+        <Avatar name={person.name} size={52}/>
+        <div style={{textAlign:"center",minWidth:0,width:"100%"}}>
+          <div style={{fontSize:12,fontWeight:700,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{person.name}</div>
+          <div style={{fontSize:10,color:C.textMuted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{person.role||person.agent&&`Agent: ${person.agent}`||""}</div>
         </div>
-        {crew.map(c=>(
-          <div key={c.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <Avatar name={c.name} size={32}/>
-              <div><div style={{fontSize:13,fontWeight:600,color:C.text}}>{c.name}</div>
-              <div style={{fontSize:11,color:C.textMuted}}>{c.role}</div></div>
-              {c.payrollDocs&&<span style={{marginLeft:"auto",fontSize:10,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:4,padding:"2px 7px"}}>Payroll ✓</span>}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,fontSize:11,color:C.textSec}}>
-              <span>📧 {c.email}</span><span>📞 {c.phone}</span>
-              <span>💰 {c.rate}</span><span>🥗 {c.dietary||"—"}</span>
-            </div>
-            {c.notes&&<p style={{margin:"6px 0 0",fontSize:11,color:C.textMuted,fontStyle:"italic"}}>{c.notes}</p>}
-          </div>
-        ))}
-        {addingCrew&&<div style={{background:"#0A0A14",border:`1px solid ${C.yellow}40`,borderRadius:8,padding:14,marginTop:8}}>
-          {["name","role","email","phone","rate","dietary","notes"].map(f=>(
-            <Input key={f} label={f} value={nc[f]} onChange={e=>setNc(p=>({...p,[f]:e.target.value}))} placeholder={f}/>
-          ))}
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-            <Btn variant="ghost" onClick={()=>setAddingCrew(false)}>Cancel</Btn>
-            <Btn variant="green" onClick={()=>{if(!nc.name.trim())return;onUpdateCrew([...crew,{id:`cr${Date.now()}`,...nc,payrollDocs:false}]);setNc({name:"",role:"",email:"",phone:"",rate:"",dietary:"",notes:""});setAddingCrew(false);}}>Add Crew</Btn>
-          </div>
+        {badge&&<span style={{fontSize:9,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:3,padding:"1px 6px"}}>{badge}</span>}
+        {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(2px)",display:"flex",flexDirection:"column",justifyContent:"center",padding:"10px 12px",gap:5}}>
+          <div style={{fontSize:10,color:"rgba(255,255,255,0.9)",fontWeight:600}}>{person.name}</div>
+          {person.email&&<div style={{fontSize:9,color:C.textSec}}>📧 {person.email}</div>}
+          {person.phone&&<div style={{fontSize:9,color:C.textSec}}>📞 {person.phone}</div>}
+          {person.agentEmail&&<div style={{fontSize:9,color:C.textSec}}>📧 {person.agentEmail}</div>}
+          {person.rate&&<div style={{fontSize:9,color:color}}>💰 {person.rate}</div>}
         </div>}
+      </div>
+    );
+  };
+
+  return <div>
+    <div style={{display:"flex",justifyContent:"flex-end",marginBottom:12}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
+
+    {viewMode==="grid"
+      ?<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+        {/* Crew grid */}
+        <div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+            <span style={{fontSize:11,fontWeight:700,color:C.yellow,textTransform:"uppercase",letterSpacing:"0.08em"}}>👥 Crew ({crew.length})</span>
+            <Btn variant="ghost" onClick={()=>setAddingCrew(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:10}}>
+            {crew.map(c=><CrewCard key={c.id} person={c} color={C.yellow} badge={c.payrollDocs?"Payroll ✓":null}/>)}
+          </div>
+          {addingCrew&&<div style={{background:"#0A0A14",border:`1px solid ${C.yellow}40`,borderRadius:8,padding:14,marginTop:12}}>
+            {["name","role","email","phone","rate","dietary","notes"].map(f=>(
+              <Input key={f} label={f} value={nc[f]} onChange={e=>setNc(p=>({...p,[f]:e.target.value}))} placeholder={f}/>
+            ))}
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn variant="ghost" onClick={()=>setAddingCrew(false)}>Cancel</Btn>
+              <Btn variant="green" onClick={()=>{if(!nc.name.trim())return;onUpdateCrew([...crew,{id:`cr${Date.now()}`,...nc,payrollDocs:false}]);setNc({name:"",role:"",email:"",phone:"",rate:"",dietary:"",notes:""});setAddingCrew(false);}}>Add Crew</Btn>
+            </div>
+          </div>}
+        </div>
+        {/* Talent grid */}
+        <div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+            <span style={{fontSize:11,fontWeight:700,color:C.pink,textTransform:"uppercase",letterSpacing:"0.08em"}}>🌟 Talent ({talent.length})</span>
+            <Btn variant="ghost" onClick={()=>setAddingTalent(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:10}}>
+            {talent.map(t=><CrewCard key={t.id} person={t} color={C.pink} badge={t.releaseForm?"Release ✓":null}/>)}
+          </div>
+          {addingTalent&&<div style={{background:"#0A0A14",border:`1px solid ${C.pink}40`,borderRadius:8,padding:14,marginTop:12}}>
+            {["name","agent","agentEmail","rate","usage","dietary","notes"].map(f=>(
+              <Input key={f} label={f.replace(/([A-Z])/g," $1")} value={nt[f]} onChange={e=>setNt(p=>({...p,[f]:e.target.value}))} placeholder={f}/>
+            ))}
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn variant="ghost" onClick={()=>setAddingTalent(false)}>Cancel</Btn>
+              <Btn variant="pink" onClick={()=>{if(!nt.name.trim())return;onUpdateTalent([...talent,{id:`t${Date.now()}`,...nt,releaseForm:false}]);setNt({name:"",agent:"",agentEmail:"",rate:"",usage:"",dietary:"",notes:""});setAddingTalent(false);}}>Add Talent</Btn>
+            </div>
+          </div>}
+        </div>
       </div>
 
-      {/* Talent */}
-      <div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-          <span style={{fontSize:12,fontWeight:700,color:C.pink,textTransform:"uppercase",letterSpacing:"0.08em"}}>🌟 Talent ({talent.length})</span>
-          <Btn variant="ghost" onClick={()=>setAddingTalent(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
-        </div>
-        {talent.map(t=>(
-          <div key={t.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <Avatar name={t.name} size={32}/>
-              <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text}}>{t.name}</div>
-              <div style={{fontSize:11,color:C.textMuted}}>Agent: {t.agent}</div></div>
-              {t.releaseForm&&<span style={{fontSize:10,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:4,padding:"2px 7px"}}>Release ✓</span>}
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,fontSize:11,color:C.textSec}}>
-              <span>📧 {t.agentEmail}</span><span>💰 {t.rate}</span>
-              <span>📄 {t.usage}</span><span>🥗 {t.dietary||"—"}</span>
-            </div>
+      :<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+        {/* Crew list */}
+        <div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+            <span style={{fontSize:12,fontWeight:700,color:C.yellow,textTransform:"uppercase",letterSpacing:"0.08em"}}>👥 Crew ({crew.length})</span>
+            <Btn variant="ghost" onClick={()=>setAddingCrew(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
           </div>
-        ))}
-        {addingTalent&&<div style={{background:"#0A0A14",border:`1px solid ${C.pink}40`,borderRadius:8,padding:14,marginTop:8}}>
-          {["name","agent","agentEmail","rate","usage","dietary","notes"].map(f=>(
-            <Input key={f} label={f.replace(/([A-Z])/g," $1")} value={nt[f]} onChange={e=>setNt(p=>({...p,[f]:e.target.value}))} placeholder={f}/>
+          {crew.map(c=>(
+            <div key={c.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                <Avatar name={c.name} size={32}/>
+                <div><div style={{fontSize:13,fontWeight:600,color:C.text}}>{c.name}</div>
+                <div style={{fontSize:11,color:C.textMuted}}>{c.role}</div></div>
+                {c.payrollDocs&&<span style={{marginLeft:"auto",fontSize:10,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:4,padding:"2px 7px"}}>Payroll ✓</span>}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,fontSize:11,color:C.textSec}}>
+                <span>📧 {c.email}</span><span>📞 {c.phone}</span>
+                <span>💰 {c.rate}</span><span>🥗 {c.dietary||"—"}</span>
+              </div>
+              {c.notes&&<p style={{margin:"6px 0 0",fontSize:11,color:C.textMuted,fontStyle:"italic"}}>{c.notes}</p>}
+            </div>
           ))}
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-            <Btn variant="ghost" onClick={()=>setAddingTalent(false)}>Cancel</Btn>
-            <Btn variant="pink" onClick={()=>{if(!nt.name.trim())return;onUpdateTalent([...talent,{id:`t${Date.now()}`,...nt,releaseForm:false}]);setNt({name:"",agent:"",agentEmail:"",rate:"",usage:"",dietary:"",notes:""});setAddingTalent(false);}}>Add Talent</Btn>
+          {addingCrew&&<div style={{background:"#0A0A14",border:`1px solid ${C.yellow}40`,borderRadius:8,padding:14,marginTop:8}}>
+            {["name","role","email","phone","rate","dietary","notes"].map(f=>(
+              <Input key={f} label={f} value={nc[f]} onChange={e=>setNc(p=>({...p,[f]:e.target.value}))} placeholder={f}/>
+            ))}
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn variant="ghost" onClick={()=>setAddingCrew(false)}>Cancel</Btn>
+              <Btn variant="green" onClick={()=>{if(!nc.name.trim())return;onUpdateCrew([...crew,{id:`cr${Date.now()}`,...nc,payrollDocs:false}]);setNc({name:"",role:"",email:"",phone:"",rate:"",dietary:"",notes:""});setAddingCrew(false);}}>Add Crew</Btn>
+            </div>
+          </div>}
+        </div>
+        {/* Talent list */}
+        <div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+            <span style={{fontSize:12,fontWeight:700,color:C.pink,textTransform:"uppercase",letterSpacing:"0.08em"}}>🌟 Talent ({talent.length})</span>
+            <Btn variant="ghost" onClick={()=>setAddingTalent(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
           </div>
-        </div>}
+          {talent.map(t=>(
+            <div key={t.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                <Avatar name={t.name} size={32}/>
+                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text}}>{t.name}</div>
+                <div style={{fontSize:11,color:C.textMuted}}>Agent: {t.agent}</div></div>
+                {t.releaseForm&&<span style={{fontSize:10,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:4,padding:"2px 7px"}}>Release ✓</span>}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,fontSize:11,color:C.textSec}}>
+                <span>📧 {t.agentEmail}</span><span>💰 {t.rate}</span>
+                <span>📄 {t.usage}</span><span>🥗 {t.dietary||"—"}</span>
+              </div>
+            </div>
+          ))}
+          {addingTalent&&<div style={{background:"#0A0A14",border:`1px solid ${C.pink}40`,borderRadius:8,padding:14,marginTop:8}}>
+            {["name","agent","agentEmail","rate","usage","dietary","notes"].map(f=>(
+              <Input key={f} label={f.replace(/([A-Z])/g," $1")} value={nt[f]} onChange={e=>setNt(p=>({...p,[f]:e.target.value}))} placeholder={f}/>
+            ))}
+            <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+              <Btn variant="ghost" onClick={()=>setAddingTalent(false)}>Cancel</Btn>
+              <Btn variant="pink" onClick={()=>{if(!nt.name.trim())return;onUpdateTalent([...talent,{id:`t${Date.now()}`,...nt,releaseForm:false}]);setNt({name:"",agent:"",agentEmail:"",rate:"",usage:"",dietary:"",notes:""});setAddingTalent(false);}}>Add Talent</Btn>
+            </div>
+          </div>}
+        </div>
       </div>
-    </div>
+    }
   </div>;
 }
 
@@ -1917,7 +1985,7 @@ export default function App(){
   const [filterStage,setFilterStage]=useState("all");
   const [showNewProject,setShowNewProject]=useState(false);
   const [np,setNp]=useState({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry"});
-  const [viewMode,setViewMode]=useState(()=>localStorage.getItem("framex_view_mode")||"grid");
+  const [viewMode,setViewMode]=useState(()=>{const v=localStorage.getItem("framex_view_mode")||"grid";return v==="strip"?"list":v;});
   const switchView=(m)=>{setViewMode(m);localStorage.setItem("framex_view_mode",m);};
 
   if(!user) return <SignIn onSignIn={setUser} logoUrl={logoUrl}/>;
@@ -2025,13 +2093,7 @@ export default function App(){
               <button onClick={()=>setFilterStage("all")} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:11,marginLeft:10}}>✕ Clear filter</button>
             </>}
           </div>
-          <div style={{display:"flex",gap:1,background:C.card,borderRadius:7,padding:2}}>
-            {[{m:"strip",icon:"☰",title:"List view"},{m:"grid",icon:"⊞",title:"Grid view"}].map(v=>(
-              <button key={v.m} title={v.title} onClick={()=>switchView(v.m)} style={{background:viewMode===v.m?C.surface:"none",border:"none",borderRadius:5,color:viewMode===v.m?C.text:C.textMuted,cursor:"pointer",padding:"4px 10px",fontSize:15,lineHeight:1}}>
-                {v.icon}
-              </button>
-            ))}
-          </div>
+          <ViewToggle value={viewMode} onChange={switchView}/>
         </div>
 
         {visibleProjects.length===0&&<div style={{textAlign:"center",padding:"80px 0",color:C.textMuted}}>
@@ -2039,7 +2101,7 @@ export default function App(){
           <p>{isClient?"No projects shared with you yet.":"No projects in this stage."}</p>
         </div>}
 
-        {viewMode==="strip"
+        {viewMode==="list"
           ?<div>{visibleProjects.map(p=><ProjectStripCard key={p.id} project={p} onClick={()=>openProject(p.id)} isClient={isClient}/>)}</div>
           :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
             {visibleProjects.map(p=><ProjectGridCard key={p.id} project={p} onOpen={tab=>openProject(p.id,tab)} isClient={isClient}/>)}
