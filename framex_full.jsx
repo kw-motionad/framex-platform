@@ -175,6 +175,27 @@ function doDownload(entry){
   if(!entry?.previewUrl)return;
   const a=document.createElement("a");a.href=entry.previewUrl;a.download=entry.name;a.click();
 }
+async function uploadFile(file,folder=""){
+  try{
+    const r=await fetch("/api/presign",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({filename:file.name,contentType:file.type||"application/octet-stream",folder}),
+    });
+    if(!r.ok)throw new Error(`presign ${r.status}`);
+    const{uploadUrl,fileUrl}=await r.json();
+    const put=await fetch(uploadUrl,{
+      method:"PUT",
+      headers:{"Content-Type":file.type||"application/octet-stream"},
+      body:file,
+    });
+    if(!put.ok)throw new Error(`s3 put ${put.status}`);
+    return fileUrl;
+  }catch(e){
+    console.warn("[S3] upload failed, using blob URL:",e.message);
+    return URL.createObjectURL(file);
+  }
+}
 function FileIcon({name="",mimeType="",previewUrl,size=36,fallback="📄"}){
   const type=detectPreviewType(name,mimeType);
   if(type==="image"&&previewUrl)
@@ -424,6 +445,8 @@ function UploadModal({project,onClose,onUpload}){
   const [section,setSection]=useState("documents");
   const [cat,setCat]=useState("contracts");
   const [files,setFiles]=useState([]);
+  const [statuses,setStatuses]=useState({});
+  const [isUploading,setIsUploading]=useState(false);
   const [version,setVersion]=useState("v01");
   const [notes,setNotes]=useState("");
   const [dragging,setDragging]=useState(false);
@@ -439,7 +462,19 @@ function UploadModal({project,onClose,onUpload}){
   const changeSection=(s)=>{setSection(s);setCat(Object.keys(SECS[s].cats||{})[0]||"post");};
   const addFiles=(fs)=>setFiles(prev=>[...prev,...Array.from(fs)]);
   const removeFile=(i)=>setFiles(prev=>prev.filter((_,j)=>j!==i));
-  const doUpload=()=>{if(!files.length)return;onUpload(section,cat,files,{version,notes});onClose();};
+  const doUpload=async()=>{
+    if(!files.length||isUploading)return;
+    setIsUploading(true);
+    const results=[];
+    for(let i=0;i<files.length;i++){
+      setStatuses(prev=>({...prev,[i]:"uploading"}));
+      const url=await uploadFile(files[i],`${section}/${cat}`);
+      setStatuses(prev=>({...prev,[i]:"done"}));
+      results.push({file:files[i],url});
+    }
+    onUpload(section,cat,results,{version,notes});
+    onClose();
+  };
   const iStyle={background:"#0A0A16",border:`1px solid ${C.border}`,borderRadius:7,padding:"8px 12px",color:C.text,fontSize:12,outline:"none",width:"100%",boxSizing:"border-box"};
 
   return (
@@ -492,7 +527,9 @@ function UploadModal({project,onClose,onUpload}){
                   <FileIcon name={f.name} mimeType={f.type} size={28} fallback="📄"/>
                   <span style={{flex:1,fontSize:12,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{f.name}</span>
                   <span style={{fontSize:10,color:C.textMuted,flexShrink:0}}>{(f.size/1024/1024).toFixed(1)}MB</span>
-                  <button onClick={()=>removeFile(i)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14,flexShrink:0,padding:2}}>✕</button>
+                  {statuses[i]==="uploading"&&<span style={{fontSize:10,color:C.cyan,flexShrink:0}}>⬆…</span>}
+                  {statuses[i]==="done"&&<span style={{fontSize:10,color:C.green,flexShrink:0}}>✓</span>}
+                  {!statuses[i]&&!isUploading&&<button onClick={()=>removeFile(i)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14,flexShrink:0,padding:2}}>✕</button>}
                 </div>
               ))}
             </div>
@@ -512,9 +549,9 @@ function UploadModal({project,onClose,onUpload}){
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"flex-end",gap:10,padding:"14px 20px",borderTop:`1px solid ${C.border}`,flexShrink:0}}>
-          <Btn variant="ghost" onClick={onClose}>Cancel</Btn>
-          <Btn variant="cyan" onClick={doUpload} style={{opacity:files.length?1:0.45,pointerEvents:files.length?"auto":"none"}}>
-            ⬆ Upload{files.length>1?` ${files.length} files`:files.length===1?" 1 file":""}
+          <Btn variant="ghost" onClick={onClose} style={{opacity:isUploading?0.45:"",pointerEvents:isUploading?"none":""}}>Cancel</Btn>
+          <Btn variant="cyan" onClick={doUpload} style={{opacity:files.length&&!isUploading?1:0.45,pointerEvents:files.length&&!isUploading?"auto":"none"}}>
+            {isUploading?"⬆ Uploading…":`⬆ Upload${files.length>1?` ${files.length} files`:files.length===1?" 1 file":""}`}
           </Btn>
         </div>
       </div>
@@ -537,10 +574,15 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
   ];
   const visibleCats=isClient?cats.filter(c=>!c.hideFromClient):cats;
 
+  const [uploading,setUploading]=useState(0);
   const updateDocStatus=(cat,id,status)=>onUpdate({...docs,[cat]:docs[cat].map(d=>d.id===id?{...d,status}:d)});
-  const addDoc=(cat,file)=>{
-    const nd={id:`doc${Date.now()}`,name:file.name,status:"pending",uploader:"You",date:new Date().toISOString().slice(0,10),shared:false,esig:false,mimeType:file.type,previewUrl:URL.createObjectURL(file)};
-    onUpdate({...docs,[cat]:[...(docs[cat]||[]),nd]});
+  const addDoc=async(cat,file)=>{
+    setUploading(n=>n+1);
+    try{
+      const previewUrl=await uploadFile(file,`documents/${cat}`);
+      const nd={id:`doc${Date.now()}`,name:file.name,status:"pending",uploader:"You",date:new Date().toISOString().slice(0,10),shared:false,esig:false,mimeType:file.type,previewUrl};
+      onUpdate({...docs,[cat]:[...(docs[cat]||[]),nd]});
+    }finally{setUploading(n=>n-1);}
   };
   const signDoc=()=>{
     if(!esigName.trim())return;
@@ -563,6 +605,7 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
   const totalDocs=visibleCats.reduce((n,c)=>(docs[c.id]||[]).length+n,0);
 
   return <div>
+    {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
       {visibleCats.map(cat=>{
         const items=docs[cat.id]||[];
@@ -630,9 +673,14 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
     {id:"locationScouts",label:"Location Scouts",icon:"📍",color:C.teal},
     {id:"storyboards",label:"Storyboards",icon:"📋",color:C.cyan},
   ];
-  const addItem=(cat,file)=>{
-    const item={id:`cr${Date.now()}`,name:file.name,status:"pending",shared:false,uploader:"You",mimeType:file.type,previewUrl:URL.createObjectURL(file)};
-    onUpdate({...creative,[cat]:[...(creative[cat]||[]),item]});
+  const [uploading,setUploading]=useState(0);
+  const addItem=async(cat,file)=>{
+    setUploading(n=>n+1);
+    try{
+      const previewUrl=await uploadFile(file,`creative/${cat}`);
+      const item={id:`cr${Date.now()}`,name:file.name,status:"pending",shared:false,uploader:"You",mimeType:file.type,previewUrl};
+      onUpdate({...creative,[cat]:[...(creative[cat]||[]),item]});
+    }finally{setUploading(n=>n-1);}
   };
   const updateStatus=(cat,id,status)=>onUpdate({...creative,[cat]:creative[cat].map(i=>i.id===id?{...i,status}:i)});
   const toggleShared=(cat,id)=>onUpdate({...creative,[cat]:creative[cat].map(i=>i.id===id?{...i,shared:!i.shared}:i)});
@@ -644,6 +692,7 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
   const [previewEntry,setPreviewEntry]=useState(null);
 
   return <div>
+    {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
       {cats.map(cat=>{
         const items=creative[cat.id]||[];
@@ -857,13 +906,19 @@ function WrapPanel({wrap,onUpdate,isClient}){
   ];
   const visible=isClient?cats.filter(c=>c.clientVisible):cats;
   const [previewEntry,setPreviewEntry]=useState(null);
-  const addItem=(cat,file)=>{
-    const item={id:`w${Date.now()}`,name:file.name,status:"pending",date:new Date().toISOString().slice(0,10),mimeType:file.type,previewUrl:URL.createObjectURL(file)};
-    onUpdate({...wrap,[cat]:[...(wrap[cat]||[]),item]});
+  const [uploading,setUploading]=useState(0);
+  const addItem=async(cat,file)=>{
+    setUploading(n=>n+1);
+    try{
+      const previewUrl=await uploadFile(file,`wrap/${cat}`);
+      const item={id:`w${Date.now()}`,name:file.name,status:"pending",date:new Date().toISOString().slice(0,10),mimeType:file.type,previewUrl};
+      onUpdate({...wrap,[cat]:[...(wrap[cat]||[]),item]});
+    }finally{setUploading(n=>n-1);}
   };
   const totalDelivered=(wrap.deliverables||[]).filter(d=>d.status==="delivered").length;
 
   return <div>
+    {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
     <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
       {visible.map(cat=>{
         const items=wrap[cat.id]||[];
@@ -937,15 +992,20 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
 
   const toggleShare=(id)=>onUpdate(posts.map(p=>p.id===id?{...p,shared:!p.shared}:p));
   const updateStatus=(id,status)=>{onUpdate(posts.map(p=>p.id===id?{...p,status}:p));if(playing?.id===id)setPlaying(prev=>({...prev,status}));};
-  const addPost=(file)=>{
-    const previewUrl=URL.createObjectURL(file);
-    onUpdate([...posts,{id:`pa${Date.now()}`,type:file.type.startsWith("video")?"video":"board",name:file.name,version:"v01",status:"pending",uploader:"You",duration:file.type.startsWith("video")?120:undefined,editNotes:"",shared:false,comments:[],mimeType:file.type,previewUrl}]);
+  const [uploading,setUploading]=useState(0);
+  const addPost=async(file)=>{
+    setUploading(n=>n+1);
+    try{
+      const previewUrl=await uploadFile(file,"post");
+      onUpdate([...posts,{id:`pa${Date.now()}`,type:file.type.startsWith("video")?"video":"board",name:file.name,version:"v01",status:"pending",uploader:"You",duration:file.type.startsWith("video")?120:undefined,editNotes:"",shared:false,comments:[],mimeType:file.type,previewUrl}]);
+    }finally{setUploading(n=>n-1);}
   };
 
   return <div style={{display:"flex",gap:20,minHeight:0}}>
     {/* Asset list */}
     <div style={{flex:playing?0:1,width:playing?"300px":"100%",flexShrink:0}}>
       {!isClient&&<DropZone onFiles={fs=>fs.forEach(addPost)} accept="video/*,image/*,.pdf" label="Drop video or image files here" color={C.cyan}/>}
+      {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",margin:"8px 0",fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
       {visible.length===0&&<p style={{color:C.textMuted,textAlign:"center",padding:"40px 0"}}>No assets yet.</p>}
       {visible.map(asset=>(
         <div key={asset.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
@@ -1080,19 +1140,19 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
 
   const up=(field,val)=>onUpdate({...project,[field]:val});
   const [showUpload,setShowUpload]=useState(false);
-  const handleUpload=(section,category,files,meta)=>{
+  const handleUpload=(section,category,uploaded,meta)=>{
     const now=Date.now();
     if(section==="documents"){
-      const newDocs=files.map((f,i)=>({id:`doc${now+i}`,name:f.name,status:"pending",uploader:currentUser.name,date:new Date().toISOString().slice(0,10),shared:false,esig:false,mimeType:f.type,previewUrl:URL.createObjectURL(f),notes:meta.notes}));
+      const newDocs=uploaded.map(({file,url},i)=>({id:`doc${now+i}`,name:file.name,status:"pending",uploader:currentUser.name,date:new Date().toISOString().slice(0,10),shared:false,esig:false,mimeType:file.type,previewUrl:url,notes:meta.notes}));
       up("documents",{...project.documents,[category]:[...(project.documents[category]||[]),...newDocs]});
     } else if(section==="creative"){
-      const newItems=files.map((f,i)=>({id:`cr${now+i}`,name:f.name,status:"pending",shared:false,uploader:currentUser.name,mimeType:f.type,previewUrl:URL.createObjectURL(f),notes:meta.notes}));
+      const newItems=uploaded.map(({file,url},i)=>({id:`cr${now+i}`,name:file.name,status:"pending",shared:false,uploader:currentUser.name,mimeType:file.type,previewUrl:url,notes:meta.notes}));
       up("creative",{...project.creative,[category]:[...(project.creative[category]||[]),...newItems]});
     } else if(section==="post"){
-      const newPosts=files.map((f,i)=>({id:`pa${now+i}`,type:f.type.startsWith("video")?"video":"board",name:f.name,version:meta.version||"v01",status:"pending",uploader:currentUser.name,duration:f.type.startsWith("video")?120:undefined,editNotes:meta.notes||"",shared:false,comments:[],mimeType:f.type,previewUrl:URL.createObjectURL(f)}));
+      const newPosts=uploaded.map(({file,url},i)=>({id:`pa${now+i}`,type:file.type.startsWith("video")?"video":"board",name:file.name,version:meta.version||"v01",status:"pending",uploader:currentUser.name,duration:file.type.startsWith("video")?120:undefined,editNotes:meta.notes||"",shared:false,comments:[],mimeType:file.type,previewUrl:url}));
       up("posts",[...project.posts,...newPosts]);
     } else if(section==="wrap"){
-      const newItems=files.map((f,i)=>({id:`w${now+i}`,name:f.name,status:"pending",date:new Date().toISOString().slice(0,10),mimeType:f.type,previewUrl:URL.createObjectURL(f),notes:meta.notes}));
+      const newItems=uploaded.map(({file,url},i)=>({id:`w${now+i}`,name:file.name,status:"pending",date:new Date().toISOString().slice(0,10),mimeType:file.type,previewUrl:url,notes:meta.notes}));
       up("wrap",{...project.wrap,[category]:[...(project.wrap[category]||[]),...newItems]});
     }
   };
