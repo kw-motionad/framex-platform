@@ -71,12 +71,6 @@ const SEED_PROJECTS = [
    clientComments:[{id:"cc1",author:"Jordan Lee",date:"2026-06-10",text:"Love the explosion effect at 0:47 — can we hold that frame a bit longer?",resolved:false}],
    internalNotes:"Client has final approval gate on grade. Delivery deadline firm.",
    posts:[{id:"pa1",type:"video",name:"TitanA_comp_v04.mp4",version:"v04",status:"in_review",uploader:"Tom R.",duration:124,editNotes:"Explosion edge needs scatter.",shared:true,comments:[{id:"c1",time:12,author:"Sarah D.",text:"More scatter on edge",color:"#FF5500",resolved:false}]}],
-   milestones:[
-     {date:"2026-04-15",label:"Kickoff Complete"},
-     {date:"2026-05-01",label:"VFX Rough Cut"},
-     {date:"2026-06-01",label:"Picture Lock"},
-     {date:"2026-06-20",label:"Delivery"},
-   ],
   },
   {id:2,title:"Dragon Awakening",client:"Disney",clientId:null,status:"pre",producer:"Ana P.",startDate:"2026-06-01",deliveryDate:"2026-08-15",budget:720000,
    documents:{contracts:[],budgets:[{id:"doc6",name:"Dragon_Budget_Draft.xlsx",status:"draft",uploader:"Mike J.",date:"2026-06-05",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[{id:"doc7",name:"VFX_Estimate_v1.pdf",status:"draft",uploader:"Ana P.",date:"2026-06-04",shared:false,esig:false,mimeType:"application/pdf"}],invoices:[],schedules:[]},
@@ -86,7 +80,6 @@ const SEED_PROJECTS = [
    wrap:{finalInvoices:[],expenseReports:[],signedContracts:[],releases:[],deliverables:[],wrapNotes:""},
    clientComments:[],internalNotes:"Greenlight pending Disney legal review.",
    posts:[],
-   milestones:[],
   },
   {id:3,title:"Neon City Commercial",client:"Netflix",clientId:null,status:"wrap",producer:"Ana P.",startDate:"2026-02-01",deliveryDate:"2026-06-15",budget:210000,
    documents:{contracts:[{id:"doc8",name:"Netflix_Contract.pdf",status:"signed",uploader:"Ana P.",date:"2026-02-01",shared:true,esig:true,mimeType:"application/pdf"}],budgets:[{id:"doc9",name:"NeonCity_Final_Budget.xlsx",status:"approved",uploader:"Mike J.",date:"2026-06-01",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[],invoices:[{id:"doc10",name:"Final_Invoice_100pct.pdf",status:"sent",uploader:"Mike J.",date:"2026-06-14",shared:true,esig:false,mimeType:"application/pdf"}],schedules:[]},
@@ -96,7 +89,26 @@ const SEED_PROJECTS = [
    wrap:{finalInvoices:[{id:"wi1",name:"Final_Invoice_100pct.pdf",status:"sent",date:"2026-06-14"}],expenseReports:[{id:"we1",name:"Expense_Summary.xlsx",status:"pending",date:"2026-06-15"}],signedContracts:[{id:"wc1",name:"Netflix_Contract_Signed.pdf",date:"2026-02-02"}],releases:[{id:"wr1",name:"Talent_Release_All.pdf",status:"signed",date:"2026-05-20"}],deliverables:[{id:"wd1",name:"NeonCity_Master_4K.mp4",status:"delivered",date:"2026-06-14"}],wrapNotes:"All deliverables sent. Awaiting final payment."},
    clientComments:[],internalNotes:"Final payment due Jul 1.",
    posts:[{id:"pa2",type:"video",name:"NeonCity_final_v07.mp4",version:"v07",status:"approved",uploader:"Sam K.",duration:210,editNotes:"Picture locked.",shared:true,comments:[]}],
-   milestones:[],
+  },
+];
+
+// ─── Seed Client Accounts ────────────────────────────────────────────────────
+const SEED_CLIENT_ACCOUNTS = [
+  {
+    id: "client_1",
+    name: "Jordan Lee",
+    email: "client@paramount.com",
+    company: "Paramount Pictures",
+    password: "FX-9K4M",
+    branding: {
+      accentColor: "#FF6B35",
+      logoUrl: null,
+      bgImageUrl: null,
+      portalHeadline: "PARAMOUNT · CLIENT PORTAL",
+      welcomeMessage: "Welcome to your Paramount production portal.",
+      theme: "dark",
+    },
+    createdAt: "2026-04-01",
   },
 ];
 
@@ -380,9 +392,199 @@ function PdfAnnotator({entry,onAnnotate}){
   </div>;
 }
 
+// ─── Client Branding Modal ────────────────────────────────────────────────────
+
+function ClientBrandingModal({client, onSave, onClose}){
+  const [b,setB]=useState({
+    accentColor:"#00C2FF",logoUrl:null,bgImageUrl:null,
+    portalHeadline:"CLIENT PORTAL",welcomeMessage:"Welcome.",theme:"dark",
+    ...(client?.branding||{}),
+  });
+  const set=(k,v)=>setB(p=>({...p,[k]:v}));
+  const pickImg=(key)=>{
+    const inp=document.createElement("input");inp.type="file";inp.accept="image/*";
+    inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>set(key,ev.target.result);r.readAsDataURL(f);};
+    inp.click();
+  };
+  const inp={width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:6,color:C.text,padding:"7px 10px",fontSize:12,boxSizing:"border-box",outline:"none"};
+  const lbl={fontSize:9,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,display:"block"};
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,width:"100%",maxWidth:520,boxShadow:"0 24px 80px #00000080",overflow:"hidden"}}>
+        <div style={{padding:"14px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:12,height:12,borderRadius:"50%",background:b.accentColor,flexShrink:0}}/>
+          <span style={{fontSize:13,fontWeight:700,color:C.text}}>Portal Branding — {client?.company}</span>
+          <button onClick={onClose} style={{marginLeft:"auto",background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:16}}>✕</button>
+        </div>
+        <div style={{padding:"20px",overflowY:"auto",maxHeight:"70vh"}}>
+          {/* Accent color */}
+          <div style={{marginBottom:16}}>
+            <span style={lbl}>Accent Color</span>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <input type="color" value={b.accentColor||"#00C2FF"} onChange={e=>set("accentColor",e.target.value)}
+                style={{width:36,height:28,border:"none",background:"none",cursor:"pointer",padding:0}}/>
+              <input value={b.accentColor||""} onChange={e=>{if(/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value))set("accentColor",e.target.value);}}
+                style={{...inp,width:100,fontFamily:"monospace"}} placeholder="#00C2FF"/>
+              {/* Color presets */}
+              {["#FF6B35","#5B7FFF","#E53935","#00C853","#FF6EC7","#9B7AFF","#FFD600"].map(c=>(
+                <div key={c} onClick={()=>set("accentColor",c)} style={{width:22,height:22,borderRadius:"50%",background:c,cursor:"pointer",border:b.accentColor===c?"2px solid #fff":"2px solid transparent",flexShrink:0}}/>
+              ))}
+            </div>
+          </div>
+          {/* Logo */}
+          <div style={{marginBottom:16}}>
+            <span style={lbl}>Logo</span>
+            <div onClick={()=>pickImg("logoUrl")} style={{height:60,background:C.card,border:`1px dashed ${C.border}`,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=b.accentColor||C.cyan}
+              onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+              {b.logoUrl?<img src={b.logoUrl} alt="" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",padding:4}}/>
+                :<span style={{fontSize:11,color:C.textMuted}}>Click to upload logo</span>}
+            </div>
+            {b.logoUrl&&<button onClick={()=>set("logoUrl",null)} style={{fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:"2px 0"}}>✕ Remove</button>}
+          </div>
+          {/* Portal Headline */}
+          <div style={{marginBottom:16}}>
+            <span style={lbl}>Portal Headline</span>
+            <input value={b.portalHeadline} onChange={e=>set("portalHeadline",e.target.value)} placeholder="COMPANY · CLIENT PORTAL" style={inp}/>
+          </div>
+          {/* Welcome Message */}
+          <div style={{marginBottom:16}}>
+            <span style={lbl}>Welcome Message</span>
+            <input value={b.welcomeMessage} onChange={e=>set("welcomeMessage",e.target.value)} placeholder="Welcome to your production portal." style={inp}/>
+          </div>
+          {/* Theme */}
+          <div style={{marginBottom:20}}>
+            <span style={lbl}>Theme</span>
+            <div style={{display:"flex",gap:8}}>
+              {[{val:"dark",label:"🌙 Dark"},{val:"light",label:"☀️ Light"}].map(opt=>(
+                <button key={opt.val} onClick={()=>set("theme",opt.val)} style={{flex:1,padding:"7px 0",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:600,
+                  background:b.theme===opt.val?C.orange+"20":"none",border:`1.5px solid ${b.theme===opt.val?C.orange:C.border}`,color:b.theme===opt.val?C.orange:C.textSec}}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+            <Btn onClick={onClose}>Cancel</Btn>
+            <Btn variant="primary" onClick={()=>onSave(b)}>Save Branding</Btn>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Send Login Modal ─────────────────────────────────────────────────────────
+
+function SendLoginModal({client, onClose}){
+  const [copied,setCopied]=useState(false);
+  const portalUrl="https://framex-sigma.vercel.app";
+  const creds=`Portal: ${portalUrl}\nEmail: ${client.email}\nPassword: ${client.password}`;
+  const copy=()=>{
+    navigator.clipboard?.writeText(creds).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),2000);}).catch(()=>{});
+  };
+  return (
+    <Modal title="Send Login Details" onClose={onClose}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px",marginBottom:14}}>
+        <div style={{fontSize:11,color:C.textMuted,marginBottom:2}}>Sending credentials to</div>
+        <div style={{fontSize:15,fontWeight:700,color:C.text}}>{client.name}</div>
+        <div style={{fontSize:12,color:C.textSec}}>{client.company}</div>
+      </div>
+      <div style={{background:"#02020E",border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 18px",fontFamily:"monospace",fontSize:12,marginBottom:14,lineHeight:2}}>
+        <div><span style={{color:C.textMuted}}>Portal URL: </span><span style={{color:C.cyan}}>{portalUrl}</span></div>
+        <div><span style={{color:C.textMuted}}>Email:      </span><span style={{color:C.text}}>{client.email}</span></div>
+        <div><span style={{color:C.textMuted}}>Password:   </span><span style={{color:C.green,fontWeight:700,letterSpacing:"0.1em"}}>{client.password}</span></div>
+      </div>
+      <div style={{background:C.orangeLow,border:`1px solid ${C.orange}30`,borderRadius:8,padding:"10px 14px",marginBottom:16,fontSize:11,color:C.textSec}}>
+        ⚠️ Share these credentials securely. The client should change their password after first login.
+      </div>
+      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+        <Btn onClick={onClose}>Close</Btn>
+        <Btn variant="primary" onClick={copy}>{copied?"✓ Copied!":"📋 Copy Credentials"}</Btn>
+      </div>
+    </Modal>
+  );
+}
+
+// ─── Clients Section ──────────────────────────────────────────────────────────
+
+function ClientsSection({clientAccounts, projects, onSendLogin, onEditBranding}){
+  if(clientAccounts.length===0) return (
+    <div style={{textAlign:"center",padding:"80px 20px",color:C.textMuted}}>
+      <div style={{fontSize:48,marginBottom:16}}>👤</div>
+      <div style={{fontSize:15,fontWeight:600,color:C.textSec,marginBottom:8}}>No client accounts yet</div>
+      <div style={{fontSize:13}}>When you create a project with a client email, their portal account appears here.</div>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
+        <div>
+          <div style={{fontSize:18,fontWeight:700,color:C.text}}>Client Accounts</div>
+          <div style={{fontSize:12,color:C.textMuted,marginTop:2}}>{clientAccounts.length} account{clientAccounts.length!==1?"s":""} · Each client has their own portal login and branding</div>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:16}}>
+        {clientAccounts.map(client=>{
+          const accent=client.branding?.accentColor||C.cyan;
+          const clientProjs=projects.filter(p=>p.clientId===client.id||p.client===client.company);
+          return (
+            <div key={client.id} style={{background:C.card,borderRadius:12,overflow:"hidden",border:`1px solid ${C.border}`}}>
+              {/* Accent band */}
+              <div style={{height:4,background:accent}}/>
+              <div style={{padding:"16px 18px"}}>
+                {/* Header */}
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <div style={{width:42,height:42,borderRadius:10,background:accent+"20",border:`1.5px solid ${accent}40`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:800,color:accent,flexShrink:0}}>
+                    {client.company.slice(0,2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:C.text}}>{client.company}</div>
+                    <div style={{fontSize:11,color:C.textMuted}}>{client.name}</div>
+                  </div>
+                  <div style={{marginLeft:"auto",width:10,height:10,borderRadius:"50%",background:accent,boxShadow:`0 0 8px ${accent}80`}}/>
+                </div>
+                {/* Credentials */}
+                <div style={{background:"#040410",borderRadius:8,padding:"10px 12px",marginBottom:12,fontFamily:"monospace",fontSize:11}}>
+                  <div style={{color:C.textMuted,marginBottom:5}}>✉ {client.email}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{color:C.textMuted}}>🔑 </span>
+                    <span style={{color:C.green,fontWeight:700,letterSpacing:"0.1em"}}>{client.password}</span>
+                    <span style={{marginLeft:"auto",fontSize:9,color:C.textMuted,background:C.surface,borderRadius:3,padding:"1px 5px"}}>CLIENT PORTAL</span>
+                  </div>
+                </div>
+                {/* Projects */}
+                <div style={{marginBottom:14}}>
+                  <div style={{fontSize:10,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:6}}>Projects ({clientProjs.length})</div>
+                  {clientProjs.length===0
+                    ?<div style={{fontSize:11,color:C.textMuted,fontStyle:"italic"}}>No projects assigned yet</div>
+                    :clientProjs.slice(0,3).map(p=>(
+                      <div key={p.id} style={{fontSize:11,color:C.textSec,marginBottom:3,display:"flex",alignItems:"center",gap:5}}>
+                        <span style={{color:LIFECYCLE_META[p.status]?.color||C.textMuted,fontSize:8}}>●</span>
+                        <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.title}</span>
+                      </div>
+                    ))
+                  }
+                  {clientProjs.length>3&&<div style={{fontSize:10,color:C.textMuted}}>+{clientProjs.length-3} more</div>}
+                </div>
+                {/* Actions */}
+                <div style={{display:"flex",gap:8}}>
+                  <Btn onClick={()=>onEditBranding(client.id)} style={{flex:1,fontSize:11,padding:"6px 10px",whiteSpace:"nowrap"}}>🎨 Branding</Btn>
+                  <Btn variant="cyan" onClick={()=>onSendLogin(client)} style={{flex:1,fontSize:11,padding:"6px 10px",whiteSpace:"nowrap"}}>✉ Send Login</Btn>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Sign In ──────────────────────────────────────────────────────────────────
 
-function SignIn({onSignIn,logoUrl}){
+function SignIn({onSignIn,logoUrl,clients=[]}){
   const [email,setEmail]=useState("");
   const [pass,setPass]=useState("");
   const [err,setErr]=useState("");
@@ -392,9 +594,13 @@ function SignIn({onSignIn,logoUrl}){
   const attempt=()=>{
     setErr("");setLoading(true);
     setTimeout(()=>{
-      const u=DEMO_USERS.find(u=>u.email===email.trim().toLowerCase()&&u.password===pass);
-      if(u)onSignIn(u); else setErr("Incorrect email or password.");
       setLoading(false);
+      const u=DEMO_USERS.find(u=>u.email===email.trim().toLowerCase()&&u.password===pass);
+      if(u){onSignIn(u);return;}
+      // Check client accounts
+      const c=clients.find(c=>c.email.toLowerCase()===email.trim().toLowerCase()&&c.password===pass);
+      if(c){onSignIn({id:c.id,name:c.name,role:"client",email:c.email,company:c.company,branding:c.branding});return;}
+      setErr("Incorrect email or password.");
     },500);
   };
 
@@ -432,6 +638,22 @@ function SignIn({onSignIn,logoUrl}){
             <span style={{fontSize:10,color:ROLES[u.role].color,fontWeight:600}}>{ROLES[u.role].label}</span>
           </button>
         ))}
+        {clients.length>0&&<>
+          <div style={{height:1,background:C.border,margin:"8px 0"}}/>
+          <div style={{fontSize:9,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6}}>Client Accounts</div>
+          {clients.map(c=>(
+            <button key={c.id} onClick={()=>onSignIn({id:c.id,name:c.name,role:"client",email:c.email,company:c.company,branding:c.branding})}
+              style={{display:"flex",alignItems:"center",gap:10,background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:6}}
+              onMouseEnter={e=>e.currentTarget.style.borderColor=(c.branding?.accentColor||C.cyan)+"50"}
+              onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:12,fontWeight:600,color:C.text}}>{c.name} <span style={{color:C.textMuted,fontWeight:400}}>({c.company})</span></div>
+                <div style={{fontSize:10,color:C.textMuted,fontFamily:"monospace"}}>{c.email} · pw: {c.password}</div>
+              </div>
+              <span style={{fontSize:9,background:(c.branding?.accentColor||C.cyan)+"20",color:c.branding?.accentColor||C.cyan,borderRadius:3,padding:"2px 6px",border:`1px solid ${(c.branding?.accentColor||C.cyan)}35`}}>CLIENT</span>
+            </button>
+          ))}
+        </>}
       </div>
     </div>
   </div>;
@@ -586,35 +808,6 @@ function PortalCustomizeModal({project,settings,onUpdate,onClose}){
   };
   const set=(k,v)=>onUpdate({...s,[k]:v});
 
-  const NAV_DEFAULTS_LOCAL = [
-    { id:"home",         label:"Home",         sym:"⌂",  visible:true },
-    { id:"projects",     label:"Projects",     sym:"◈",  visible:true },
-    { id:"deliverables", label:"Deliverables", sym:"▶",  visible:true },
-    { id:"creative",     label:"Creative",     sym:"✦",  visible:true },
-    { id:"documents",    label:"Documents",    sym:"▣",  visible:true },
-    { id:"messages",     label:"Messages",     sym:"◉",  visible:true },
-  ];
-  const NAV_ADDABLE_LOCAL = [
-    { id:"vfx",label:"VFX & 3D",sym:"✺" },
-    { id:"design",label:"Design",sym:"◇" },
-    { id:"final",label:"Final Outputs",sym:"★" },
-    { id:"billing",label:"Billing",sym:"$" },
-    { id:"contacts",label:"Contacts",sym:"◎" },
-    { id:"locations",label:"Locations",sym:"⊕" },
-    { id:"guide",label:"Guide",sym:"?" },
-  ];
-  const [navCfg,setNavCfg]=useState(()=>{
-    try{ return JSON.parse(localStorage.getItem("framex_portal_nav")||"null")||NAV_DEFAULTS_LOCAL; }
-    catch{ return NAV_DEFAULTS_LOCAL; }
-  });
-  const [addingCustomNav,setAddingCustomNav]=useState(false);
-  const [customNavLabel,setCustomNavLabel]=useState("");
-  const saveNavCfg=(items)=>{
-    setNavCfg(items);
-    localStorage.setItem("framex_portal_nav",JSON.stringify(items));
-  };
-  const NAV_CORE_IDS=["home","projects","deliverables","creative","documents","messages"];
-
   const pickImg=(key)=>{
     const inp=document.createElement("input");
     inp.type="file";inp.accept="image/*";
@@ -744,46 +937,6 @@ function PortalCustomizeModal({project,settings,onUpdate,onClose}){
                   }}>{opt.label}</button>
                 ))}
               </div>
-            </div>
-
-            {/* Navigation */}
-            <div style={{...sec,marginTop:22,borderBottom:"none",paddingBottom:0}}>
-              <span style={lbl}>Portal Navigation</span>
-              {navCfg.map(item=>(
-                <div key={item.id} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-                  <input type="checkbox" checked={item.visible} onChange={e=>saveNavCfg(navCfg.map(i=>i.id===item.id?{...i,visible:e.target.checked}:i))}
-                    style={{width:14,height:14,cursor:"pointer"}}/>
-                  <input value={item.label} onChange={e=>saveNavCfg(navCfg.map(i=>i.id===item.id?{...i,label:e.target.value}:i))}
-                    style={{...inp,flex:1,padding:"4px 8px"}}/>
-                  {!NAV_CORE_IDS.includes(item.id)&&
-                    <button onClick={()=>saveNavCfg(navCfg.filter(i=>i.id!==item.id))}
-                      style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14,padding:"0 2px"}}>✕</button>}
-                </div>
-              ))}
-              {!addingCustomNav
-                ? <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
-                    {NAV_ADDABLE_LOCAL.filter(a=>!navCfg.find(n=>n.id===a.id)).map(a=>(
-                      <button key={a.id} onClick={()=>saveNavCfg([...navCfg,{...a,visible:true}])}
-                        style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:5,padding:"3px 8px",fontSize:10}}>
-                        + {a.label}
-                      </button>
-                    ))}
-                    <button onClick={()=>setAddingCustomNav(true)}
-                      style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:5,padding:"3px 8px",fontSize:10}}>
-                      + Custom…
-                    </button>
-                  </div>
-                : <div style={{display:"flex",gap:6,marginTop:8}}>
-                    <input value={customNavLabel} onChange={e=>setCustomNavLabel(e.target.value)}
-                      placeholder="Section name" style={{...inp,flex:1,padding:"4px 8px"}}
-                      onKeyDown={e=>{
-                        if(e.key==="Enter"&&customNavLabel.trim()){
-                          saveNavCfg([...navCfg,{id:"custom_"+Date.now(),label:customNavLabel.trim(),sym:"◈",visible:true}]);
-                          setCustomNavLabel(""); setAddingCustomNav(false);
-                        }
-                      }}/>
-                    <button onClick={()=>setAddingCustomNav(false)} style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,cursor:"pointer",borderRadius:5,padding:"4px 8px",fontSize:11}}>Cancel</button>
-                  </div>}
             </div>
           </div>
 
@@ -1406,7 +1559,7 @@ function ClientComments({comments,onUpdate,currentUser}){
 
 // ─── Project Detail ───────────────────────────────────────────────────────────
 
-function ProjectDetail({project,onUpdate,currentUser,onBack}){
+function ProjectDetail({project,onUpdate,currentUser,onBack,onPreviewAsClient}){
   const isClient=ROLES[currentUser.role].isClient;
   const canApprove=ROLES[currentUser.role].canApprove;
   const canSeeInternal=ROLES[currentUser.role].canSeeInternal;
@@ -1467,6 +1620,9 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
           {(currentUser.role==="admin"||currentUser.role==="producer")&&<Btn variant="primary" onClick={()=>setShowPortalCustomize(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>🎨 Customize Portal</Btn>}
+          {(currentUser.role==="admin"||currentUser.role==="producer")&&project.clientId&&
+            <Btn variant="ghost" onClick={()=>onPreviewAsClient&&onPreviewAsClient(project.clientId)}
+              style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>👁 Preview as Client</Btn>}
           {!isClient&&<Btn variant="cyan" onClick={()=>setShowUpload(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>⬆ Upload</Btn>}
           <LifecyclePill stage={project.status}/>
         </div>
@@ -1544,6 +1700,11 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
 // ─── App ──────────────────────────────────────────────────────────────────────
 
 export default function App(){
+  const [clientAccounts,setClientAccounts]=useState(SEED_CLIENT_ACCOUNTS);
+  const [dashSection,setDashSection]=useState("projects");
+  const [previewAsClientId,setPreviewAsClientId]=useState(null);
+  const [showSendLogin,setShowSendLogin]=useState(null);
+  const [showClientBranding,setShowClientBranding]=useState(null);
   const [user,setUser]=useState(null);
   const [logoUrl,setLogoUrl]=useState(null);
   const logoRef=useRef(null);
@@ -1552,29 +1713,77 @@ export default function App(){
   const [nav,setNav]=useState("projects");
   const [filterStage,setFilterStage]=useState("all");
   const [showNewProject,setShowNewProject]=useState(false);
-  const [np,setNp]=useState({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry"});
+  const [np,setNp]=useState({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry",clientEmail:"",clientName:""});
 
-  if(!user) return <SignIn onSignIn={setUser} logoUrl={logoUrl}/>;
+  if(!user) return <SignIn onSignIn={setUser} logoUrl={logoUrl} clients={clientAccounts}/>;
 
   const isClient=ROLES[user.role].isClient;
   const selected=projects.find(p=>p.id===selectedId);
 
   const updateProject=(updated)=>setProjects(ps=>ps.map(p=>p.id===updated.id?updated:p));
 
-  if(isClient) return <ClientPortal user={user} projects={projects} onUpdateProject={updateProject} onSignOut={()=>setUser(null)} logoUrl={logoUrl} onLogoChange={setLogoUrl}/>;
+  if(isClient){
+    const clientRecord=clientAccounts.find(c=>c.id===user.id||c.email===user.email);
+    const clientBranding=clientRecord?.branding||user.branding||{};
+    return <ClientPortal user={user} projects={projects} onUpdateProject={updateProject} onSignOut={()=>setUser(null)} logoUrl={logoUrl} onLogoChange={setLogoUrl} clientBranding={clientBranding}/>;
+  }
+
+  if(previewAsClientId){
+    const previewClient=clientAccounts.find(c=>c.id===previewAsClientId);
+    if(previewClient){
+      const previewUser={id:previewClient.id,name:previewClient.name,role:"client",email:previewClient.email,company:previewClient.company,branding:previewClient.branding};
+      return (
+        <div style={{height:"100vh",display:"flex",flexDirection:"column",overflow:"hidden",fontFamily:"'Inter',system-ui,sans-serif"}}>
+          <div style={{flexShrink:0,background:C.orange,color:"#fff",padding:"7px 20px",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:12,fontWeight:700,letterSpacing:"0.02em"}}>
+            <span>👁 Previewing as {previewClient.company} — {previewClient.name}</span>
+            <button onClick={()=>setPreviewAsClientId(null)} style={{background:"rgba(0,0,0,0.3)",border:"none",color:"#fff",cursor:"pointer",borderRadius:5,padding:"3px 12px",fontSize:12,fontWeight:600}}>✕ Exit Preview</button>
+          </div>
+          <div style={{flex:1,overflow:"hidden"}}>
+            <ClientPortal user={previewUser} projects={projects} onUpdateProject={updateProject} onSignOut={()=>setPreviewAsClientId(null)} logoUrl={logoUrl} onLogoChange={()=>{}} clientBranding={previewClient.branding}/>
+          </div>
+        </div>
+      );
+    }
+  }
 
   const createProject=()=>{
     if(!np.title.trim())return;
-    const p={id:Date.now(),title:np.title,client:np.client||"—",clientId:null,status:np.status,producer:np.producer||user.name,
-      startDate:new Date().toISOString().slice(0,10),deliveryDate:np.deliveryDate||"TBD",budget:parseInt(np.budget)||0,
+    let clientId=null;
+    if(np.clientEmail?.trim()){
+      const existing=clientAccounts.find(c=>c.email.toLowerCase()===np.clientEmail.toLowerCase());
+      if(existing){
+        clientId=existing.id;
+      } else {
+        const nc={
+          id:"client_"+Date.now(),
+          name:np.clientName||np.client||"Client Contact",
+          email:np.clientEmail.trim(),
+          company:np.client||"—",
+          password:"FX-"+Math.random().toString(36).slice(2,6).toUpperCase(),
+          branding:{
+            accentColor:"#00C2FF",
+            logoUrl:null,bgImageUrl:null,
+            portalHeadline:`${(np.client||"CLIENT").toUpperCase()} · CLIENT PORTAL`,
+            welcomeMessage:`Welcome to your ${np.client||"client"} production portal.`,
+            theme:"dark",
+          },
+          createdAt:new Date().toISOString().slice(0,10),
+        };
+        clientId=nc.id;
+        setClientAccounts(prev=>[...prev,nc]);
+      }
+    }
+    const p={id:Date.now(),title:np.title,client:np.client||"—",clientId,status:np.status||"inquiry",
+      producer:np.producer||user.name,startDate:new Date().toISOString().slice(0,10),
+      deliveryDate:np.deliveryDate||"TBD",budget:parseInt(np.budget)||0,
       documents:{contracts:[],budgets:[],estimates:[],invoices:[],schedules:[]},
       creative:{pitchDecks:[],moodBoards:[],locationScouts:[],storyboards:[]},
       crew:[],talent:[],
       producer_data:{vendors:[],permits:[],rentals:[],travel:[],productionNotes:"",postNotes:""},
       wrap:{finalInvoices:[],expenseReports:[],signedContracts:[],releases:[],deliverables:[],wrapNotes:""},
-      clientComments:[],internalNotes:"",posts:[],portalSettings:{}};
+      clientComments:[],internalNotes:"",posts:[],milestones:[],portalSettings:{}};
     setProjects(ps=>[...ps,p]);
-    setNp({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry"});
+    setNp({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry",clientEmail:"",clientName:""});
     setShowNewProject(false);
   };
 
@@ -1598,8 +1807,14 @@ export default function App(){
         </div>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
-        <ProjectDetail project={selected} onUpdate={updateProject} currentUser={user} onBack={()=>setSelectedId(null)}/>
+        <ProjectDetail project={selected} onUpdate={updateProject} currentUser={user} onBack={()=>setSelectedId(null)}
+          onPreviewAsClient={setPreviewAsClientId}/>
       </div>
+      {showSendLogin&&<SendLoginModal client={showSendLogin} onClose={()=>setShowSendLogin(null)}/>}
+      {showClientBranding&&<ClientBrandingModal
+        client={clientAccounts.find(c=>c.id===showClientBranding)}
+        onSave={b=>{setClientAccounts(prev=>prev.map(c=>c.id===showClientBranding?{...c,branding:b}:c));setShowClientBranding(null);}}
+        onClose={()=>setShowClientBranding(null)}/>}
     </div>
   );
 
@@ -1618,6 +1833,15 @@ export default function App(){
           </div>}
         <div style={{width:1,height:24,background:C.border}}/>
         <span style={{fontSize:15,fontWeight:700,color:C.text}}>{isClient?"Client Portal":"Project Dashboard"}</span>
+        {(user.role==="admin"||user.role==="producer")&&(
+          <div style={{display:"flex",gap:1,background:C.card,borderRadius:7,padding:2}}>
+            {[{id:"projects",label:"Projects"},{id:"clients",label:"Clients"}].map(t=>(
+              <button key={t.id} onClick={()=>setDashSection(t.id)} style={{background:dashSection===t.id?C.surface:"none",border:"none",borderRadius:5,color:dashSection===t.id?C.text:C.textMuted,cursor:"pointer",padding:"4px 12px",fontSize:12,fontWeight:dashSection===t.id?600:400}}>
+                {t.label}{t.id==="clients"&&clientAccounts.length>0?` (${clientAccounts.length})`:""}
+              </button>
+            ))}
+          </div>
+        )}
         <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
           {!isClient&&<Btn variant="primary" onClick={()=>setShowNewProject(true)}>+ New Project</Btn>}
           <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}35`,borderRadius:4,padding:"2px 8px",fontWeight:600}}>{ROLES[user.role].label}</span>
@@ -1627,6 +1851,11 @@ export default function App(){
       </div>
 
       <div style={{flex:1,overflowY:"auto",padding:24}}>
+        {dashSection==="clients"
+          ?<ClientsSection clientAccounts={clientAccounts} projects={projects}
+              onSendLogin={setShowSendLogin}
+              onEditBranding={setShowClientBranding}/>
+          :<>
         {/* Summary stats — internal only */}
         {!isClient&&<div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:10,marginBottom:22}}>
           {LIFECYCLE.map(stage=>{
@@ -1689,6 +1918,8 @@ export default function App(){
             </div>;
           })}
         </div>
+          </>
+        }
       </div>
 
       {/* New Project Modal */}
@@ -1705,11 +1936,27 @@ export default function App(){
             </select>
           </div>
         </div>
+        <div style={{borderTop:`1px solid ${C.border}`,paddingTop:14,marginTop:8}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12,display:"flex",alignItems:"center",gap:6}}>
+            <span>👤</span> Client Portal Access <span style={{color:C.textMuted,fontWeight:400,fontSize:9,textTransform:"none",letterSpacing:0}}>— creates a login for the client</span>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+            <Input label="Client Email" value={np.clientEmail} onChange={e=>setNp(p=>({...p,clientEmail:e.target.value}))} placeholder="client@company.com" type="email"/>
+            <Input label="Contact Name" value={np.clientName} onChange={e=>setNp(p=>({...p,clientName:e.target.value}))} placeholder="Jordan Lee"/>
+          </div>
+          {np.clientEmail&&<div style={{fontSize:11,color:C.cyan,marginTop:-4,marginBottom:8}}>✓ A portal account will be auto-created for {np.clientEmail}</div>}
+        </div>
         <div style={{display:"flex",gap:10,justifyContent:"flex-end",marginTop:8}}>
           <Btn variant="ghost" onClick={()=>setShowNewProject(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={createProject}>Create Project</Btn>
         </div>
       </Modal>}
+
+      {showSendLogin&&<SendLoginModal client={showSendLogin} onClose={()=>setShowSendLogin(null)}/>}
+      {showClientBranding&&<ClientBrandingModal
+        client={clientAccounts.find(c=>c.id===showClientBranding)}
+        onSave={b=>{setClientAccounts(prev=>prev.map(c=>c.id===showClientBranding?{...c,branding:b}:c));setShowClientBranding(null);}}
+        onClose={()=>setShowClientBranding(null)}/>}
     </div>
   );
 }
