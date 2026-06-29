@@ -618,46 +618,93 @@ function HomeView({ user, projects, onSelect }) {
   );
 }
 
+// ─── Portal Card Components ───────────────────────────────────────────────────
+function PortalStripCard({ project, onClick }) {
+  const bg = project.portalSettings?.bgImageUrl;
+  const meta = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
+  const toReview = project.posts.filter(a => a.shared && a.status === "in_review").length;
+  return (
+    <div onClick={onClick}
+      style={{ position: "relative", height: 190, borderRadius: 14, overflow: "hidden", cursor: "pointer", border: `1px solid ${C.border}`, marginBottom: 12, flexShrink: 0, transition: "transform 0.18s,box-shadow 0.18s" }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 14px 48px rgba(0,0,0,0.55)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
+      {bg
+        ? <img src={bg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        : <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0A0A18 0%,#1A1A2E 50%,#0E1826 100%)" }} />
+      }
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.05) 40%,rgba(0,0,0,0.88) 100%)" }} />
+      <div style={{ position: "absolute", top: 14, left: 14, right: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ background: meta.color + "25", border: `1px solid ${meta.color}60`, color: meta.color, borderRadius: 6, padding: "3px 10px", fontSize: 10, fontWeight: 700, backdropFilter: "blur(10px)" }}>
+          {meta.icon} {meta.label}
+        </span>
+        {toReview > 0 && <span style={{ background: "rgba(255,200,0,0.25)", border: "1px solid rgba(255,200,0,0.5)", color: "#FFD700", borderRadius: 5, padding: "2px 8px", fontSize: 10, fontWeight: 700, backdropFilter: "blur(8px)" }}>
+          {toReview} to review
+        </span>}
+      </div>
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 18px" }}>
+        <h3 style={{ margin: "0 0 6px", fontSize: 20, fontWeight: 800, color: "#fff", textShadow: "0 2px 10px rgba(0,0,0,0.9)", lineHeight: 1.15, letterSpacing: "-0.01em" }}>
+          {project.title}
+        </h3>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>Delivery: {project.deliveryDate || "—"}</div>
+      </div>
+    </div>
+  );
+}
+
+function PortalGridCard({ project, onClick }) {
+  const bg = project.portalSettings?.bgImageUrl;
+  const meta = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
+  const [hov, setHov] = useState(false);
+  const toReview = project.posts.filter(a => a.shared && a.status === "in_review").length;
+  return (
+    <div onClick={onClick}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{ position: "relative", borderRadius: 14, overflow: "hidden", cursor: "pointer", border: `1px solid ${hov ? meta.color + "55" : C.border}`, transition: "transform 0.18s,border-color 0.18s,box-shadow 0.18s", transform: hov ? "translateY(-5px)" : "none", boxShadow: hov ? "0 18px 56px rgba(0,0,0,0.55)" : "none", aspectRatio: "1" }}>
+      {bg
+        ? <img src={bg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        : <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0A0A18 0%,#1A1A2E 50%,#0E1826 100%)" }} />
+      }
+      <div style={{ position: "absolute", inset: 0, background: hov ? "linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.18) 30%,rgba(0,0,0,0.88) 100%)" : "linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,rgba(0,0,0,0.08) 40%,rgba(0,0,0,0.78) 100%)" }} />
+      <div style={{ position: "absolute", top: 10, left: 10 }}>
+        <span style={{ background: meta.color + "25", border: `1px solid ${meta.color}60`, color: meta.color, borderRadius: 5, padding: "2px 8px", fontSize: 9, fontWeight: 700, backdropFilter: "blur(10px)" }}>
+          {meta.icon} {meta.label}
+        </span>
+      </div>
+      {toReview > 0 && <div style={{ position: "absolute", top: 10, right: 10 }}>
+        <span style={{ background: "rgba(255,200,0,0.25)", border: "1px solid rgba(255,200,0,0.5)", color: "#FFD700", borderRadius: 5, padding: "2px 7px", fontSize: 9, fontWeight: 700, backdropFilter: "blur(8px)" }}>{toReview}</span>
+      </div>}
+      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "12px 14px" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 2px 8px rgba(0,0,0,0.9)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{project.title}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>Delivery: {project.deliveryDate || "—"}</div>
+      </div>
+      {hov && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+        <div style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 8, padding: "8px 20px", color: "#fff", fontSize: 12, fontWeight: 600 }}>Open Project →</div>
+      </div>}
+    </div>
+  );
+}
+
 // ─── Projects View ────────────────────────────────────────────────────────────
 function ProjectsView({ user, projects, onSelect }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
+  const [viewMode, setViewMode] = useState(() => localStorage.getItem("framex_portal_view") || "grid");
+  const switchView = m => { setViewMode(m); localStorage.setItem("framex_portal_view", m); };
   if (mine.length === 0) return <Empty icon="◈" msg="No projects shared with you yet." sub="Contact your Motion Adrenaline representative to get started." />;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 16 }}>
-      {mine.map(p => {
-        const sm = LIFECYCLE_META[p.status] || LIFECYCLE_META.post;
-        const assets    = p.posts.filter(a => a.shared).length;
-        const docs      = Object.values(p.documents).flat().filter(d => d.shared).length;
-        const msgs      = p.clientComments.filter(c => !c.resolved).length;
-        const toReview  = p.posts.filter(a => a.shared && a.status === "in_review").length;
-        return (
-          <div key={p.id} onClick={() => onSelect(p.id, "overview")}
-            style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20, cursor: "pointer" }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = sm.color + "55"; e.currentTarget.style.background = C.cardHover; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.card; }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
-              <LifecyclePill stage={p.status} />
-              {toReview > 0 && <span style={{ fontSize: 10, background: C.yellowLow, color: C.yellow, border: `1px solid ${C.yellow}28`, borderRadius: 5, padding: "2px 8px", fontWeight: 600 }}>{toReview} to review</span>}
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: C.text, marginBottom: 4 }}>{p.title}</div>
-            <div style={{ fontSize: 12, color: C.textSec, marginBottom: 16 }}>Delivery: {p.deliveryDate}</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                { val: docs,   label: "docs",     sym: "▣" },
-                { val: assets, label: "assets",   sym: "▶" },
-                { val: msgs,   label: "messages", sym: "◉", hi: msgs > 0 },
-              ].map(s => (
-                <span key={s.label} style={{
-                  background: s.hi ? C.orangeLow : "#111120",
-                  color: s.hi ? C.orange : C.textSec,
-                  border: `1px solid ${s.hi ? C.orange + "28" : C.border}`,
-                  borderRadius: 5, padding: "3px 9px", fontSize: 10,
-                }}>{s.sym} {s.val} {s.label}</span>
-              ))}
-            </div>
+    <div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: 1, background: C.card, borderRadius: 7, padding: 2 }}>
+          {[{ m: "strip", icon: "☰", title: "List view" }, { m: "grid", icon: "⊞", title: "Grid view" }].map(v => (
+            <button key={v.m} title={v.title} onClick={() => switchView(v.m)} style={{ background: viewMode === v.m ? C.surface : "none", border: "none", borderRadius: 5, color: viewMode === v.m ? C.text : C.textMuted, cursor: "pointer", padding: "4px 10px", fontSize: 15, lineHeight: 1 }}>{v.icon}</button>
+          ))}
+        </div>
+      </div>
+      {viewMode === "strip"
+        ? <div>{mine.map(p => <PortalStripCard key={p.id} project={p} onClick={() => onSelect(p.id, "overview")} />)}</div>
+        : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 14 }}>
+            {mine.map(p => <PortalGridCard key={p.id} project={p} onClick={() => onSelect(p.id, "overview")} />)}
           </div>
-        );
-      })}
+      }
     </div>
   );
 }
@@ -1065,94 +1112,165 @@ function MessagesView({ user, projects, onUpdate }) {
 function PortalProjectDetail({ project, user, onUpdate, onBack, initTab }) {
   const [tab, setTab] = useState(initTab || "overview");
   const TABS = [
-    { id: "overview",      label: "Overview",      sym: "⌂" },
-    { id: "deliverables",  label: "Deliverables",  sym: "▶" },
-    { id: "creative",      label: "Creative",      sym: "✦" },
-    { id: "documents",     label: "Documents",     sym: "▣" },
-    { id: "messages",      label: "Messages",      sym: "◉" },
+    { id: "overview",     label: "Overview",     sym: "⌂" },
+    { id: "updates",      label: "Updates",      sym: "◎" },
+    { id: "deliverables", label: "Deliverables", sym: "▶" },
+    { id: "creative",     label: "Creative",     sym: "✦" },
+    { id: "documents",    label: "Documents",    sym: "▣" },
+    { id: "messages",     label: "Messages",     sym: "◉" },
   ];
 
-  const sm = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
+  const heroMeta   = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
   const sharedDocs   = Object.values(project.documents).flat().filter(d => d.shared);
   const sharedAssets = project.posts.filter(p => p.shared);
   const openMsgs     = project.clientComments.filter(c => !c.resolved).length;
+  const bg = project.portalSettings?.bgImageUrl;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      {/* Header */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "16px 28px", flexShrink: 0 }}>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: C.textSec, cursor: "pointer", fontSize: 12, padding: 0, marginBottom: 10 }}>
-          ← Back
-        </button>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-          <div>
-            <h2 style={{ margin: "0 0 4px", fontSize: 20, fontWeight: 800, color: C.text, letterSpacing: "-0.02em" }}>{project.title}</h2>
-            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <span style={{ fontSize: 13, color: C.textSec }}>{project.client}</span>
-              <span style={{ fontSize: 12, color: C.textMuted }}>Delivery: {project.deliveryDate}</span>
-            </div>
+      {/* ─── Hero Banner ──────────────────────────────────────────────── */}
+      <div style={{ position: "relative", height: 220, flexShrink: 0, overflow: "hidden" }}>
+        {bg
+          ? <img src={bg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          : <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#060610 0%,#131328 50%,#0A0A1E 100%)" }} />
+        }
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.1) 45%,rgba(0,0,0,0.92) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0) 60%)" }} />
+        {/* Back + stats */}
+        <div style={{ position: "absolute", top: 14, left: 20, right: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <button onClick={onBack} style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontSize: 12, padding: "5px 14px", borderRadius: 6, fontWeight: 500 }}>← Back</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { label: `${sharedDocs.length} docs`,    color: C.blue },
+              { label: `${sharedAssets.length} assets`, color: C.yellow },
+              ...(openMsgs > 0 ? [{ label: `${openMsgs} msgs`, color: C.orange }] : []),
+            ].map(s => (
+              <span key={s.label} style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(10px)", border: `1px solid ${s.color}40`, borderRadius: 5, padding: "3px 9px", fontSize: 10, fontWeight: 700, color: s.color }}>{s.label}</span>
+            ))}
           </div>
-          <LifecyclePill stage={project.status} />
         </div>
-        {/* Mini stats */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-          {[
-            { label: "Shared Files", val: sharedDocs.length, color: C.blue },
-            { label: "Assets",       val: sharedAssets.length, color: C.yellow },
-            { label: "Open Messages", val: openMsgs,          color: C.orange },
-          ].map(s => (
-            <div key={s.label} style={{ background: "#07071280", border: `1px solid ${C.border}`, borderRadius: 7, padding: "7px 14px", display: "flex", gap: 8, alignItems: "center" }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.val}</span>
-              <span style={{ fontSize: 11, color: C.textMuted }}>{s.label}</span>
+        {/* Title at bottom */}
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.9)", lineHeight: 1.15, letterSpacing: "-0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {project.title}
+              </h2>
+              <div style={{ display: "flex", gap: 14, fontSize: 12, color: "rgba(255,255,255,0.65)" }}>
+                <span>{project.client}</span>
+                <span>Delivery: {project.deliveryDate}</span>
+              </div>
             </div>
-          ))}
+            <LifecyclePill stage={project.status} />
+          </div>
         </div>
-        {/* Tab bar */}
-        <div style={{ display: "flex", gap: 2 }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
-              background: tab === t.id ? C.blueLow : "none",
-              border: `1px solid ${tab === t.id ? C.blue + "35" : "transparent"}`,
-              borderRadius: 7, color: tab === t.id ? C.blue : C.textSec,
-              padding: "6px 14px", cursor: "pointer", fontSize: 12,
-              fontWeight: tab === t.id ? 600 : 400, display: "flex", alignItems: "center", gap: 5,
-            }}>{t.sym} {t.label}</button>
-          ))}
-        </div>
+      </div>
+      {/* ─── Tab bar ──────────────────────────────────────────────────── */}
+      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "0 24px", flexShrink: 0, display: "flex", gap: 0, overflowX: "auto" }}>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            background: "none", border: "none",
+            borderBottom: `2px solid ${tab === t.id ? C.blue : "transparent"}`,
+            color: tab === t.id ? C.blue : C.textSec,
+            padding: "10px 14px", cursor: "pointer", fontSize: 12,
+            fontWeight: tab === t.id ? 600 : 400, whiteSpace: "nowrap",
+            display: "flex", alignItems: "center", gap: 5,
+          }}>{t.sym} {t.label}</button>
+        ))}
       </div>
 
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 28px" }}>
         {tab === "overview" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 20 }}>
-              {[
-                { label: "Stage",    val: `${sm.icon} ${sm.label}`, color: sm.color },
-                { label: "Delivery", val: project.deliveryDate,      color: C.text },
-              ].map(s => (
-                <div key={s.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: s.color }}>{s.val}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 20px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Ready for You</div>
-              {sharedAssets.length === 0 && sharedDocs.length === 0
-                ? <p style={{ color: C.textMuted, fontSize: 13, margin: 0 }}>Nothing shared yet — the team will notify you when content is ready.</p>
-                : [...sharedAssets.map(a => ({ icon: "🎬", name: a.name, sub: `${a.version} · Asset`, status: a.status })),
-                    ...sharedDocs.map(d => ({ icon: "📄", name: d.name, sub: `Document · ${d.date}`, status: d.status }))
-                  ].map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.border}18` }}>
-                      <span style={{ fontSize: 18 }}>{item.icon}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{item.name}</div>
-                        <div style={{ fontSize: 10, color: C.textMuted }}>{item.sub}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 20, alignItems: "start" }}>
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
+                {[
+                  { label: "Stage",    val: `${heroMeta.icon} ${heroMeta.label}`, color: heroMeta.color },
+                  { label: "Delivery", val: project.deliveryDate,                  color: C.text },
+                ].map(s => (
+                  <div key={s.label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 4 }}>{s.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: s.color }}>{s.val}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 20px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 12 }}>Ready for Review</div>
+                {sharedAssets.length === 0 && sharedDocs.length === 0
+                  ? <p style={{ color: C.textMuted, fontSize: 13, margin: 0 }}>Nothing shared yet — the team will notify you when content is ready.</p>
+                  : [...sharedAssets.map(a => ({ icon: "🎬", name: a.name, sub: `${a.version} · Asset`, status: a.status })),
+                      ...sharedDocs.map(d => ({ icon: "📄", name: d.name, sub: `Document · ${d.date}`, status: d.status }))
+                    ].map((item, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: `1px solid ${C.border}18` }}>
+                        <span style={{ fontSize: 18 }}>{item.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: C.text }}>{item.name}</div>
+                          <div style={{ fontSize: 10, color: C.textMuted }}>{item.sub}</div>
+                        </div>
+                        <Badge status={item.status} small />
                       </div>
-                      <Badge status={item.status} small />
-                    </div>
-                  ))
-              }
+                    ))
+                }
+              </div>
             </div>
+            {/* Quick Actions sidebar */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.textSec, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Quick Actions</div>
+              {[
+                { label: "Send Message",      icon: "✉", color: C.blue,   t: "messages" },
+                { label: "View Deliverables", icon: "▶", color: C.yellow, t: "deliverables" },
+                { label: "View Documents",    icon: "▣", color: C.orange, t: "documents" },
+                { label: "Creative Review",   icon: "✦", color: C.green,  t: "creative" },
+              ].map(a => (
+                <button key={a.label} onClick={() => setTab(a.t)}
+                  style={{ display: "flex", alignItems: "center", gap: 10, background: a.color + "12", border: `1px solid ${a.color}30`, borderRadius: 8, padding: "10px 14px", cursor: "pointer", color: a.color, fontSize: 12, fontWeight: 600, textAlign: "left", width: "100%" }}
+                  onMouseEnter={e => { e.currentTarget.style.background = a.color + "20"; e.currentTarget.style.borderColor = a.color + "55"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = a.color + "12"; e.currentTarget.style.borderColor = a.color + "30"; }}>
+                  <span style={{ fontSize: 14 }}>{a.icon}</span>{a.label}
+                </button>
+              ))}
+              <div style={{ marginTop: 8, paddingTop: 12, borderTop: `1px solid ${C.border}` }}>
+                <div style={{ fontSize: 10, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>Summary</div>
+                {[
+                  { label: "Shared Files", val: sharedDocs.length,    icon: "📁" },
+                  { label: "Assets",       val: sharedAssets.length,  icon: "🎬" },
+                  { label: "Open Msgs",    val: openMsgs,             icon: "💬" },
+                ].map(s => (
+                  <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0" }}>
+                    <span style={{ fontSize: 12, color: C.textSec }}>{s.icon} {s.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{s.val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {tab === "updates" && (
+          <div>
+            {(() => {
+              const events = [
+                ...sharedAssets.map(a => ({ icon: "🎬", color: C.yellow, name: a.name, sub: `Asset · ${a.version || "v01"}`, status: a.status })),
+                ...sharedDocs.map(d => ({ icon: "📄", color: C.blue, name: d.name, sub: `Document · ${d.date || ""}`, status: d.status })),
+                ...(project.clientComments || []).map(c => ({ icon: "💬", color: c.resolved ? C.green : C.orange, name: (c.text || "Comment").slice(0, 60), sub: `${c.author || "Client"} · ${c.resolved ? "Resolved" : "Open"}`, status: c.resolved ? "resolved" : "open" })),
+              ];
+              if (!events.length) return (
+                <div style={{ textAlign: "center", padding: "60px 0", color: C.textMuted }}>
+                  <div style={{ fontSize: 36, marginBottom: 12 }}>◎</div>
+                  <div style={{ fontSize: 14, color: C.textSec, fontWeight: 600, marginBottom: 6 }}>No activity yet</div>
+                  <div style={{ fontSize: 12 }}>Files shared, approvals and messages will appear here.</div>
+                </div>
+              );
+              return events.map((ev, i) => (
+                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: `1px solid ${C.border}25` }}>
+                  <div style={{ width: 34, height: 34, borderRadius: "50%", background: ev.color + "20", border: `1px solid ${ev.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 15 }}>{ev.icon}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: C.text, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ev.name}</div>
+                    <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>{ev.sub}</div>
+                  </div>
+                  <Badge status={ev.status} small />
+                </div>
+              ));
+            })()}
           </div>
         )}
         {tab === "deliverables" && <DeliverablesView user={user} projects={[project]} onUpdate={onUpdate} />}
