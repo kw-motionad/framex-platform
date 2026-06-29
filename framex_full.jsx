@@ -568,13 +568,17 @@ function UploadModal({project,onClose,onUpload}){
   );
 }
 
-// ─── Portal Settings Panel ────────────────────────────────────────────────────
+// ─── Portal Customize Modal ───────────────────────────────────────────────────
 
-function PortalSettingsPanel({settings,onUpdate}){
-  const s={accentColor:"#5B7FFF",headline:"",subheadline:"",logoUrl:null,bgImageUrl:null,...settings};
+function PortalCustomizeModal({project,settings,onUpdate,onClose}){
+  const s={
+    accentColor:"#5B7FFF",portalHeadline:"",welcomeMessage:"",
+    logoUrl:null,bgImageUrl:null,bgVideoUrl:"",theme:"dark",
+    ...settings,
+  };
   const set=(k,v)=>onUpdate({...s,[k]:v});
 
-  const pickImage=(key)=>{
+  const pickImg=(key)=>{
     const inp=document.createElement("input");
     inp.type="file";inp.accept="image/*";
     inp.onchange=(e)=>{
@@ -584,97 +588,191 @@ function PortalSettingsPanel({settings,onUpdate}){
     inp.click();
   };
 
-  const SWATCHES=["#5B7FFF","#22D48A","#FF7A35","#F5C842","#FF5252","#9B7AFF","#00D4AA","#FF6B9D"];
+  const SWATCHES=["#5B7FFF","#22D48A","#FF7A35","#F5C842","#FF5252","#9B7AFF","#00D4AA","#FF6B9D","#FFFFFF"];
   const accent=s.accentColor||"#5B7FFF";
+  const eyebrow=s.portalHeadline||"MOTION ADRENALINE · CLIENT PORTAL";
+  const hasBgMedia=!!(s.bgImageUrl||s.bgVideoUrl);
 
-  return <div style={{maxWidth:720}}>
-    <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:20,textTransform:"uppercase",letterSpacing:"0.07em"}}>Client Portal Appearance</div>
+  // preview palette
+  const pC=s.theme==="light"
+    ?{bg:"#F4F4FA",surface:"#FFFFFF",card:"#FFFFFF",border:"#E0E0EE",text:"#1A1A2E",textSec:"#5858A0",textMuted:"#9898C0"}
+    :{bg:"#06060A",surface:"#09090F",card:"#0D0D16",border:"#1A1A28",text:"#F0F0FA",textSec:"#7878A0",textMuted:"#3A3A55"};
+  const heroGrad=s.theme==="light"
+    ?"linear-gradient(135deg,#EEF0FF 0%,#E8E8F8 100%)"
+    :"linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)";
+  const statCardBg=hasBgMedia?"#08081580":s.theme==="light"?"rgba(255,255,255,0.8)":"#08081580";
+  const statMuted=hasBgMedia?"#3A3A55":pC.textMuted;
 
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
-      {/* Logo */}
-      <div>
-        <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Client Logo</div>
-        <div onClick={()=>pickImage("logoUrl")} style={{height:80,background:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}>
-          {s.logoUrl
-            ?<img src={s.logoUrl} alt="Logo" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}}/>
-            :<span style={{fontSize:11,color:C.textMuted}}>Click to upload logo</span>}
-        </div>
-        {s.logoUrl&&<button onClick={()=>set("logoUrl",null)} style={{marginTop:5,fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ Remove</button>}
-      </div>
-
-      {/* Background image */}
-      <div>
-        <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Hero Background Image</div>
-        <div onClick={()=>pickImage("bgImageUrl")} style={{height:80,background:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}>
-          {s.bgImageUrl
-            ?<img src={s.bgImageUrl} alt="BG" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
-            :<span style={{fontSize:11,color:C.textMuted}}>Click to upload background</span>}
-        </div>
-        {s.bgImageUrl&&<button onClick={()=>set("bgImageUrl",null)} style={{marginTop:5,fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ Remove</button>}
-      </div>
+  const inp={width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:7,color:C.text,padding:"7px 10px",fontSize:12,boxSizing:"border-box",outline:"none"};
+  const lbl={fontSize:9,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8,display:"block"};
+  const sec={marginBottom:22,paddingBottom:20,borderBottom:`1px solid ${C.border}`};
+  const dropZone=(key,h,content)=>(
+    <div onClick={()=>pickImg(key)}
+      style={{height:h,background:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",transition:"border-color 0.15s"}}
+      onMouseEnter={e=>e.currentTarget.style.borderColor=C.cyan}
+      onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+      {content}
     </div>
+  );
+  const rmBtn=(onClick,label)=>(
+    <button onClick={onClick} style={{marginTop:4,fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ {label}</button>
+  );
 
-    {/* Accent color */}
-    <div style={{marginBottom:20}}>
-      <div style={{fontSize:11,color:C.textMuted,marginBottom:8}}>Accent Color</div>
-      <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-        <input type="color" value={accent} onChange={e=>set("accentColor",e.target.value)}
-          style={{width:40,height:32,border:"none",background:"none",cursor:"pointer",borderRadius:4,padding:0}}/>
-        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-          {SWATCHES.map(sw=>(
-            <div key={sw} onClick={()=>set("accentColor",sw)} style={{width:24,height:24,borderRadius:6,background:sw,cursor:"pointer",border:`2px solid ${accent===sw?"#fff":"transparent"}`,boxSizing:"border-box"}}/>
-          ))}
-        </div>
-        <span style={{fontSize:11,color:C.textMuted,fontFamily:"monospace"}}>{accent}</span>
-      </div>
-    </div>
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:14,width:"100%",maxWidth:1000,maxHeight:"calc(100vh - 40px)",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 24px 80px #00000080"}}>
 
-    {/* Headline */}
-    <div style={{marginBottom:14}}>
-      <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Hero Headline</div>
-      <input value={s.headline} onChange={e=>set("headline",e.target.value)}
-        placeholder="Welcome back, {name}"
-        style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:7,color:C.text,padding:"8px 12px",fontSize:13,boxSizing:"border-box",outline:"none"}}/>
-      <div style={{fontSize:10,color:C.textMuted,marginTop:4}}>Use {"{name}"} to insert the client's first name</div>
-    </div>
+        {/* Header */}
+        <div style={{padding:"14px 22px",borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
+          <span style={{fontSize:14,fontWeight:700,color:C.text,letterSpacing:"-0.02em"}}>🎨 Customize Client Portal</span>
+          {project?.title&&<span style={{fontSize:11,color:C.textMuted,background:C.card,border:`1px solid ${C.border}`,borderRadius:4,padding:"2px 8px"}}>{project.title}</span>}
+          <button onClick={onClose} style={{marginLeft:"auto",background:"none",border:`1px solid ${C.border}`,color:C.textSec,cursor:"pointer",borderRadius:6,padding:"4px 12px",fontSize:12}}>✕ Close</button>
+        </div>
 
-    {/* Subheadline */}
-    <div style={{marginBottom:28}}>
-      <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Subheadline</div>
-      <input value={s.subheadline} onChange={e=>set("subheadline",e.target.value)}
-        placeholder="Your dedicated production hub"
-        style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:7,color:C.text,padding:"8px 12px",fontSize:13,boxSizing:"border-box",outline:"none"}}/>
-    </div>
+        {/* Body: controls | preview */}
+        <div style={{display:"grid",gridTemplateColumns:"360px 1fr",flex:1,overflow:"hidden",minHeight:0}}>
 
-    {/* Preview */}
-    <div style={{fontSize:11,color:C.textMuted,marginBottom:8}}>Live Preview</div>
-    <div style={{
-      borderRadius:10,overflow:"hidden",border:`1px solid ${C.border}`,position:"relative",
-      background:s.bgImageUrl?`url(${s.bgImageUrl}) center/cover no-repeat`:"linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)",
-    }}>
-      {s.bgImageUrl&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.55)"}}/>}
-      <div style={{position:"relative",padding:"22px 22px 18px"}}>
-        {s.logoUrl&&<img src={s.logoUrl} alt="Logo" style={{height:26,objectFit:"contain",marginBottom:10,display:"block"}}/>}
-        <div style={{fontSize:9,color:accent,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:8}}>
-          Motion Adrenaline · Client Portal
-        </div>
-        <div style={{fontSize:18,fontWeight:800,color:"#F0F0FA",letterSpacing:"-0.03em",marginBottom:4}}>
-          {s.headline||"Welcome back, Alex"}
-        </div>
-        <div style={{fontSize:12,color:"#7878A0",marginBottom:16}}>
-          {s.subheadline||"Acme Corp · 2 active projects"}
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          {["Active Projects","Pending Reviews","Open Messages"].map(label=>(
-            <div key={label} style={{background:"#08081580",border:`1px solid ${accent}30`,borderRadius:8,padding:"8px 14px"}}>
-              <div style={{fontSize:14,fontWeight:700,color:accent}}>3</div>
-              <div style={{fontSize:9,color:"#3A3A55"}}>{label}</div>
+          {/* ── Controls ── */}
+          <div style={{padding:"20px 22px",overflowY:"auto",borderRight:`1px solid ${C.border}`}}>
+
+            {/* Background */}
+            <div style={sec}>
+              <span style={lbl}>Hero Background</span>
+              <div style={{marginBottom:10}}>
+                <div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Upload Image</div>
+                {dropZone("bgImageUrl",68,
+                  s.bgImageUrl?<img src={s.bgImageUrl} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                    :<span style={{fontSize:11,color:C.textMuted}}>Click to upload image</span>
+                )}
+                {s.bgImageUrl&&rmBtn(()=>set("bgImageUrl",null),"Remove image")}
+              </div>
+              <div>
+                <div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Video URL <span style={{opacity:0.6}}>(direct .mp4 or .webm, autoplays muted)</span></div>
+                <input value={s.bgVideoUrl} onChange={e=>set("bgVideoUrl",e.target.value)} placeholder="https://example.com/reel.mp4" style={inp}/>
+                {s.bgVideoUrl&&rmBtn(()=>set("bgVideoUrl",""),"Clear URL")}
+                <div style={{fontSize:9,color:C.textMuted,marginTop:3}}>Video overrides image. Use a direct video file URL.</div>
+              </div>
             </div>
-          ))}
+
+            {/* Logo */}
+            <div style={sec}>
+              <span style={lbl}>Client Logo</span>
+              {dropZone("logoUrl",62,
+                s.logoUrl?<img src={s.logoUrl} alt="Logo" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain",padding:"4px"}}/>
+                  :<span style={{fontSize:11,color:C.textMuted}}>Click to upload logo</span>
+              )}
+              {s.logoUrl&&rmBtn(()=>set("logoUrl",null),"Remove logo")}
+            </div>
+
+            {/* Accent color */}
+            <div style={sec}>
+              <span style={lbl}>Accent Color</span>
+              <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                <input type="color" value={accent} onChange={e=>set("accentColor",e.target.value)}
+                  style={{width:36,height:28,border:"none",background:"none",cursor:"pointer",padding:0}}/>
+                <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                  {SWATCHES.map(sw=>(
+                    <div key={sw} onClick={()=>set("accentColor",sw)} style={{width:20,height:20,borderRadius:4,background:sw,cursor:"pointer",border:`2px solid ${accent===sw?"#fff":"transparent"}`,boxSizing:"border-box",boxShadow:sw==="#FFFFFF"?"inset 0 0 0 1px #ccc":""}}/>
+                  ))}
+                </div>
+                <code style={{fontSize:10,color:C.textMuted}}>{accent}</code>
+              </div>
+            </div>
+
+            {/* Text */}
+            <div style={sec}>
+              <span style={lbl}>Portal Text</span>
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Portal Headline <span style={{opacity:0.7}}>— eyebrow text above welcome</span></div>
+                <input value={s.portalHeadline} onChange={e=>set("portalHeadline",e.target.value)}
+                  placeholder="MOTION ADRENALINE · CLIENT PORTAL" style={inp}/>
+              </div>
+              <div>
+                <div style={{fontSize:10,color:C.textMuted,marginBottom:5}}>Welcome Message <span style={{opacity:0.7}}>— shown under "Welcome back, [Name]"</span></div>
+                <input value={s.welcomeMessage} onChange={e=>set("welcomeMessage",e.target.value)}
+                  placeholder="Your dedicated production hub" style={inp}/>
+              </div>
+            </div>
+
+            {/* Theme */}
+            <div>
+              <span style={lbl}>Theme</span>
+              <div style={{display:"flex",gap:8}}>
+                {[{val:"dark",label:"🌙 Dark"},{val:"light",label:"☀️ Light"}].map(opt=>(
+                  <button key={opt.val} onClick={()=>set("theme",opt.val)} style={{
+                    flex:1,padding:"9px 0",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600,transition:"all 0.15s",
+                    background:s.theme===opt.val?C.cyan+"20":"none",
+                    border:`1.5px solid ${s.theme===opt.val?C.cyan:C.border}`,
+                    color:s.theme===opt.val?C.cyan:C.textSec,
+                  }}>{opt.label}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Live Preview ── */}
+          <div style={{overflowY:"auto",background:"#060610",padding:"18px"}}>
+            <div style={{fontSize:9,color:"#3A3A55",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.12em"}}>Live Preview</div>
+            <div style={{borderRadius:10,overflow:"hidden",border:"1px solid #1A1A28",boxShadow:"0 8px 32px #00000060"}}>
+
+              {/* Mini Nav */}
+              <div style={{height:42,background:pC.surface,borderBottom:`1px solid ${pC.border}`,display:"flex",alignItems:"center",padding:"0 14px",gap:10}}>
+                {s.logoUrl
+                  ?<img src={s.logoUrl} alt="Logo" style={{height:22,objectFit:"contain"}}/>
+                  :<div style={{width:26,height:26,background:accent,borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:900,color:"#fff",flexShrink:0}}>MA</div>}
+                <div style={{display:"flex",gap:4,flex:1}}>
+                  {["Home","Projects","Files","Messages"].map((n,i)=>(
+                    <div key={n} style={{fontSize:9,padding:"3px 8px",borderRadius:4,background:i===0?accent+"18":"none",border:`1px solid ${i===0?accent+"35":"transparent"}`,color:i===0?accent:pC.textSec}}>{n}</div>
+                  ))}
+                </div>
+                <div style={{width:20,height:20,background:accent+"30",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:accent,fontWeight:700}}>JL</div>
+              </div>
+
+              {/* Mini Hero */}
+              <div style={{
+                position:"relative",padding:"20px 16px 16px",overflow:"hidden",
+                background:s.bgVideoUrl?"#000":s.bgImageUrl?`url(${s.bgImageUrl}) center/cover no-repeat`:heroGrad,
+              }}>
+                {hasBgMedia&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.55)"}}/>}
+                {s.bgVideoUrl&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#00000060"}}>
+                  <span style={{fontSize:10,color:"rgba(255,255,255,0.4)"}}>🎬 video background</span>
+                </div>}
+                <div style={{position:"relative"}}>
+                  {s.logoUrl&&<img src={s.logoUrl} alt="Logo" style={{height:20,objectFit:"contain",marginBottom:8,display:"block"}}/>}
+                  <div style={{fontSize:8,color:accent,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:5}}>{eyebrow}</div>
+                  <div style={{fontSize:16,fontWeight:800,color:hasBgMedia||s.theme==="dark"?"#F0F0FA":pC.text,letterSpacing:"-0.03em",marginBottom:2}}>Welcome back, Jordan</div>
+                  <div style={{fontSize:10,color:hasBgMedia?"#7878A0":pC.textSec,marginBottom:12}}>
+                    {s.welcomeMessage||s.subheadline||"Paramount Pictures · 2 active projects"}
+                  </div>
+                  <div style={{display:"flex",gap:5}}>
+                    {[{l:"Projects",v:2,c:accent},{l:"Reviews",v:3,c:"#F5C842"},{l:"Messages",v:1,c:"#FF7A35"},{l:"Files",v:8,c:"#22D48A"}].map(x=>(
+                      <div key={x.l} style={{background:statCardBg,border:`1px solid ${x.c}30`,borderRadius:6,padding:"5px 8px"}}>
+                        <div style={{fontSize:11,fontWeight:700,color:x.c}}>{x.v}</div>
+                        <div style={{fontSize:8,color:statMuted}}>{x.l}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mini content */}
+              <div style={{padding:"10px 12px",background:pC.bg}}>
+                <div style={{fontSize:8,color:pC.textMuted,marginBottom:7,textTransform:"uppercase",letterSpacing:"0.1em"}}>Your Projects</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                  {[{t:"Campaign Alpha",s:"In Production",c:accent},{t:"Brand Shoot B",s:"Post / VFX",c:pC.textSec}].map(p=>(
+                    <div key={p.t} style={{background:pC.card,border:`1px solid ${pC.border}`,borderRadius:7,padding:"8px 10px"}}>
+                      <div style={{fontSize:10,fontWeight:600,color:pC.text,marginBottom:2}}>{p.t}</div>
+                      <div style={{fontSize:9,color:p.c}}>{p.s}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>;
+  );
 }
 
 // ─── Documents Panel ──────────────────────────────────────────────────────────
@@ -1245,7 +1343,6 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
     {id:"post",label:"Post / VFX",icon:"✨"},
     {id:"wrap",label:"Wrap",icon:"📦"},
     {id:"comments",label:"Comments",icon:"💬"},
-    ...(currentUser.role==="admin"?[{id:"portal",label:"Portal",icon:"🎨"}]:[]),
   ];
   const clientTabs=[
     {id:"overview",label:"Overview",icon:"📊"},
@@ -1259,6 +1356,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
 
   const up=(field,val)=>onUpdate({...project,[field]:val});
   const [showUpload,setShowUpload]=useState(false);
+  const [showPortalCustomize,setShowPortalCustomize]=useState(false);
   const handleUpload=(section,category,uploaded,meta)=>{
     const now=Date.now();
     if(section==="documents"){
@@ -1291,6 +1389,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          {(currentUser.role==="admin"||currentUser.role==="producer")&&<Btn variant="primary" onClick={()=>setShowPortalCustomize(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>🎨 Customize Portal</Btn>}
           {!isClient&&<Btn variant="cyan" onClick={()=>setShowUpload(true)} style={{fontSize:11,padding:"6px 14px",whiteSpace:"nowrap"}}>⬆ Upload</Btn>}
           <LifecyclePill stage={project.status}/>
         </div>
@@ -1359,8 +1458,8 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
       {tab==="post"&&<PostPanel posts={project.posts} onUpdate={p=>up("posts",p)} isClient={isClient} canApprove={canApprove}/>}
       {tab==="wrap"&&<WrapPanel wrap={project.wrap} onUpdate={w=>up("wrap",w)} isClient={isClient}/>}
       {tab==="comments"&&<ClientComments comments={project.clientComments} onUpdate={c=>up("clientComments",c)} currentUser={currentUser}/>}
-      {tab==="portal"&&<PortalSettingsPanel settings={project.portalSettings||{}} onUpdate={s=>up("portalSettings",s)}/>}
     </div>
+    {showPortalCustomize&&<PortalCustomizeModal project={project} settings={project.portalSettings||{}} onUpdate={s=>up("portalSettings",s)} onClose={()=>setShowPortalCustomize(false)}/>}
     {showUpload&&<UploadModal project={project} onClose={()=>setShowUpload(false)} onUpload={handleUpload}/>}
   </div>;
 }

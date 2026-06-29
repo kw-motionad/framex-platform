@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 
 // ─── Motion Adrenaline Design Tokens ─────────────────────────────────────────
-const C = {
+const C_DARK = {
   bg:          "#05050A",
   surface:     "#09090F",
   card:        "#0D0D16",
@@ -27,6 +27,35 @@ const C = {
   textSec:     "#7878A0",
   textMuted:   "#3A3A55",
 };
+
+const C_LIGHT = {
+  bg:          "#F4F4FA",
+  surface:     "#FFFFFF",
+  card:        "#FFFFFF",
+  cardHover:   "#EEEEF8",
+  border:      "#E0E0EE",
+  borderHover: "#C8C8E0",
+  blue:        "#4060EE",
+  blueLow:     "#4060EE18",
+  blueMid:     "#4060EE35",
+  green:       "#16A870",
+  greenLow:    "#16A87015",
+  yellow:      "#C08800",
+  yellowLow:   "#C0880015",
+  red:         "#E03030",
+  redLow:      "#E0303015",
+  orange:      "#D46000",
+  orangeLow:   "#D4600015",
+  purple:      "#7050CC",
+  purpleLow:   "#7050CC15",
+  teal:        "#009980",
+  tealLow:     "#00998015",
+  text:        "#1A1A2E",
+  textSec:     "#5858A0",
+  textMuted:   "#9898C0",
+};
+
+let C = { ...C_DARK };
 
 const LIFECYCLE_META = {
   inquiry:  { label: "Inquiry",     color: "#FF6EC7", icon: "📬" },
@@ -388,9 +417,9 @@ function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav
           const on = active === item.id;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
-              background: on ? C.blueLow : "none",
-              border: `1px solid ${on ? C.blue + "35" : "transparent"}`,
-              borderRadius: 7, color: on ? C.blue : C.textSec,
+              background: on ? accent + "18" : "none",
+              border: `1px solid ${on ? accent + "35" : "transparent"}`,
+              borderRadius: 7, color: on ? accent : C.textSec,
               padding: "6px 14px", cursor: "pointer", fontSize: 12,
               fontWeight: on ? 600 : 400, display: "flex", alignItems: "center",
               gap: 6, transition: "all 0.1s",
@@ -423,59 +452,72 @@ function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav
 function Hero({ user, projects, portalSettings }) {
   const ps = portalSettings || {};
   const accent = ps.accentColor || C.blue;
+  const theme = ps.theme || "dark";
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const pendingReviews = mine.reduce((n, p) => n + p.posts.filter(a => a.shared && a.status === "in_review").length, 0);
   const openMsgs      = mine.reduce((n, p) => n + p.clientComments.filter(c => !c.resolved).length, 0);
   const sharedFiles   = mine.reduce((n, p) => n + Object.values(p.documents).flat().filter(d => d.shared).length, 0);
 
+  const eyebrow = ps.portalHeadline || "MOTION ADRENALINE · CLIENT PORTAL";
   const firstName = user.name.split(" ")[0];
-  const headline = ps.headline
-    ? ps.headline.replace(/\{name\}/gi, firstName)
-    : `Welcome back, ${firstName}`;
-  const subheadline = ps.subheadline || `${user.company} · ${mine.length} active project${mine.length !== 1 ? "s" : ""}`;
+  const subtext = ps.welcomeMessage || ps.subheadline || `${user.company} · ${mine.length} active project${mine.length !== 1 ? "s" : ""}`;
+
+  const hasBgVideo = !!ps.bgVideoUrl;
+  const hasBgImage = !!ps.bgImageUrl && !hasBgVideo;
+  const hasBgMedia = hasBgVideo || hasBgImage;
+  const heroBg = hasBgVideo ? "#000000" : hasBgImage
+    ? `url(${ps.bgImageUrl}) center/cover no-repeat`
+    : theme === "light"
+    ? "linear-gradient(135deg,#EEF0FF 0%,#E8E8F8 100%)"
+    : "linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)";
+
+  const statBg    = hasBgMedia ? "#08081580" : theme === "light" ? "rgba(255,255,255,0.8)" : "#08081580";
+  const headColor = hasBgMedia || theme === "dark" ? "#F0F0FA" : C.text;
+  const subColor  = hasBgMedia ? "#7878A0" : C.textSec;
 
   return (
     <div style={{
       position: "relative", padding: "36px 28px 32px",
-      background: ps.bgImageUrl
-        ? `url(${ps.bgImageUrl}) center/cover no-repeat`
-        : "linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)",
+      background: heroBg,
       borderBottom: `1px solid ${C.border}`, flexShrink: 0, overflow: "hidden",
     }}>
-      {/* Dark overlay when bg image is set */}
-      {ps.bgImageUrl && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.58)" }} />}
-      {/* Sunburst (only without custom bg) */}
-      {!ps.bgImageUrl && <div style={{ position: "absolute", right: -60, top: -60, pointerEvents: "none" }}>
-        <Sunburst size={460} opacity={0.055} />
-      </div>}
-      {/* Radial glow */}
+      {hasBgVideo && (
+        <video key={ps.bgVideoUrl} src={ps.bgVideoUrl} autoPlay muted loop playsInline
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", zIndex: 0 }} />
+      )}
+      {hasBgMedia && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.58)", zIndex: 1 }} />}
+      {!hasBgMedia && theme === "dark" && (
+        <div style={{ position: "absolute", right: -60, top: -60, pointerEvents: "none", zIndex: 1 }}>
+          <Sunburst size={460} opacity={0.055} />
+        </div>
+      )}
       <div style={{
         position: "absolute", right: 120, top: 30, width: 280, height: 280,
         background: `radial-gradient(circle, ${accent}10 0%, transparent 70%)`,
-        pointerEvents: "none",
+        pointerEvents: "none", zIndex: 1,
       }} />
 
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", zIndex: 2 }}>
         {ps.logoUrl && <img src={ps.logoUrl} alt="Logo" style={{ height: 30, objectFit: "contain", marginBottom: 12, display: "block" }} />}
         <div style={{ fontSize: 10, color: accent, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 10 }}>
-          Motion Adrenaline · Client Portal
+          {eyebrow}
         </div>
-        <h1 style={{ margin: "0 0 5px", fontSize: 28, fontWeight: 800, color: C.text, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-          {headline}
+        <h1 style={{ margin: "0 0 5px", fontSize: 28, fontWeight: 800, color: headColor, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+          Welcome back, {firstName}
         </h1>
-        <p style={{ margin: "0 0 26px", fontSize: 13, color: C.textSec }}>
-          {subheadline}
+        <p style={{ margin: "0 0 26px", fontSize: 13, color: subColor }}>
+          {subtext}
         </p>
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {[
-            { label: "Active Projects",  val: mine.length,      color: accent,    sym: "◈" },
-            { label: "Pending Reviews",  val: pendingReviews,   color: C.yellow,  sym: "▶" },
-            { label: "Open Messages",    val: openMsgs,         color: C.orange,  sym: "◉" },
-            { label: "Shared Files",     val: sharedFiles,      color: C.green,   sym: "▣" },
+            { label: "Active Projects",  val: mine.length,      color: accent,   sym: "◈" },
+            { label: "Pending Reviews",  val: pendingReviews,   color: C.yellow, sym: "▶" },
+            { label: "Open Messages",    val: openMsgs,         color: C.orange, sym: "◉" },
+            { label: "Shared Files",     val: sharedFiles,      color: C.green,  sym: "▣" },
           ].map(s => (
             <div key={s.label} style={{
-              background: "#08081580", border: `1px solid ${C.border}`,
+              background: statBg, border: `1px solid ${C.border}`,
               borderRadius: 10, padding: "11px 18px", minWidth: 108,
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
@@ -1132,6 +1174,7 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const selected = mine.find(p => p.id === selectedId);
   const portalSettings = (selected || mine[0])?.portalSettings || {};
+  C = portalSettings.theme === "light" ? { ...C_LIGHT } : { ...C_DARK };
 
   const handleSelect = (id, tab = "overview") => {
     setSelectedId(id);
