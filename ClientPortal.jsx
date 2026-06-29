@@ -651,13 +651,13 @@ function PortalStripCard({ project, onClick }) {
   );
 }
 
-function PortalGridCard({ project, onClick }) {
+function PortalGridCard({ project, onOpen }) {
   const bg = project.portalSettings?.bgImageUrl;
   const meta = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
   const [hov, setHov] = useState(false);
   const toReview = project.posts.filter(a => a.shared && a.status === "in_review").length;
   return (
-    <div onClick={onClick}
+    <div onClick={() => onOpen("overview")}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{ position: "relative", borderRadius: 14, overflow: "hidden", cursor: "pointer", border: `1px solid ${hov ? meta.color + "55" : C.border}`, transition: "transform 0.18s,border-color 0.18s,box-shadow 0.18s", transform: hov ? "translateY(-5px)" : "none", boxShadow: hov ? "0 18px 56px rgba(0,0,0,0.55)" : "none", aspectRatio: "1" }}>
       {bg
@@ -677,8 +677,19 @@ function PortalGridCard({ project, onClick }) {
         <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", textShadow: "0 2px 8px rgba(0,0,0,0.9)", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{project.title}</div>
         <div style={{ fontSize: 10, color: "rgba(255,255,255,0.6)" }}>Delivery: {project.deliveryDate || "—"}</div>
       </div>
-      {hov && <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
-        <div style={{ background: "rgba(255,255,255,0.15)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 8, padding: "8px 20px", color: "#fff", fontSize: 12, fontWeight: 600 }}>Open Project →</div>
+      {hov && <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)" }}>
+        {[
+          { label: "Open",         icon: "→", tab: "overview",     color: "rgba(255,255,255,0.9)" },
+          { label: "Messages",     icon: "✉", tab: "messages",     color: C.blue },
+          { label: "Deliverables", icon: "▶", tab: "deliverables", color: C.yellow },
+        ].map(a => (
+          <button key={a.tab} onClick={e => { e.stopPropagation(); onOpen(a.tab); }}
+            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(12px)", border: `1px solid ${a.color}50`, borderRadius: 7, padding: "6px 18px", color: a.color, fontSize: 11, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, minWidth: 120, justifyContent: "center" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; e.currentTarget.style.borderColor = a.color; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,0,0,0.55)"; e.currentTarget.style.borderColor = a.color + "50"; }}>
+            <span>{a.icon}</span>{a.label}
+          </button>
+        ))}
       </div>}
     </div>
   );
@@ -702,7 +713,7 @@ function ProjectsView({ user, projects, onSelect }) {
       {viewMode === "strip"
         ? <div>{mine.map(p => <PortalStripCard key={p.id} project={p} onClick={() => onSelect(p.id, "overview")} />)}</div>
         : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))", gap: 14 }}>
-            {mine.map(p => <PortalGridCard key={p.id} project={p} onClick={() => onSelect(p.id, "overview")} />)}
+            {mine.map(p => <PortalGridCard key={p.id} project={p} onOpen={tab => onSelect(p.id, tab)} />)}
           </div>
       }
     </div>

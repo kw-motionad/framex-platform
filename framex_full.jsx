@@ -1327,6 +1327,99 @@ function ClientComments({comments,onUpdate,currentUser}){
   </div>;
 }
 
+// ─── Status Dropdown ─────────────────────────────────────────────────────────
+
+function StatusDropdown({stage,onChange}){
+  const [open,setOpen]=useState(false);
+  const meta=LIFECYCLE_META[stage]||LIFECYCLE_META.inquiry;
+  return (
+    <div style={{position:"relative"}}>
+      <button onClick={e=>{e.stopPropagation();setOpen(o=>!o);}}
+        style={{background:meta.color+"25",border:`1px solid ${meta.color}60`,color:meta.color,borderRadius:6,padding:"5px 12px",cursor:"pointer",fontSize:11,fontWeight:700,display:"flex",alignItems:"center",gap:6,backdropFilter:"blur(10px)"}}>
+        {meta.icon} {meta.label} ▾
+      </button>
+      {open&&<>
+        <div onClick={()=>setOpen(false)} style={{position:"fixed",inset:0,zIndex:99}}/>
+        <div style={{position:"absolute",right:0,top:"calc(100% + 6px)",background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,boxShadow:"0 12px 40px rgba(0,0,0,0.6)",zIndex:100,minWidth:190,padding:6}}>
+          {LIFECYCLE.map(s=>{
+            const m=LIFECYCLE_META[s];
+            return (
+              <button key={s} onClick={e=>{e.stopPropagation();onChange(s);setOpen(false);}}
+                style={{display:"flex",alignItems:"center",gap:8,width:"100%",background:s===stage?m.color+"18":"none",border:"none",borderRadius:6,padding:"7px 10px",cursor:"pointer",color:s===stage?m.color:C.textSec,fontSize:12,fontWeight:s===stage?700:400,textAlign:"left"}}>
+                <span style={{fontSize:13}}>{m.icon}</span><span>{m.label}</span>
+                {s===stage&&<span style={{marginLeft:"auto",fontSize:9,color:m.color}}>✓</span>}
+              </button>
+            );
+          })}
+        </div>
+      </>}
+    </div>
+  );
+}
+
+// ─── Project Timeline ─────────────────────────────────────────────────────────
+
+function ProjectTimeline({project}){
+  const stages=LIFECYCLE.filter(s=>s!=="archived");
+  const currentIdx=stages.indexOf(project.status);
+  const pct=Math.max(4,Math.min(100,((currentIdx+1)/stages.length)*100));
+  return (
+    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 20px",marginBottom:14}}>
+      <div style={{fontSize:11,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:20}}>Project Timeline</div>
+      {/* Stage progress bar */}
+      <div style={{position:"relative",paddingBottom:28}}>
+        {/* Track */}
+        <div style={{height:4,background:C.border,borderRadius:2,position:"relative",marginBottom:0}}>
+          <div style={{height:"100%",width:`${pct}%`,borderRadius:2,background:`linear-gradient(to right,${C.orange},${C.cyan})`,transition:"width 0.3s"}}/>
+        </div>
+        {/* Stage dots — positioned over track */}
+        <div style={{display:"flex",justifyContent:"space-between",position:"absolute",top:-5,left:0,right:0}}>
+          {stages.map((s,i)=>{
+            const m=LIFECYCLE_META[s];
+            const done=i<currentIdx;
+            const current=i===currentIdx;
+            return (
+              <div key={s} title={m.label} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+                <div style={{width:current?16:12,height:current?16:12,borderRadius:"50%",flexShrink:0,
+                  background:done||current?m.color:C.border,
+                  border:`2px solid ${done||current?m.color:C.border}`,
+                  boxShadow:current?`0 0 0 3px ${m.color}35,0 0 12px ${m.color}60`:undefined,
+                  transition:"all 0.2s",marginTop:current?-2:0}}/>
+                <span style={{fontSize:7,color:current?m.color:done?C.textSec:C.textMuted,fontWeight:current?700:400,textAlign:"center",maxWidth:44,lineHeight:1.2,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                  {m.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {/* Dates */}
+      <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+        <div>
+          <div style={{fontSize:9,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:2}}>Start</div>
+          <div style={{fontSize:12,fontWeight:600,color:C.text}}>{project.startDate||"—"}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:9,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:2}}>Delivery</div>
+          <div style={{fontSize:12,fontWeight:600,color:C.orange}}>{project.deliveryDate||"—"}</div>
+        </div>
+      </div>
+      {/* Milestones */}
+      {project.milestones?.length>0&&(
+        <div style={{marginTop:14,paddingTop:12,borderTop:`1px solid ${C.border}`}}>
+          <div style={{fontSize:9,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.07em",marginBottom:8}}>Milestones</div>
+          {project.milestones.map((m,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"4px 0",fontSize:11}}>
+              <span style={{color:C.textSec}}>◆ {m.label}</span>
+              <span style={{color:C.textMuted,fontFamily:"monospace",fontSize:10}}>{m.date}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Project Cards ────────────────────────────────────────────────────────────
 
 function ProjectStripCard({project,onClick,isClient}){
@@ -1374,13 +1467,13 @@ function ProjectStripCard({project,onClick,isClient}){
   );
 }
 
-function ProjectGridCard({project,onClick,isClient}){
+function ProjectGridCard({project,onOpen,isClient}){
   const bg=project.portalSettings?.bgImageUrl;
   const meta=LIFECYCLE_META[project.status]||LIFECYCLE_META.inquiry;
   const [hov,setHov]=useState(false);
   const openComments=(project.clientComments||[]).filter(c=>!c.resolved).length;
   return (
-    <div onClick={onClick}
+    <div onClick={()=>onOpen("overview")}
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{position:"relative",borderRadius:14,overflow:"hidden",cursor:"pointer",
         border:`1px solid ${hov?meta.color+"55":C.border}`,
@@ -1417,12 +1510,25 @@ function ProjectGridCard({project,onClick,isClient}){
           {project.deliveryDate||"—"}{!isClient&&` · ${project.client}`}
         </div>
       </div>
-      {hov&&<div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",pointerEvents:"none"}}>
-        <div style={{background:"rgba(255,255,255,0.15)",backdropFilter:"blur(12px)",
-          border:"1px solid rgba(255,255,255,0.3)",borderRadius:8,padding:"8px 20px",
-          color:"#fff",fontSize:12,fontWeight:600,letterSpacing:"0.02em"}}>
-          Open Project →
-        </div>
+      {hov&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,background:"rgba(0,0,0,0.45)",backdropFilter:"blur(2px)"}}>
+        {[
+          {label:"Open",icon:"→",tab:"overview",color:"rgba(255,255,255,0.9)"},
+          ...(isClient?[
+            {label:"Messages",icon:"✉",tab:"comments",color:C.cyan},
+            {label:"Deliverables",icon:"▶",tab:"post",color:C.yellow},
+          ]:[
+            {label:"Messages",icon:"✉",tab:"comments",color:C.cyan},
+            {label:"Deliverables",icon:"▶",tab:"documents",color:C.blue},
+            {label:"Review",icon:"✨",tab:"post",color:C.yellow},
+          ]),
+        ].map(a=>(
+          <button key={a.tab} onClick={e=>{e.stopPropagation();onOpen(a.tab);}}
+            style={{background:"rgba(0,0,0,0.55)",backdropFilter:"blur(12px)",border:`1px solid ${a.color}50`,borderRadius:7,padding:"6px 18px",color:a.color,fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.15)";e.currentTarget.style.borderColor=a.color;}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,0,0,0.55)";e.currentTarget.style.borderColor=a.color+"50";}}>
+            <span>{a.icon}</span>{a.label}
+          </button>
+        ))}
       </div>}
     </div>
   );
@@ -1478,7 +1584,7 @@ function ProjectActivityFeed({project}){
 
 // ─── Project Detail ───────────────────────────────────────────────────────────
 
-function ProjectDetail({project,onUpdate,currentUser,onBack,onPreviewAsClient}){
+function ProjectDetail({project,onUpdate,currentUser,onBack,onPreviewAsClient,initTab}){
   const isClient=ROLES[currentUser.role].isClient;
   const canApprove=ROLES[currentUser.role].canApprove;
   const canSeeInternal=ROLES[currentUser.role].canSeeInternal;
@@ -1503,7 +1609,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onPreviewAsClient}){
     {id:"comments",  label:"Messages",     icon:"💬"},
   ];
   const tabs=isClient?clientTabs:internalTabs;
-  const [tab,setTab]=useState("overview");
+  const [tab,setTab]=useState(initTab||"overview");
 
   const up=(field,val)=>onUpdate({...project,[field]:val});
   const [showUpload,setShowUpload]=useState(false);
@@ -1567,7 +1673,9 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onPreviewAsClient}){
               {!isClient&&<span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>💰 {fmtCurrency(project.budget)}</span>}
             </div>
           </div>
-          <LifecyclePill stage={project.status}/>
+          {(currentUser.role==="admin"||currentUser.role==="producer")
+            ?<StatusDropdown stage={project.status} onChange={s=>up("status",s)}/>
+            :<LifecyclePill stage={project.status}/>}
         </div>
       </div>
     </div>
@@ -1587,6 +1695,8 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onPreviewAsClient}){
       {tab==="overview"&&<div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:20,alignItems:"start"}}>
         {/* Left column */}
         <div>
+          {/* Visual timeline */}
+          <ProjectTimeline project={project}/>
           {/* Stats row */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
             {[
@@ -1685,6 +1795,8 @@ export default function App(){
   const logoRef=useRef(null);
   const [projects,setProjects]=useState(SEED_PROJECTS);
   const [selectedId,setSelectedId]=useState(null);
+  const [initialTab,setInitialTab]=useState("overview");
+  const openProject=(id,tab="overview")=>{setSelectedId(id);setInitialTab(tab);};
   const [nav,setNav]=useState("projects");
   const [filterStage,setFilterStage]=useState("all");
   const [showNewProject,setShowNewProject]=useState(false);
@@ -1736,7 +1848,7 @@ export default function App(){
         </div>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
-        <ProjectDetail project={selected} onUpdate={updateProject} currentUser={user} onBack={()=>setSelectedId(null)}/>
+        <ProjectDetail key={selected.id} project={selected} onUpdate={updateProject} currentUser={user} initTab={initialTab} onBack={()=>setSelectedId(null)}/>
       </div>
     </div>
   );
@@ -1812,9 +1924,9 @@ export default function App(){
         </div>}
 
         {viewMode==="strip"
-          ?<div>{visibleProjects.map(p=><ProjectStripCard key={p.id} project={p} onClick={()=>setSelectedId(p.id)} isClient={isClient}/>)}</div>
+          ?<div>{visibleProjects.map(p=><ProjectStripCard key={p.id} project={p} onClick={()=>openProject(p.id)} isClient={isClient}/>)}</div>
           :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
-            {visibleProjects.map(p=><ProjectGridCard key={p.id} project={p} onClick={()=>setSelectedId(p.id)} isClient={isClient}/>)}
+            {visibleProjects.map(p=><ProjectGridCard key={p.id} project={p} onOpen={tab=>openProject(p.id,tab)} isClient={isClient}/>)}
           </div>
         }
       </div>
