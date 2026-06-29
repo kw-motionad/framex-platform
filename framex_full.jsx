@@ -62,7 +62,7 @@ const DEMO_USERS = [
 
 const SEED_PROJECTS = [
   {id:1,title:"Titan VFX — Sequence A",client:"Paramount Pictures",clientId:"u5",status:"post",producer:"Ana P.",startDate:"2026-04-01",deliveryDate:"2026-06-20",budget:480000,
-   documents:{contracts:[{id:"doc1",name:"Master_Service_Agreement.pdf",status:"signed",uploader:"Ana P.",date:"2026-04-01",shared:true,esig:true}],budgets:[{id:"doc2",name:"TitanA_Budget_v3.xlsx",status:"approved",uploader:"Mike J.",date:"2026-04-15",shared:false,esig:false}],estimates:[{id:"doc3",name:"VFX_Estimate_v2.pdf",status:"sent",uploader:"Ana P.",date:"2026-04-10",shared:true,esig:false}],invoices:[{id:"doc4",name:"Invoice_001_50pct.pdf",status:"sent",uploader:"Mike J.",date:"2026-05-01",shared:true,esig:false}],schedules:[{id:"doc5",name:"Production_Schedule.pdf",status:"approved",uploader:"Ana P.",date:"2026-04-12",shared:true,esig:false}]},
+   documents:{contracts:[{id:"doc1",name:"Master_Service_Agreement.pdf",status:"signed",uploader:"Ana P.",date:"2026-04-01",shared:true,esig:true,mimeType:"application/pdf"}],budgets:[{id:"doc2",name:"TitanA_Budget_v3.xlsx",status:"approved",uploader:"Mike J.",date:"2026-04-15",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[{id:"doc3",name:"VFX_Estimate_v2.pdf",status:"sent",uploader:"Ana P.",date:"2026-04-10",shared:true,esig:false,mimeType:"application/pdf"}],invoices:[{id:"doc4",name:"Invoice_001_50pct.pdf",status:"sent",uploader:"Mike J.",date:"2026-05-01",shared:true,esig:false,mimeType:"application/pdf"}],schedules:[{id:"doc5",name:"Production_Schedule.pdf",status:"approved",uploader:"Ana P.",date:"2026-04-12",shared:true,esig:false,mimeType:"application/pdf"}]},
    creative:{pitchDecks:[{id:"cr1",name:"TitanA_Pitch_v2.pdf",status:"approved",shared:true,uploader:"Sarah D.",comments:[]}],moodBoards:[{id:"cr2",name:"Visual_Refs.jpg",status:"approved",shared:true,uploader:"Jake M.",comments:[]}],locationScouts:[],storyboards:[{id:"cr3",name:"Storyboard_Seq_A.pdf",status:"in_review",shared:true,uploader:"Ana P.",comments:[]}]},
    crew:[{id:"cr1",name:"Director Chen",role:"Director",email:"chen@studio.com",phone:"+44 7700 900001",rate:"£2500/day",dietary:"None",payrollDocs:true,notes:""},{id:"cr2",name:"Marco Ricci",role:"DP",email:"marco@studio.com",phone:"+44 7700 900002",rate:"£1800/day",dietary:"Vegetarian",payrollDocs:true,notes:"Anamorphic specialist"}],
    talent:[{id:"t1",name:"Alex Storm",agent:"CAA London",agentEmail:"agent@caa.com",rate:"£5000/day",usage:"Worldwide 2yr",dietary:"Vegan",releaseForm:true,notes:"Stunt double required"}],
@@ -73,7 +73,7 @@ const SEED_PROJECTS = [
    posts:[{id:"pa1",type:"video",name:"TitanA_comp_v04.mp4",version:"v04",status:"in_review",uploader:"Tom R.",duration:124,editNotes:"Explosion edge needs scatter.",shared:true,comments:[{id:"c1",time:12,author:"Sarah D.",text:"More scatter on edge",color:"#FF5500",resolved:false}]}],
   },
   {id:2,title:"Dragon Awakening",client:"Disney",clientId:null,status:"pre",producer:"Ana P.",startDate:"2026-06-01",deliveryDate:"2026-08-15",budget:720000,
-   documents:{contracts:[],budgets:[{id:"doc6",name:"Dragon_Budget_Draft.xlsx",status:"draft",uploader:"Mike J.",date:"2026-06-05",shared:false,esig:false}],estimates:[{id:"doc7",name:"VFX_Estimate_v1.pdf",status:"draft",uploader:"Ana P.",date:"2026-06-04",shared:false,esig:false}],invoices:[],schedules:[]},
+   documents:{contracts:[],budgets:[{id:"doc6",name:"Dragon_Budget_Draft.xlsx",status:"draft",uploader:"Mike J.",date:"2026-06-05",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[{id:"doc7",name:"VFX_Estimate_v1.pdf",status:"draft",uploader:"Ana P.",date:"2026-06-04",shared:false,esig:false,mimeType:"application/pdf"}],invoices:[],schedules:[]},
    creative:{pitchDecks:[{id:"cr4",name:"Dragon_Pitch_Deck.pdf",status:"approved",shared:true,uploader:"Sarah D.",comments:[]}],moodBoards:[{id:"cr5",name:"Creature_Refs.jpg",status:"in_review",shared:false,uploader:"Jake M.",comments:[]}],locationScouts:[{id:"cr6",name:"Iceland_Recce_Notes.pdf",status:"pending",shared:false,uploader:"Ana P.",comments:[]}],storyboards:[]},
    crew:[],talent:[],
    producer_data:{vendors:[],permits:[],rentals:[],travel:[{id:"tr1",who:"Ana P.",to:"Reykjavik",dates:"Jul 10-12",cost:"£1800",status:"booked"}],productionNotes:"",postNotes:""},
@@ -82,7 +82,7 @@ const SEED_PROJECTS = [
    posts:[],
   },
   {id:3,title:"Neon City Commercial",client:"Netflix",clientId:null,status:"wrap",producer:"Ana P.",startDate:"2026-02-01",deliveryDate:"2026-06-15",budget:210000,
-   documents:{contracts:[{id:"doc8",name:"Netflix_Contract.pdf",status:"signed",uploader:"Ana P.",date:"2026-02-01",shared:true,esig:true}],budgets:[{id:"doc9",name:"NeonCity_Final_Budget.xlsx",status:"approved",uploader:"Mike J.",date:"2026-06-01",shared:false,esig:false}],estimates:[],invoices:[{id:"doc10",name:"Final_Invoice_100pct.pdf",status:"sent",uploader:"Mike J.",date:"2026-06-14",shared:true,esig:false}],schedules:[]},
+   documents:{contracts:[{id:"doc8",name:"Netflix_Contract.pdf",status:"signed",uploader:"Ana P.",date:"2026-02-01",shared:true,esig:true,mimeType:"application/pdf"}],budgets:[{id:"doc9",name:"NeonCity_Final_Budget.xlsx",status:"approved",uploader:"Mike J.",date:"2026-06-01",shared:false,esig:false,mimeType:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}],estimates:[],invoices:[{id:"doc10",name:"Final_Invoice_100pct.pdf",status:"sent",uploader:"Mike J.",date:"2026-06-14",shared:true,esig:false,mimeType:"application/pdf"}],schedules:[]},
    creative:{pitchDecks:[],moodBoards:[],locationScouts:[],storyboards:[]},
    crew:[],talent:[],
    producer_data:{vendors:[],permits:[],rentals:[],travel:[],productionNotes:"Picture locked Jun 12.",postNotes:"Delivered to Netflix Jun 14."},
@@ -215,6 +215,15 @@ function FileIcon({name="",mimeType="",previewUrl,size=36,fallback="📄"}){
 function PreviewModal({entry,onClose,onAnnotate,onApprove,onRequestChanges,entryStatus}){
   const type=detectPreviewType(entry.name,entry.mimeType||"");
   const dlBtn=<button onClick={()=>doDownload(entry)} style={{background:"#14141C",border:`1px solid ${C.border}`,color:C.textSec,borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>⬇ Download</button>;
+  if(!entry.previewUrl){
+    return <Modal title={entry.name} onClose={onClose}>
+      <div style={{textAlign:"center",padding:"52px 20px",color:C.textMuted}}>
+        <div style={{fontSize:44,marginBottom:14}}>{type==="pdf"?"📄":type==="video"?"🎬":type==="image"?"🖼️":"📄"}</div>
+        <div style={{fontSize:13,fontWeight:600,color:C.textSec,marginBottom:6}}>No file attached</div>
+        <div style={{fontSize:11,lineHeight:1.6}}>Upload a file to enable preview.<br/>Use the drop zone in the panel or the ⬆ Upload button.</div>
+      </div>
+    </Modal>;
+  }
   if(type==="pdf"&&onAnnotate){
     return <div style={{position:"fixed",inset:0,background:"#000000E0",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,width:"100%",maxWidth:1140,maxHeight:"94vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
@@ -626,9 +635,9 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"8px 0"}}>No {cat.label.toLowerCase()} yet.</p>}
         {items.map(doc=>(
-          <div key={doc.id} onClick={()=>doc.previewUrl&&setPreviewEntry({...doc,_cat:cat.id})}
-            style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12,cursor:doc.previewUrl?"pointer":"default",transition:"border-color 0.15s"}}
-            onMouseEnter={e=>{if(doc.previewUrl)e.currentTarget.style.borderColor=C.border+"99";}}
+          <div key={doc.id} onClick={()=>setPreviewEntry({...doc,_cat:cat.id})}
+            style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12,cursor:"pointer",transition:"border-color 0.15s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=C.border+"99"}
             onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
             <FileIcon name={doc.name} mimeType={doc.mimeType||""} previewUrl={doc.previewUrl} size={36} fallback={cat.icon}/>
             <div style={{flex:1,minWidth:0}}>
