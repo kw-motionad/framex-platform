@@ -212,6 +212,62 @@ function FileIcon({name="",mimeType="",previewUrl,size=36,fallback="📄"}){
     <span style={{fontSize:size>28?18:14}}>{fallback}</span>
   </div>;
 }
+// ─── View Toggle & File Card ─────────────────────────────────────────────────
+function useViewPref(key,def="list"){
+  const [mode,setMode]=useState(()=>localStorage.getItem(key)||def);
+  const set=(m)=>{setMode(m);localStorage.setItem(key,m);};
+  return [mode,set];
+}
+
+function ViewToggle({value,onChange}){
+  return (
+    <div style={{display:"flex",gap:1,background:"#0D0D14",borderRadius:6,padding:2,flexShrink:0,border:`1px solid ${C.border}`}}>
+      {[{m:"grid",icon:"⊞"},{m:"list",icon:"☰"}].map(v=>(
+        <button key={v.m} onClick={()=>onChange(v.m)} title={v.m==="grid"?"Grid view":"List view"}
+          style={{background:value===v.m?C.surface:"none",border:"none",borderRadius:4,color:value===v.m?C.text:C.textMuted,cursor:"pointer",padding:"3px 9px",fontSize:14,lineHeight:1,transition:"background 0.15s"}}>
+          {v.icon}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FileCard({item,onPreview,onApprove,onReject,canApprove,fallbackIcon="📄"}){
+  const [hov,setHov]=useState(false);
+  const type=detectPreviewType(item.name||"",item.mimeType||"");
+  return (
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{position:"relative",aspectRatio:"1",borderRadius:10,overflow:"hidden",cursor:"pointer",background:C.card,border:`1px solid ${hov?C.borderHover:C.border}`,transition:"border-color 0.15s,transform 0.15s,box-shadow 0.15s",transform:hov?"translateY(-2px)":"none",boxShadow:hov?"0 8px 24px rgba(0,0,0,0.5)":"none"}}>
+      {type==="image"&&item.previewUrl
+        ?<img src={item.previewUrl} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+        :type==="video"
+        ?<div style={{position:"absolute",inset:0,background:"#040408",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {item.previewUrl&&<video src={item.previewUrl} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} muted playsInline preload="metadata"/>}
+          <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.35)"}}/>
+          <div style={{position:"relative",width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.18)",backdropFilter:"blur(8px)",border:"1.5px solid rgba(255,255,255,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,paddingLeft:2}}>▶</div>
+        </div>
+        :type==="pdf"
+        ?<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#1A0808,#2A1010)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{fontSize:22,fontWeight:900,color:"#FF4444",fontFamily:"monospace",letterSpacing:"-0.03em"}}>PDF</span>
+        </div>
+        :<div style={{position:"absolute",inset:0,background:C.card,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{fontSize:32}}>{fallbackIcon}</span>
+        </div>
+      }
+      <div style={{position:"absolute",bottom:0,left:0,right:0,height:"55%",background:"linear-gradient(to top,rgba(0,0,0,0.88),transparent)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:6,right:6,zIndex:2}}><Badge status={item.status} small/></div>
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"5px 8px 7px",zIndex:2}}>
+        <div style={{fontSize:10,color:"rgba(255,255,255,0.9)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:500}}>{item.name}</div>
+      </div>
+      {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(2px)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,zIndex:3}}>
+        {onPreview&&<button onClick={e=>{e.stopPropagation();onPreview(item);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>👁 Preview</button>}
+        {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:C.greenLow,border:`1px solid ${C.green}50`,borderRadius:6,padding:"5px 14px",color:C.green,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✓ Approve</button>}
+        {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:C.redLow,border:`1px solid ${C.red}50`,borderRadius:6,padding:"5px 14px",color:C.red,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✗ Changes</button>}
+      </div>}
+    </div>
+  );
+}
+
 function PreviewModal({entry,onClose,onAnnotate,onApprove,onRequestChanges,entryStatus}){
   const type=detectPreviewType(entry.name,entry.mimeType||"");
   const dlBtn=<button onClick={()=>doDownload(entry)} style={{background:"#14141C",border:`1px solid ${C.border}`,color:C.textSec,borderRadius:6,padding:"5px 10px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>⬇ Download</button>;
@@ -819,9 +875,11 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
   };
 
   const totalDocs=visibleCats.reduce((n,c)=>(docs[c.id]||[]).length+n,0);
+  const [viewMode,setViewMode]=useViewPref("framex_view_documents");
 
   return <div>
     {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
+    <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
       {visibleCats.map(cat=>{
         const items=docs[cat.id]||[];
@@ -841,23 +899,37 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
           {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addDoc(cat.id,f))} accept="*" label={`Drop ${cat.label.toLowerCase()}`} color={cat.color} compact/>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"8px 0"}}>No {cat.label.toLowerCase()} yet.</p>}
-        {items.map(doc=>(
-          <div key={doc.id} onClick={()=>setPreviewEntry({...doc,_cat:cat.id})}
-            style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12,cursor:"pointer",transition:"border-color 0.15s"}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor=C.border+"99"}
-            onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-            <FileIcon name={doc.name} mimeType={doc.mimeType||""} previewUrl={doc.previewUrl} size={36} fallback={cat.icon}/>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{doc.name}</div>
-              <div style={{fontSize:10,color:C.textMuted}}>{doc.uploader} · {doc.date}{doc.shared&&!isClient?<span style={{color:C.green,marginLeft:8}}>● Shared with client</span>:null}</div>
-            </div>
-            <Badge status={doc.status} small/>
-            {!isClient&&<button onClick={e=>{e.stopPropagation();toggleShared(cat.id,doc.id);}} style={{background:doc.shared?C.greenLow:"#1E1E28",border:`1px solid ${doc.shared?C.green+"50":C.border}`,color:doc.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10,whiteSpace:"nowrap"}}>{doc.shared?"👁 Shared":"Share"}</button>}
-            {cat.id==="contracts"&&doc.status!=="signed"&&<Btn variant="cyan" onClick={e=>{e.stopPropagation();setEsigModal({...doc,cat:cat.id});}} style={{fontSize:10,padding:"4px 10px"}}>✍ Sign</Btn>}
-            {canApprove&&doc.status==="pending"&&<Btn variant="green" onClick={e=>{e.stopPropagation();updateDocStatus(cat.id,doc.id,"approved");}} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
-            {doc.previewUrl&&<span style={{fontSize:10,color:C.textMuted,flexShrink:0}}>👁</span>}
+        {viewMode==="grid"
+          ?<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10,marginBottom:4}}>
+            {items.map(doc=>(
+              <FileCard key={doc.id} item={doc}
+                onPreview={()=>setPreviewEntry({...doc,_cat:cat.id})}
+                onApprove={canApprove&&doc.status!=="approved"?()=>updateDocStatus(cat.id,doc.id,"approved"):undefined}
+                onReject={canApprove&&doc.status!=="changes"?()=>updateDocStatus(cat.id,doc.id,"changes"):undefined}
+                canApprove={canApprove}
+                fallbackIcon={cat.icon}/>
+            ))}
           </div>
-        ))}
+          :<div>
+            {items.map(doc=>(
+              <div key={doc.id} onClick={()=>setPreviewEntry({...doc,_cat:cat.id})}
+                style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12,cursor:"pointer",transition:"border-color 0.15s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=C.border+"99"}
+                onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                <FileIcon name={doc.name} mimeType={doc.mimeType||""} previewUrl={doc.previewUrl} size={36} fallback={cat.icon}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{doc.name}</div>
+                  <div style={{fontSize:10,color:C.textMuted}}>{doc.uploader} · {doc.date}{doc.shared&&!isClient?<span style={{color:C.green,marginLeft:8}}>● Shared with client</span>:null}</div>
+                </div>
+                <Badge status={doc.status} small/>
+                {!isClient&&<button onClick={e=>{e.stopPropagation();toggleShared(cat.id,doc.id);}} style={{background:doc.shared?C.greenLow:"#1E1E28",border:`1px solid ${doc.shared?C.green+"50":C.border}`,color:doc.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10,whiteSpace:"nowrap"}}>{doc.shared?"👁 Shared":"Share"}</button>}
+                {cat.id==="contracts"&&doc.status!=="signed"&&<Btn variant="cyan" onClick={e=>{e.stopPropagation();setEsigModal({...doc,cat:cat.id});}} style={{fontSize:10,padding:"4px 10px"}}>✍ Sign</Btn>}
+                {canApprove&&doc.status==="pending"&&<Btn variant="green" onClick={e=>{e.stopPropagation();updateDocStatus(cat.id,doc.id,"approved");}} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
+                {doc.previewUrl&&<span style={{fontSize:10,color:C.textMuted,flexShrink:0}}>👁</span>}
+              </div>
+            ))}
+          </div>
+        }
       </div>;
     })}
 
@@ -906,9 +978,11 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
   };
   const [commentInputs,setCommentInputs]=useState({});
   const [previewEntry,setPreviewEntry]=useState(null);
+  const [viewMode,setViewMode]=useViewPref("framex_view_creative");
 
   return <div>
     {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
+    <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:20}}>
       {cats.map(cat=>{
         const items=creative[cat.id]||[];
@@ -930,31 +1004,44 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
           {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addItem(cat.id,f))} accept="*" label={`Add ${cat.label}`} color={cat.color} compact/>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"6px 0 12px"}}>No {cat.label.toLowerCase()} yet.</p>}
-        {items.map(item=>{
-          const ck=`${cat.id}_${item.id}`;
-          return <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-              <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
-              <span style={{fontSize:12,fontWeight:600,color:C.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",cursor:item.previewUrl?"pointer":"default"}} onClick={()=>item.previewUrl&&setPreviewEntry(item)}>{item.name}</span>
-              {item.previewUrl&&<Btn variant="ghost" onClick={()=>setPreviewEntry(item)} style={{fontSize:10,padding:"4px 8px"}}>👁</Btn>}
-              <Badge status={item.status} small/>
-              {!isClient&&<button onClick={()=>toggleShared(cat.id,item.id)} style={{background:item.shared?C.greenLow:"#1E1E28",border:`1px solid ${item.shared?C.green+"50":C.border}`,color:item.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>{item.shared?"👁 Shared":"Share"}</button>}
-              {canApprove&&<Btn variant="green" onClick={()=>updateStatus(cat.id,item.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓ Approve</Btn>}
-              {canApprove&&item.status!=="changes"&&<Btn variant="red" onClick={()=>updateStatus(cat.id,item.id,"changes")} style={{fontSize:10,padding:"4px 8px"}}>✗</Btn>}
-            </div>
-            {/* Comments */}
-            {(item.comments||[]).map(c=>(
-              <div key={c.id} style={{display:"flex",gap:8,padding:"6px 0",borderTop:`1px solid ${C.border}`}}>
-                <Avatar name={c.author} size={20}/>
-                <div><span style={{fontSize:11,fontWeight:600,color:C.textSec}}>{c.author}</span><span style={{fontSize:10,color:C.textMuted,marginLeft:6}}>{c.date}</span>
-                <p style={{margin:"2px 0 0",fontSize:12,color:C.textSec}}>{c.text}</p></div>
-              </div>
+        {viewMode==="grid"
+          ?<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10,marginBottom:4}}>
+            {items.map(item=>(
+              <FileCard key={item.id} item={item}
+                onPreview={()=>setPreviewEntry(item)}
+                onApprove={canApprove&&item.status!=="approved"?()=>updateStatus(cat.id,item.id,"approved"):undefined}
+                onReject={canApprove&&item.status!=="changes"?()=>updateStatus(cat.id,item.id,"changes"):undefined}
+                canApprove={canApprove}
+                fallbackIcon={cat.icon}/>
             ))}
-            <div style={{display:"flex",gap:6,marginTop:8}}>
-              <input value={commentInputs[ck]||""} onChange={e=>setCommentInputs(p=>({...p,[ck]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"&&commentInputs[ck]?.trim()){addComment(cat.id,item.id,commentInputs[ck]);setCommentInputs(p=>({...p,[ck]:""}));}}} placeholder="Add comment…" style={{flex:1,background:"#14141C",border:`1px solid ${C.border}`,borderRadius:5,padding:"6px 8px",color:C.text,fontSize:11,outline:"none"}}/>
-            </div>
-          </div>;
-        })}
+          </div>
+          :<div>
+            {items.map(item=>{
+              const ck=`${cat.id}_${item.id}`;
+              return <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                  <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
+                  <span style={{fontSize:12,fontWeight:600,color:C.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",cursor:item.previewUrl?"pointer":"default"}} onClick={()=>item.previewUrl&&setPreviewEntry(item)}>{item.name}</span>
+                  {item.previewUrl&&<Btn variant="ghost" onClick={()=>setPreviewEntry(item)} style={{fontSize:10,padding:"4px 8px"}}>👁</Btn>}
+                  <Badge status={item.status} small/>
+                  {!isClient&&<button onClick={()=>toggleShared(cat.id,item.id)} style={{background:item.shared?C.greenLow:"#1E1E28",border:`1px solid ${item.shared?C.green+"50":C.border}`,color:item.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>{item.shared?"👁 Shared":"Share"}</button>}
+                  {canApprove&&<Btn variant="green" onClick={()=>updateStatus(cat.id,item.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓ Approve</Btn>}
+                  {canApprove&&item.status!=="changes"&&<Btn variant="red" onClick={()=>updateStatus(cat.id,item.id,"changes")} style={{fontSize:10,padding:"4px 8px"}}>✗</Btn>}
+                </div>
+                {(item.comments||[]).map(c=>(
+                  <div key={c.id} style={{display:"flex",gap:8,padding:"6px 0",borderTop:`1px solid ${C.border}`}}>
+                    <Avatar name={c.author} size={20}/>
+                    <div><span style={{fontSize:11,fontWeight:600,color:C.textSec}}>{c.author}</span><span style={{fontSize:10,color:C.textMuted,marginLeft:6}}>{c.date}</span>
+                    <p style={{margin:"2px 0 0",fontSize:12,color:C.textSec}}>{c.text}</p></div>
+                  </div>
+                ))}
+                <div style={{display:"flex",gap:6,marginTop:8}}>
+                  <input value={commentInputs[ck]||""} onChange={e=>setCommentInputs(p=>({...p,[ck]:e.target.value}))} onKeyDown={e=>{if(e.key==="Enter"&&commentInputs[ck]?.trim()){addComment(cat.id,item.id,commentInputs[ck]);setCommentInputs(p=>({...p,[ck]:""}));}}} placeholder="Add comment…" style={{flex:1,background:"#14141C",border:`1px solid ${C.border}`,borderRadius:5,padding:"6px 8px",color:C.text,fontSize:11,outline:"none"}}/>
+                </div>
+              </div>;
+            })}
+          </div>
+        }
       </div>;
     })}
     {previewEntry&&<PreviewModal entry={previewEntry} onClose={()=>setPreviewEntry(null)}/>}
@@ -1132,9 +1219,11 @@ function WrapPanel({wrap,onUpdate,isClient}){
     }finally{setUploading(n=>n-1);}
   };
   const totalDelivered=(wrap.deliverables||[]).filter(d=>d.status==="delivered").length;
+  const [viewMode,setViewMode]=useViewPref("framex_view_wrap");
 
   return <div>
     {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
+    <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
     <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
       {visible.map(cat=>{
         const items=wrap[cat.id]||[];
@@ -1154,15 +1243,26 @@ function WrapPanel({wrap,onUpdate,isClient}){
           {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addItem(cat.id,f))} accept="*" label={`Add ${cat.label.toLowerCase()}`} color={cat.color} compact/>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12}}>No {cat.label.toLowerCase()} yet.</p>}
-        {items.map(item=>(
-          <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-            <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
-            <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
-            <div style={{fontSize:10,color:C.textMuted}}>{item.date}</div></div>
-            <Badge status={item.status} small/>
-            <Btn variant="ghost" onClick={()=>item.previewUrl?setPreviewEntry(item):doDownload(item)} style={{fontSize:10,padding:"4px 8px",opacity:item.previewUrl?1:0.4}}>{item.previewUrl?"👁":"⬇"}</Btn>
+        {viewMode==="grid"
+          ?<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10,marginBottom:4}}>
+            {items.map(item=>(
+              <FileCard key={item.id} item={item}
+                onPreview={item.previewUrl?()=>setPreviewEntry(item):undefined}
+                fallbackIcon={cat.icon}/>
+            ))}
           </div>
-        ))}
+          :<div>
+            {items.map(item=>(
+              <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
+                <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
+                <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.name}</div>
+                <div style={{fontSize:10,color:C.textMuted}}>{item.date}</div></div>
+                <Badge status={item.status} small/>
+                <Btn variant="ghost" onClick={()=>item.previewUrl?setPreviewEntry(item):doDownload(item)} style={{fontSize:10,padding:"4px 8px",opacity:item.previewUrl?1:0.4}}>{item.previewUrl?"👁":"⬇"}</Btn>
+              </div>
+            ))}
+          </div>
+        }
       </div>;
     })}
 
@@ -1209,6 +1309,7 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
   const toggleShare=(id)=>onUpdate(posts.map(p=>p.id===id?{...p,shared:!p.shared}:p));
   const updateStatus=(id,status)=>{onUpdate(posts.map(p=>p.id===id?{...p,status}:p));if(playing?.id===id)setPlaying(prev=>({...prev,status}));};
   const [uploading,setUploading]=useState(0);
+  const [viewMode,setViewMode]=useViewPref("framex_view_post");
   const addPost=async(file)=>{
     setUploading(n=>n+1);
     try{
@@ -1222,24 +1323,39 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
     <div style={{flex:playing?0:1,width:playing?"300px":"100%",flexShrink:0}}>
       {!isClient&&<DropZone onFiles={fs=>fs.forEach(addPost)} accept="video/*,image/*,.pdf" label="Drop video or image files here" color={C.cyan}/>}
       {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",margin:"8px 0",fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
+      <div style={{display:"flex",justifyContent:"flex-end",margin:"6px 0"}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
       {visible.length===0&&<p style={{color:C.textMuted,textAlign:"center",padding:"40px 0"}}>No assets yet.</p>}
-      {visible.map(asset=>(
-        <div key={asset.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
-          <div style={{width:38,height:38,borderRadius:7,background:C.cyanLow,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🎬</div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:12,fontWeight:600,color:C.text,fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{asset.name}</div>
-            <div style={{display:"flex",gap:8,alignItems:"center",marginTop:2}}>
-              <span style={{fontSize:10,color:C.textMuted,fontFamily:"monospace"}}>{asset.version}</span>
-              {asset.comments.filter(c=>!c.resolved).length>0&&<span style={{fontSize:10,background:C.orangeLow,color:C.orange,borderRadius:8,padding:"1px 6px",border:`1px solid ${C.orange}35`}}>{asset.comments.filter(c=>!c.resolved).length} notes</span>}
-              {asset.shared&&isClient&&<span style={{fontSize:10,color:C.green}}>● Shared</span>}
-            </div>
-          </div>
-          <Badge status={asset.status} small/>
-          <Btn variant="cyan" onClick={()=>{setPlaying(asset);setT(0);setRunning(false);clearInterval(timerRef.current);}} style={{fontSize:11,padding:"5px 10px"}}>▶ Review</Btn>
-          {!isClient&&<button onClick={()=>toggleShare(asset.id)} style={{background:asset.shared?C.greenLow:"#1E1E28",border:`1px solid ${asset.shared?C.green+"50":C.border}`,color:asset.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>{asset.shared?"👁":"Share"}</button>}
-          {canApprove&&<Btn variant="green" onClick={()=>updateStatus(asset.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
+      {viewMode==="grid"
+        ?<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(110px,1fr))",gap:10,marginBottom:4}}>
+          {visible.map(asset=>(
+            <FileCard key={asset.id} item={asset}
+              onPreview={()=>{setPlaying(asset);setT(0);setRunning(false);clearInterval(timerRef.current);}}
+              onApprove={canApprove&&asset.status!=="approved"?()=>updateStatus(asset.id,"approved"):undefined}
+              onReject={canApprove&&asset.status!=="changes"?()=>updateStatus(asset.id,"changes"):undefined}
+              canApprove={canApprove}
+              fallbackIcon="🎬"/>
+          ))}
         </div>
-      ))}
+        :<div>
+          {visible.map(asset=>(
+            <div key={asset.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{width:38,height:38,borderRadius:7,background:C.cyanLow,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🎬</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:12,fontWeight:600,color:C.text,fontFamily:"monospace",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{asset.name}</div>
+                <div style={{display:"flex",gap:8,alignItems:"center",marginTop:2}}>
+                  <span style={{fontSize:10,color:C.textMuted,fontFamily:"monospace"}}>{asset.version}</span>
+                  {asset.comments.filter(c=>!c.resolved).length>0&&<span style={{fontSize:10,background:C.orangeLow,color:C.orange,borderRadius:8,padding:"1px 6px",border:`1px solid ${C.orange}35`}}>{asset.comments.filter(c=>!c.resolved).length} notes</span>}
+                  {asset.shared&&isClient&&<span style={{fontSize:10,color:C.green}}>● Shared</span>}
+                </div>
+              </div>
+              <Badge status={asset.status} small/>
+              <Btn variant="cyan" onClick={()=>{setPlaying(asset);setT(0);setRunning(false);clearInterval(timerRef.current);}} style={{fontSize:11,padding:"5px 10px"}}>▶ Review</Btn>
+              {!isClient&&<button onClick={()=>toggleShare(asset.id)} style={{background:asset.shared?C.greenLow:"#1E1E28",border:`1px solid ${asset.shared?C.green+"50":C.border}`,color:asset.shared?C.green:C.textMuted,borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>{asset.shared?"👁":"Share"}</button>}
+              {canApprove&&<Btn variant="green" onClick={()=>updateStatus(asset.id,"approved")} style={{fontSize:10,padding:"4px 8px"}}>✓</Btn>}
+            </div>
+          ))}
+        </div>
+      }
     </div>
 
     {/* Player */}

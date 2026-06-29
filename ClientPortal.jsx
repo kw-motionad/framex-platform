@@ -191,6 +191,63 @@ function doDownload(entry){
   if(!entry?.previewUrl)return;
   const a=document.createElement("a");a.href=entry.previewUrl;a.download=entry.name;a.click();
 }
+
+// ─── View Toggle & File Card (Portal) ────────────────────────────────────────
+function useViewPref(key,def="list"){
+  const [mode,setMode]=useState(()=>localStorage.getItem(key)||def);
+  const set=(m)=>{setMode(m);localStorage.setItem(key,m);};
+  return [mode,set];
+}
+
+function ViewToggle({value,onChange}){
+  return (
+    <div style={{display:"flex",gap:1,background:"#0D0D14",borderRadius:6,padding:2,flexShrink:0,border:`1px solid ${C.border}`}}>
+      {[{m:"grid",icon:"⊞"},{m:"list",icon:"☰"}].map(v=>(
+        <button key={v.m} onClick={()=>onChange(v.m)} title={v.m==="grid"?"Grid view":"List view"}
+          style={{background:value===v.m?C.surface:"none",border:"none",borderRadius:4,color:value===v.m?C.text:C.textMuted,cursor:"pointer",padding:"3px 9px",fontSize:14,lineHeight:1,transition:"background 0.15s"}}>
+          {v.icon}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function PortalFileCard({item,onPreview,onApprove,onReject,canApprove,fallbackIcon="📄"}){
+  const [hov,setHov]=useState(false);
+  const type=detectPreviewType(item.name||"",item.mimeType||"");
+  return (
+    <div onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{position:"relative",aspectRatio:"1",borderRadius:10,overflow:"hidden",cursor:"pointer",background:C.card,border:`1px solid ${hov?C.borderHover:C.border}`,transition:"border-color 0.15s,transform 0.15s,box-shadow 0.15s",transform:hov?"translateY(-2px)":"none",boxShadow:hov?"0 8px 24px rgba(0,0,0,0.5)":"none"}}>
+      {type==="image"&&item.previewUrl
+        ?<img src={item.previewUrl} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+        :type==="video"
+        ?<div style={{position:"absolute",inset:0,background:"#040408",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          {item.previewUrl&&<video src={item.previewUrl} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} muted playsInline preload="metadata"/>}
+          <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.35)"}}/>
+          <div style={{position:"relative",width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.18)",backdropFilter:"blur(8px)",border:"1.5px solid rgba(255,255,255,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,paddingLeft:2}}>▶</div>
+        </div>
+        :type==="pdf"
+        ?<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#1A0808,#2A1010)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{fontSize:22,fontWeight:900,color:"#FF4444",fontFamily:"monospace",letterSpacing:"-0.03em"}}>PDF</span>
+        </div>
+        :<div style={{position:"absolute",inset:0,background:C.card,display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <span style={{fontSize:32}}>{fallbackIcon}</span>
+        </div>
+      }
+      <div style={{position:"absolute",bottom:0,left:0,right:0,height:"55%",background:"linear-gradient(to top,rgba(0,0,0,0.88),transparent)",pointerEvents:"none"}}/>
+      <div style={{position:"absolute",top:6,right:6,zIndex:2}}><Badge status={item.status} small/></div>
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"5px 8px 7px",zIndex:2}}>
+        <div style={{fontSize:10,color:"rgba(255,255,255,0.9)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",fontWeight:500}}>{item.name}</div>
+      </div>
+      {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(2px)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,zIndex:3}}>
+        {onPreview&&<button onClick={e=>{e.stopPropagation();onPreview(item);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>👁 Preview</button>}
+        {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:C.greenLow,border:`1px solid ${C.green}50`,borderRadius:6,padding:"5px 14px",color:C.green,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✓ Approve</button>}
+        {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:C.redLow,border:`1px solid ${C.red}50`,borderRadius:6,padding:"5px 14px",color:C.red,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✗ Changes</button>}
+      </div>}
+    </div>
+  );
+}
+
 function PreviewModal({entry,onClose,onAnnotate,authorName="You",onApprove,onRequestChanges,entryStatus}){
   const type=detectPreviewType(entry.name,entry.mimeType||"");
   const dlBtn=<button onClick={()=>doDownload(entry)} style={{background:C.card,border:`1px solid ${C.border}`,color:C.textSec,borderRadius:7,padding:"5px 11px",cursor:"pointer",fontSize:11,whiteSpace:"nowrap"}}>⬇ Download</button>;
@@ -734,6 +791,7 @@ function DeliverablesView({ user, projects, onUpdate }) {
     p.posts.filter(a => a.shared).map(a => ({ ...a, projectTitle: p.title, projectId: p.id }))
   );
 
+  const [viewMode, setViewMode] = useViewPref("framex_portal_deliverables");
   const dur = playing?.duration || 120;
   const pct = (t / dur) * 100;
   const tick = () => setT(prev => { if (prev >= dur) { setRunning(false); return dur; } return prev + 0.4; });
@@ -765,27 +823,42 @@ function DeliverablesView({ user, projects, onUpdate }) {
     <div style={{ display: "flex", gap: 20, minHeight: 0 }}>
       {/* Asset list */}
       <div style={{ flex: playing ? 0 : 1, width: playing ? "320px" : "100%", flexShrink: 0 }}>
-        {allAssets.map(asset => (
-          <div key={asset.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 9, background: C.blueLow, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🎬</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.name}</div>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 3 }}>
-                <span style={{ fontSize: 10, color: C.textMuted }}>{asset.projectTitle}</span>
-                <span style={{ fontSize: 10, color: C.textMuted, fontFamily: "monospace" }}>{asset.version}</span>
-                {asset.comments.filter(c => !c.resolved).length > 0 && (
-                  <span style={{ fontSize: 10, background: C.orangeLow, color: C.orange, borderRadius: 6, padding: "1px 6px", border: `1px solid ${C.orange}28` }}>
-                    {asset.comments.filter(c => !c.resolved).length} notes
-                  </span>
-                )}
-              </div>
-            </div>
-            <Badge status={asset.status} small />
-            <Btn variant="blue" onClick={() => { setPlaying(asset); setT(0); setRunning(false); clearInterval(timerRef.current); }} style={{ fontSize: 11, padding: "5px 12px" }}>▶ Review</Btn>
-            {asset.status !== "approved" && <Btn variant="green" onClick={() => setStatus(asset.projectId, asset.id, "approved")} style={{ fontSize: 10, padding: "4px 8px" }}>✓</Btn>}
-            {asset.status !== "changes" && <Btn variant="red" onClick={() => setStatus(asset.projectId, asset.id, "changes")} style={{ fontSize: 10, padding: "4px 8px" }}>✗</Btn>}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}><ViewToggle value={viewMode} onChange={setViewMode} /></div>
+        {viewMode === "grid"
+          ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(110px,1fr))", gap: 10, marginBottom: 4 }}>
+            {allAssets.map(asset => (
+              <PortalFileCard key={asset.id} item={asset}
+                onPreview={() => { setPlaying(asset); setT(0); setRunning(false); clearInterval(timerRef.current); }}
+                onApprove={asset.status !== "approved" ? () => setStatus(asset.projectId, asset.id, "approved") : undefined}
+                onReject={asset.status !== "changes" ? () => setStatus(asset.projectId, asset.id, "changes") : undefined}
+                canApprove={true}
+                fallbackIcon="🎬" />
+            ))}
           </div>
-        ))}
+          : <div>
+            {allAssets.map(asset => (
+              <div key={asset.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 9, background: C.blueLow, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🎬</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{asset.name}</div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 3 }}>
+                    <span style={{ fontSize: 10, color: C.textMuted }}>{asset.projectTitle}</span>
+                    <span style={{ fontSize: 10, color: C.textMuted, fontFamily: "monospace" }}>{asset.version}</span>
+                    {asset.comments.filter(c => !c.resolved).length > 0 && (
+                      <span style={{ fontSize: 10, background: C.orangeLow, color: C.orange, borderRadius: 6, padding: "1px 6px", border: `1px solid ${C.orange}28` }}>
+                        {asset.comments.filter(c => !c.resolved).length} notes
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Badge status={asset.status} small />
+                <Btn variant="blue" onClick={() => { setPlaying(asset); setT(0); setRunning(false); clearInterval(timerRef.current); }} style={{ fontSize: 11, padding: "5px 12px" }}>▶ Review</Btn>
+                {asset.status !== "approved" && <Btn variant="green" onClick={() => setStatus(asset.projectId, asset.id, "approved")} style={{ fontSize: 10, padding: "4px 8px" }}>✓</Btn>}
+                {asset.status !== "changes" && <Btn variant="red" onClick={() => setStatus(asset.projectId, asset.id, "changes")} style={{ fontSize: 10, padding: "4px 8px" }}>✗</Btn>}
+              </div>
+            ))}
+          </div>
+        }
       </div>
 
       {/* Player */}
@@ -864,6 +937,7 @@ function DeliverablesView({ user, projects, onUpdate }) {
 // ─── Creative View ────────────────────────────────────────────────────────────
 function CreativeView({ user, projects }) {
   const [previewEntry, setPreviewEntry] = useState(null);
+  const [viewMode, setViewMode] = useViewPref("framex_portal_creative", "grid");
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const CAT_META = {
     pitchDecks:     { label: "Pitch Decks",    icon: "🎯", color: C.blue },
@@ -881,31 +955,41 @@ function CreativeView({ user, projects }) {
 
   return (
     <div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}><ViewToggle value={viewMode} onChange={setViewMode} /></div>
       {Object.entries(CAT_META).map(([key, meta]) => {
         const items = all.filter(i => i.catKey === key);
         if (items.length === 0) return null;
         return (
           <div key={key} style={{ marginBottom: 28 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: meta.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>{meta.icon} {meta.label}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 12 }}>
-              {items.map(item => (
-                <div key={item.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    {detectPreviewType(item.name, item.mimeType||"")==="image" && item.previewUrl
-                      ? <img src={item.previewUrl} style={{width:38,height:38,objectFit:"cover",borderRadius:8,flexShrink:0}} alt=""/>
-                      : <div style={{ width: 38, height: 38, borderRadius: 8, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{meta.icon}</div>}
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
-                      <div style={{ fontSize: 10, color: C.textMuted }}>{item.projectTitle}</div>
+            {viewMode === "grid"
+              ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(120px,1fr))", gap: 10 }}>
+                {items.map(item => (
+                  <PortalFileCard key={item.id} item={item}
+                    onPreview={item.previewUrl ? () => setPreviewEntry(item) : undefined}
+                    fallbackIcon={meta.icon} />
+                ))}
+              </div>
+              : <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: 12 }}>
+                {items.map(item => (
+                  <div key={item.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
+                      {detectPreviewType(item.name, item.mimeType||"")==="image" && item.previewUrl
+                        ? <img src={item.previewUrl} style={{width:38,height:38,objectFit:"cover",borderRadius:8,flexShrink:0}} alt=""/>
+                        : <div style={{ width: 38, height: 38, borderRadius: 8, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{meta.icon}</div>}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
+                        <div style={{ fontSize: 10, color: C.textMuted }}>{item.projectTitle}</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <Badge status={item.status} small />
+                      <Btn variant="ghost" onClick={() => item.previewUrl && setPreviewEntry(item)} style={{ fontSize: 10, padding: "3px 8px", opacity: item.previewUrl ? 1 : 0.45 }}>{item.previewUrl ? "👁 View" : "View"}</Btn>
                     </div>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Badge status={item.status} small />
-                    <Btn variant="ghost" onClick={() => item.previewUrl && setPreviewEntry(item)} style={{ fontSize: 10, padding: "3px 8px", opacity: item.previewUrl ? 1 : 0.45 }}>{item.previewUrl ? "👁 View" : "View"}</Btn>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            }
           </div>
         );
       })}
@@ -920,6 +1004,7 @@ function DocumentsView({ user, projects, onUpdate }) {
   const [esig, setEsig] = useState(null);
   const [sigName, setSigName] = useState("");
   const [previewEntry, setPreviewEntry] = useState(null);
+  const [viewMode, setViewMode] = useViewPref("framex_portal_documents");
 
   const CAT_META = {
     contracts: { label: "Contracts", icon: "📝", color: C.blue },
@@ -965,17 +1050,20 @@ function DocumentsView({ user, projects, onUpdate }) {
   return (
     <div>
       {/* Summary row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 24 }}>
-        {Object.entries(CAT_META).map(([key, meta]) => {
-          const count = all.filter(d => d.catKey === key).length;
-          return (
-            <div key={key} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>{meta.icon}</div>
-              <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>{meta.label}</div>
-              <div style={{ fontSize: 24, fontWeight: 700, color: meta.color }}>{count}</div>
-            </div>
-          );
-        })}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, flex: 1, marginRight: 16 }}>
+          {Object.entries(CAT_META).map(([key, meta]) => {
+            const count = all.filter(d => d.catKey === key).length;
+            return (
+              <div key={key} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px" }}>
+                <div style={{ fontSize: 20, marginBottom: 6 }}>{meta.icon}</div>
+                <div style={{ fontSize: 10, color: C.textMuted, marginBottom: 2 }}>{meta.label}</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: meta.color }}>{count}</div>
+              </div>
+            );
+          })}
+        </div>
+        <ViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
       {Object.entries(CAT_META).map(([key, meta]) => {
@@ -984,22 +1072,33 @@ function DocumentsView({ user, projects, onUpdate }) {
         return (
           <div key={key} style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: meta.color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>{meta.icon} {meta.label}</div>
-            {docs.map(doc => (
-              <div key={doc.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12 }}>
-                {detectPreviewType(doc.name, doc.mimeType||"")==="image" && doc.previewUrl
-                  ? <img src={doc.previewUrl} style={{width:36,height:36,objectFit:"cover",borderRadius:7,flexShrink:0}} alt=""/>
-                  : <div style={{ width: 36, height: 36, borderRadius: 7, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{meta.icon}</div>}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
-                  <div style={{ fontSize: 10, color: C.textMuted }}>{doc.projectTitle} · {doc.date} · {doc.uploader}</div>
-                </div>
-                <Badge status={doc.status} small />
-                {key === "contracts" && doc.status !== "signed" && (
-                  <Btn variant="blue" onClick={() => setEsig(doc)} style={{ fontSize: 10, padding: "4px 10px" }}>✍ Sign</Btn>
-                )}
-                <Btn variant="ghost" onClick={() => doc.previewUrl && setPreviewEntry(doc)} style={{ fontSize: 10, padding: "4px 8px", opacity: doc.previewUrl ? 1 : 0.4 }}>{doc.previewUrl ? "👁" : "⬇"}</Btn>
+            {viewMode === "grid"
+              ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(120px,1fr))", gap: 10, marginBottom: 4 }}>
+                {docs.map(doc => (
+                  <PortalFileCard key={doc.id} item={doc}
+                    onPreview={doc.previewUrl ? () => setPreviewEntry(doc) : undefined}
+                    fallbackIcon={meta.icon} />
+                ))}
               </div>
-            ))}
+              : <div>
+                {docs.map(doc => (
+                  <div key={doc.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12 }}>
+                    {detectPreviewType(doc.name, doc.mimeType||"")==="image" && doc.previewUrl
+                      ? <img src={doc.previewUrl} style={{width:36,height:36,objectFit:"cover",borderRadius:7,flexShrink:0}} alt=""/>
+                      : <div style={{ width: 36, height: 36, borderRadius: 7, background: meta.color + "18", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{meta.icon}</div>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
+                      <div style={{ fontSize: 10, color: C.textMuted }}>{doc.projectTitle} · {doc.date} · {doc.uploader}</div>
+                    </div>
+                    <Badge status={doc.status} small />
+                    {key === "contracts" && doc.status !== "signed" && (
+                      <Btn variant="blue" onClick={() => setEsig(doc)} style={{ fontSize: 10, padding: "4px 10px" }}>✍ Sign</Btn>
+                    )}
+                    <Btn variant="ghost" onClick={() => doc.previewUrl && setPreviewEntry(doc)} style={{ fontSize: 10, padding: "4px 8px", opacity: doc.previewUrl ? 1 : 0.4 }}>{doc.previewUrl ? "👁" : "⬇"}</Btn>
+                  </div>
+                ))}
+              </div>
+            }
           </div>
         );
       })}
