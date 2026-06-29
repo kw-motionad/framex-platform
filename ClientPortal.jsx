@@ -347,7 +347,11 @@ const NAV = [
   { id: "messages",     label: "Messages",     sym: "◉" },
 ];
 
-function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav }) {
+function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav, portalSettings }) {
+  const ps = portalSettings || {};
+  const displayLogo = ps.logoUrl || logoUrl;
+  const accent = ps.accentColor || C.blue;
+
   return (
     <div style={{
       height: 58, background: C.surface, borderBottom: `1px solid ${C.border}`,
@@ -362,11 +366,11 @@ function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav
 
       {/* Logo */}
       <div onClick={() => logoRef.current?.click()} style={{ cursor: "pointer", marginRight: 28, flexShrink: 0 }}>
-        {logoUrl
-          ? <img src={logoUrl} alt="Logo" style={{ height: 30, objectFit: "contain" }} />
+        {displayLogo
+          ? <img src={displayLogo} alt="Logo" style={{ height: 30, objectFit: "contain" }} />
           : <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
               <div style={{
-                width: 34, height: 34, background: C.blue, borderRadius: 9,
+                width: 34, height: 34, background: accent, borderRadius: 9,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "0.02em",
               }}>MA</div>
@@ -416,46 +420,59 @@ function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav
 }
 
 // ─── Hero Section ─────────────────────────────────────────────────────────────
-function Hero({ user, projects }) {
+function Hero({ user, projects, portalSettings }) {
+  const ps = portalSettings || {};
+  const accent = ps.accentColor || C.blue;
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const pendingReviews = mine.reduce((n, p) => n + p.posts.filter(a => a.shared && a.status === "in_review").length, 0);
   const openMsgs      = mine.reduce((n, p) => n + p.clientComments.filter(c => !c.resolved).length, 0);
   const sharedFiles   = mine.reduce((n, p) => n + Object.values(p.documents).flat().filter(d => d.shared).length, 0);
 
+  const firstName = user.name.split(" ")[0];
+  const headline = ps.headline
+    ? ps.headline.replace(/\{name\}/gi, firstName)
+    : `Welcome back, ${firstName}`;
+  const subheadline = ps.subheadline || `${user.company} · ${mine.length} active project${mine.length !== 1 ? "s" : ""}`;
+
   return (
     <div style={{
       position: "relative", padding: "36px 28px 32px",
-      background: "linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)",
+      background: ps.bgImageUrl
+        ? `url(${ps.bgImageUrl}) center/cover no-repeat`
+        : "linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)",
       borderBottom: `1px solid ${C.border}`, flexShrink: 0, overflow: "hidden",
     }}>
-      {/* Sunburst */}
-      <div style={{ position: "absolute", right: -60, top: -60, pointerEvents: "none" }}>
+      {/* Dark overlay when bg image is set */}
+      {ps.bgImageUrl && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.58)" }} />}
+      {/* Sunburst (only without custom bg) */}
+      {!ps.bgImageUrl && <div style={{ position: "absolute", right: -60, top: -60, pointerEvents: "none" }}>
         <Sunburst size={460} opacity={0.055} />
-      </div>
+      </div>}
       {/* Radial glow */}
       <div style={{
         position: "absolute", right: 120, top: 30, width: 280, height: 280,
-        background: `radial-gradient(circle, ${C.blue}10 0%, transparent 70%)`,
+        background: `radial-gradient(circle, ${accent}10 0%, transparent 70%)`,
         pointerEvents: "none",
       }} />
 
       <div style={{ position: "relative" }}>
-        <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 10 }}>
+        {ps.logoUrl && <img src={ps.logoUrl} alt="Logo" style={{ height: 30, objectFit: "contain", marginBottom: 12, display: "block" }} />}
+        <div style={{ fontSize: 10, color: accent, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", marginBottom: 10 }}>
           Motion Adrenaline · Client Portal
         </div>
         <h1 style={{ margin: "0 0 5px", fontSize: 28, fontWeight: 800, color: C.text, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-          Welcome back, {user.name.split(" ")[0]}
+          {headline}
         </h1>
         <p style={{ margin: "0 0 26px", fontSize: 13, color: C.textSec }}>
-          {user.company} &nbsp;·&nbsp; {mine.length} active project{mine.length !== 1 ? "s" : ""}
+          {subheadline}
         </p>
 
         <div style={{ display: "flex", gap: 10 }}>
           {[
-            { label: "Active Projects",  val: mine.length,      color: C.blue,   sym: "◈" },
-            { label: "Pending Reviews",  val: pendingReviews,   color: C.yellow, sym: "▶" },
-            { label: "Open Messages",    val: openMsgs,         color: C.orange, sym: "◉" },
-            { label: "Shared Files",     val: sharedFiles,      color: C.green,  sym: "▣" },
+            { label: "Active Projects",  val: mine.length,      color: accent,    sym: "◈" },
+            { label: "Pending Reviews",  val: pendingReviews,   color: C.yellow,  sym: "▶" },
+            { label: "Open Messages",    val: openMsgs,         color: C.orange,  sym: "◉" },
+            { label: "Shared Files",     val: sharedFiles,      color: C.green,   sym: "▣" },
           ].map(s => (
             <div key={s.label} style={{
               background: "#08081580", border: `1px solid ${C.border}`,
@@ -1114,6 +1131,7 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
 
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const selected = mine.find(p => p.id === selectedId);
+  const portalSettings = (selected || mine[0])?.portalSettings || {};
 
   const handleSelect = (id, tab = "overview") => {
     setSelectedId(id);
@@ -1133,6 +1151,7 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
         user={user} logoUrl={logoUrl} logoRef={logoRef}
         onLogoChange={onLogoChange} onSignOut={onSignOut}
         active={nav} onNav={handleNavChange}
+        portalSettings={portalSettings}
       />
 
       {selected
@@ -1143,7 +1162,7 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
             initTab={selectedTab}
           />
         : <>
-            <Hero user={user} projects={projects} />
+            <Hero user={user} projects={projects} portalSettings={portalSettings} />
             <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px" }}>
               {nav === "home"         && <HomeView         user={user} projects={projects} onSelect={handleSelect} />}
               {nav === "projects"     && <ProjectsView     user={user} projects={projects} onSelect={handleSelect} />}

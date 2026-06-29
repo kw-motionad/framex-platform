@@ -568,6 +568,115 @@ function UploadModal({project,onClose,onUpload}){
   );
 }
 
+// ─── Portal Settings Panel ────────────────────────────────────────────────────
+
+function PortalSettingsPanel({settings,onUpdate}){
+  const s={accentColor:"#5B7FFF",headline:"",subheadline:"",logoUrl:null,bgImageUrl:null,...settings};
+  const set=(k,v)=>onUpdate({...s,[k]:v});
+
+  const pickImage=(key)=>{
+    const inp=document.createElement("input");
+    inp.type="file";inp.accept="image/*";
+    inp.onchange=(e)=>{
+      const f=e.target.files[0];if(!f)return;
+      const r=new FileReader();r.onload=(ev)=>set(key,ev.target.result);r.readAsDataURL(f);
+    };
+    inp.click();
+  };
+
+  const SWATCHES=["#5B7FFF","#22D48A","#FF7A35","#F5C842","#FF5252","#9B7AFF","#00D4AA","#FF6B9D"];
+  const accent=s.accentColor||"#5B7FFF";
+
+  return <div style={{maxWidth:720}}>
+    <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:20,textTransform:"uppercase",letterSpacing:"0.07em"}}>Client Portal Appearance</div>
+
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:24}}>
+      {/* Logo */}
+      <div>
+        <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Client Logo</div>
+        <div onClick={()=>pickImage("logoUrl")} style={{height:80,background:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}>
+          {s.logoUrl
+            ?<img src={s.logoUrl} alt="Logo" style={{maxWidth:"100%",maxHeight:"100%",objectFit:"contain"}}/>
+            :<span style={{fontSize:11,color:C.textMuted}}>Click to upload logo</span>}
+        </div>
+        {s.logoUrl&&<button onClick={()=>set("logoUrl",null)} style={{marginTop:5,fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ Remove</button>}
+      </div>
+
+      {/* Background image */}
+      <div>
+        <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Hero Background Image</div>
+        <div onClick={()=>pickImage("bgImageUrl")} style={{height:80,background:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}>
+          {s.bgImageUrl
+            ?<img src={s.bgImageUrl} alt="BG" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+            :<span style={{fontSize:11,color:C.textMuted}}>Click to upload background</span>}
+        </div>
+        {s.bgImageUrl&&<button onClick={()=>set("bgImageUrl",null)} style={{marginTop:5,fontSize:10,color:C.textMuted,background:"none",border:"none",cursor:"pointer",padding:0}}>✕ Remove</button>}
+      </div>
+    </div>
+
+    {/* Accent color */}
+    <div style={{marginBottom:20}}>
+      <div style={{fontSize:11,color:C.textMuted,marginBottom:8}}>Accent Color</div>
+      <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+        <input type="color" value={accent} onChange={e=>set("accentColor",e.target.value)}
+          style={{width:40,height:32,border:"none",background:"none",cursor:"pointer",borderRadius:4,padding:0}}/>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {SWATCHES.map(sw=>(
+            <div key={sw} onClick={()=>set("accentColor",sw)} style={{width:24,height:24,borderRadius:6,background:sw,cursor:"pointer",border:`2px solid ${accent===sw?"#fff":"transparent"}`,boxSizing:"border-box"}}/>
+          ))}
+        </div>
+        <span style={{fontSize:11,color:C.textMuted,fontFamily:"monospace"}}>{accent}</span>
+      </div>
+    </div>
+
+    {/* Headline */}
+    <div style={{marginBottom:14}}>
+      <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Hero Headline</div>
+      <input value={s.headline} onChange={e=>set("headline",e.target.value)}
+        placeholder="Welcome back, {name}"
+        style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:7,color:C.text,padding:"8px 12px",fontSize:13,boxSizing:"border-box",outline:"none"}}/>
+      <div style={{fontSize:10,color:C.textMuted,marginTop:4}}>Use {"{name}"} to insert the client's first name</div>
+    </div>
+
+    {/* Subheadline */}
+    <div style={{marginBottom:28}}>
+      <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>Subheadline</div>
+      <input value={s.subheadline} onChange={e=>set("subheadline",e.target.value)}
+        placeholder="Your dedicated production hub"
+        style={{width:"100%",background:C.card,border:`1px solid ${C.border}`,borderRadius:7,color:C.text,padding:"8px 12px",fontSize:13,boxSizing:"border-box",outline:"none"}}/>
+    </div>
+
+    {/* Preview */}
+    <div style={{fontSize:11,color:C.textMuted,marginBottom:8}}>Live Preview</div>
+    <div style={{
+      borderRadius:10,overflow:"hidden",border:`1px solid ${C.border}`,position:"relative",
+      background:s.bgImageUrl?`url(${s.bgImageUrl}) center/cover no-repeat`:"linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)",
+    }}>
+      {s.bgImageUrl&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.55)"}}/>}
+      <div style={{position:"relative",padding:"22px 22px 18px"}}>
+        {s.logoUrl&&<img src={s.logoUrl} alt="Logo" style={{height:26,objectFit:"contain",marginBottom:10,display:"block"}}/>}
+        <div style={{fontSize:9,color:accent,fontWeight:700,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:8}}>
+          Motion Adrenaline · Client Portal
+        </div>
+        <div style={{fontSize:18,fontWeight:800,color:"#F0F0FA",letterSpacing:"-0.03em",marginBottom:4}}>
+          {s.headline||"Welcome back, Alex"}
+        </div>
+        <div style={{fontSize:12,color:"#7878A0",marginBottom:16}}>
+          {s.subheadline||"Acme Corp · 2 active projects"}
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          {["Active Projects","Pending Reviews","Open Messages"].map(label=>(
+            <div key={label} style={{background:"#08081580",border:`1px solid ${accent}30`,borderRadius:8,padding:"8px 14px"}}>
+              <div style={{fontSize:14,fontWeight:700,color:accent}}>3</div>
+              <div style={{fontSize:9,color:"#3A3A55"}}>{label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>;
+}
+
 // ─── Documents Panel ──────────────────────────────────────────────────────────
 
 function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
@@ -1136,6 +1245,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
     {id:"post",label:"Post / VFX",icon:"✨"},
     {id:"wrap",label:"Wrap",icon:"📦"},
     {id:"comments",label:"Comments",icon:"💬"},
+    ...(currentUser.role==="admin"?[{id:"portal",label:"Portal",icon:"🎨"}]:[]),
   ];
   const clientTabs=[
     {id:"overview",label:"Overview",icon:"📊"},
@@ -1249,6 +1359,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack}){
       {tab==="post"&&<PostPanel posts={project.posts} onUpdate={p=>up("posts",p)} isClient={isClient} canApprove={canApprove}/>}
       {tab==="wrap"&&<WrapPanel wrap={project.wrap} onUpdate={w=>up("wrap",w)} isClient={isClient}/>}
       {tab==="comments"&&<ClientComments comments={project.clientComments} onUpdate={c=>up("clientComments",c)} currentUser={currentUser}/>}
+      {tab==="portal"&&<PortalSettingsPanel settings={project.portalSettings||{}} onUpdate={s=>up("portalSettings",s)}/>}
     </div>
     {showUpload&&<UploadModal project={project} onClose={()=>setShowUpload(false)} onUpload={handleUpload}/>}
   </div>;
@@ -1285,7 +1396,7 @@ export default function App(){
       crew:[],talent:[],
       producer_data:{vendors:[],permits:[],rentals:[],travel:[],productionNotes:"",postNotes:""},
       wrap:{finalInvoices:[],expenseReports:[],signedContracts:[],releases:[],deliverables:[],wrapNotes:""},
-      clientComments:[],internalNotes:"",posts:[]};
+      clientComments:[],internalNotes:"",posts:[],portalSettings:{}};
     setProjects(ps=>[...ps,p]);
     setNp({title:"",client:"",producer:"",deliveryDate:"",budget:"",status:"inquiry"});
     setShowNewProject(false);
