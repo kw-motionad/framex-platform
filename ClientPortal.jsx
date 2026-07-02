@@ -8,9 +8,9 @@ const C_DARK = {
   cardHover:   "#11111C",
   border:      "#1A1A28",
   borderHover: "#282838",
-  blue:        "#5B7FFF",
-  blueLow:     "#5B7FFF18",
-  blueMid:     "#5B7FFF35",
+  blue:        "#5BB8F6",
+  blueLow:     "#5BB8F618",
+  blueMid:     "#5BB8F635",
   green:       "#22D48A",
   greenLow:    "#22D48A15",
   yellow:      "#F5C842",
@@ -23,8 +23,8 @@ const C_DARK = {
   purpleLow:   "#9B7AFF15",
   teal:        "#00D4AA",
   tealLow:     "#00D4AA15",
-  text:        "#F0F0FA",
-  textSec:     "#7878A0",
+  text:        "#FFFFFF",
+  textSec:     "#8888AA",
   textMuted:   "#3A3A55",
 };
 
@@ -244,6 +244,50 @@ function PortalFileCard({item,onPreview,onApprove,onReject,canApprove,fallbackIc
         {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:C.greenLow,border:`1px solid ${C.green}50`,borderRadius:6,padding:"5px 14px",color:C.green,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✓ Approve</button>}
         {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:C.redLow,border:`1px solid ${C.red}50`,borderRadius:6,padding:"5px 14px",color:C.red,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✗ Changes</button>}
       </div>}
+    </div>
+  );
+}
+
+function PortalMediaCard({item,onClick,accent}){
+  const [hov,setHov]=useState(false);
+  const type=detectPreviewType(item.name||"",item.mimeType||"");
+  const dur=item.duration;
+  const durStr=dur?`${Math.floor(dur/60)}:${String(Math.floor(dur%60)).padStart(2,"0")}`:null;
+  const ac=accent||C.blue;
+  return (
+    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      style={{borderRadius:10,overflow:"hidden",background:C.card,border:`1px solid ${hov?ac+"60":C.border}`,
+        transition:"border-color 0.15s,transform 0.15s,box-shadow 0.15s",
+        transform:hov?"translateY(-2px)":"none",boxShadow:hov?"0 8px 28px rgba(0,0,0,0.55)":"none",cursor:"pointer"}}>
+      <div style={{position:"relative",aspectRatio:"16/9",background:"#080810",overflow:"hidden"}}>
+        {type==="image"&&item.previewUrl
+          ?<img src={item.previewUrl} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+          :type==="video"
+          ?<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0D0D20,#1A1A2E)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {item.previewUrl&&<video src={item.previewUrl} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} muted playsInline preload="metadata"/>}
+            <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3)"}}/>
+            <div style={{position:"relative",width:40,height:40,borderRadius:"50%",background:"rgba(255,255,255,0.18)",backdropFilter:"blur(8px)",border:"1.5px solid rgba(255,255,255,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,paddingLeft:2}}>▶</div>
+          </div>
+          :type==="pdf"
+          ?<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#1A0808,#2A1010)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:28,fontWeight:900,color:"#FF4444",fontFamily:"monospace"}}>PDF</span>
+          </div>
+          :<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0D0D1A,#141428)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:36,opacity:0.35}}>🎬</span>
+          </div>
+        }
+        {durStr&&<div style={{position:"absolute",bottom:6,right:7,background:"rgba(0,0,0,0.82)",borderRadius:4,padding:"2px 6px",fontSize:11,fontWeight:600,color:"#fff",fontFamily:"monospace",letterSpacing:"0.02em"}}>{durStr}</div>}
+        {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.45)",backdropFilter:"blur(1px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2}}>
+          <span style={{background:ac,color:"#fff",borderRadius:7,padding:"7px 20px",fontSize:12,fontWeight:700,letterSpacing:"0.01em"}}>Review →</span>
+        </div>}
+      </div>
+      <div style={{padding:"9px 12px 12px"}}>
+        <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:4}}>{item.name}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
+          <div style={{fontSize:10,color:C.textMuted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>{item.projectTitle}{item.version?" · "+item.version:""}</div>
+          <Badge status={item.status} small/>
+        </div>
+      </div>
     </div>
   );
 }
@@ -470,7 +514,7 @@ function TopNav({ user, logoUrl, logoRef, onLogoChange, onSignOut, active, onNav
 
       {/* Nav items */}
       <nav style={{ display: "flex", alignItems: "center", gap: 2, flex: 1 }}>
-        {NAV.map(item => {
+        {(ps.navItems?.filter(n => n.visible !== false) || NAV).map(item => {
           const on = active === item.id;
           return (
             <button key={item.id} onClick={() => onNav(item.id)} style={{
@@ -523,7 +567,7 @@ function Hero({ user, projects, portalSettings }) {
   const hasBgImage = !!ps.bgImageUrl && !hasBgVideo;
   const hasBgMedia = hasBgVideo || hasBgImage;
   const heroBg = hasBgVideo ? "#000000" : hasBgImage
-    ? `url(${ps.bgImageUrl}) center/cover no-repeat`
+    ? `url(${ps.bgImageUrl}) ${ps.bgImagePosition||"center center"}/cover no-repeat`
     : theme === "light"
     ? "linear-gradient(135deg,#EEF0FF 0%,#E8E8F8 100%)"
     : "linear-gradient(135deg,#060610 0%,#08081A 55%,#0A0A20 100%)";
@@ -534,7 +578,7 @@ function Hero({ user, projects, portalSettings }) {
 
   return (
     <div style={{
-      position: "relative", padding: "36px 28px 32px",
+      position: "relative", padding: "88px 40px 72px",
       background: heroBg,
       borderBottom: `1px solid ${C.border}`, flexShrink: 0, overflow: "hidden",
     }}>
@@ -562,29 +606,10 @@ function Hero({ user, projects, portalSettings }) {
         <h1 style={{ margin: "0 0 5px", fontSize: 28, fontWeight: 800, color: headColor, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
           Welcome back, {firstName}
         </h1>
-        <p style={{ margin: "0 0 26px", fontSize: 13, color: subColor }}>
+        <p style={{ margin: "0", fontSize: 13, color: subColor }}>
           {subtext}
         </p>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {[
-            { label: "Active Projects",  val: mine.length,      color: accent,   sym: "◈" },
-            { label: "Pending Reviews",  val: pendingReviews,   color: C.yellow, sym: "▶" },
-            { label: "Open Messages",    val: openMsgs,         color: C.orange, sym: "◉" },
-            { label: "Shared Files",     val: sharedFiles,      color: C.green,  sym: "▣" },
-          ].map(s => (
-            <div key={s.label} style={{
-              background: statBg, border: `1px solid ${C.border}`,
-              borderRadius: 10, padding: "11px 18px", minWidth: 108,
-            }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-                <span style={{ fontSize: 13, color: s.color }}>{s.sym}</span>
-                <span style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.val}</span>
-              </div>
-              <div style={{ fontSize: 10, color: C.textMuted }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
@@ -595,55 +620,77 @@ function HomeView({ user, projects, onSelect }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
   const recentAssets = mine.flatMap(p =>
     p.posts.filter(a => a.shared).map(a => ({ ...a, projectTitle: p.title, projectId: p.id }))
-  ).slice(0, 4);
+  ).slice(0, 6);
   const recentDocs = mine.flatMap(p =>
     Object.values(p.documents).flat().filter(d => d.shared).map(d => ({ ...d, projectTitle: p.title, projectId: p.id }))
-  ).slice(0, 5);
+  ).slice(0, 6);
+  const [viewDeliverables, setViewDeliverables] = useViewPref("portal_home_deliverables", "grid");
+  const [viewDocs, setViewDocs] = useViewPref("portal_home_docs", "list");
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 24 }}>
       <div>
-        <SectionHead title="Recent Deliverables" sub="Assets shared for your review" />
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Recent Deliverables</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>Assets shared for your review</div>
+          </div>
+          <ViewToggle value={viewDeliverables} onChange={setViewDeliverables} />
+        </div>
         {recentAssets.length === 0
           ? <Empty icon="▶" msg="No deliverables shared yet." sub="The team will upload assets here when ready." />
-          : <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 28 }}>
-              {recentAssets.map(a => (
-                <div key={a.id} onClick={() => onSelect(a.projectId, "deliverables")}
-                  style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", cursor: "pointer" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = C.blue + "50"; e.currentTarget.style.background = C.cardHover; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.card; }}>
-                  <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 8, background: C.blueLow, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>🎬</div>
-                    <div style={{ minWidth: 0 }}>
+          : viewDeliverables === "grid"
+            ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14, marginBottom: 28 }}>
+                {recentAssets.map(a => (
+                  <PortalMediaCard key={a.id} item={a} onClick={() => onSelect(a.projectId, "deliverables")} accent={C.blue} />
+                ))}
+              </div>
+            : <div style={{ marginBottom: 28 }}>
+                {recentAssets.map(a => (
+                  <div key={a.id} onClick={() => onSelect(a.projectId, "deliverables")}
+                    style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = C.blue + "40"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                    <div style={{ width: 34, height: 34, borderRadius: 7, background: C.blueLow, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>🎬</div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
-                      <div style={{ fontSize: 10, color: C.textMuted }}>{a.projectTitle}</div>
+                      <div style={{ fontSize: 10, color: C.textMuted }}>{a.projectTitle}{a.version ? " · " + a.version : ""}</div>
                     </div>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Badge status={a.status} small />
-                    <span style={{ fontSize: 10, color: C.blue, fontWeight: 600 }}>Review →</span>
+                    <span style={{ fontSize: 10, color: C.blue, fontWeight: 600, flexShrink: 0 }}>Review →</span>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
         }
 
-        <SectionHead title="Recent Documents" sub="Contracts, estimates & invoices" />
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>Recent Documents</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 2 }}>Contracts, estimates &amp; invoices</div>
+          </div>
+          <ViewToggle value={viewDocs} onChange={setViewDocs} />
+        </div>
         {recentDocs.length === 0
           ? <Empty icon="▣" msg="No documents shared yet." />
-          : recentDocs.map(d => (
-              <div key={d.id} onClick={() => onSelect(d.projectId, "documents")}
-                style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = C.blue + "40"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                <div style={{ width: 34, height: 34, borderRadius: 7, background: "#13131E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>📄</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</div>
-                  <div style={{ fontSize: 10, color: C.textMuted }}>{d.projectTitle} · {d.date}</div>
-                </div>
-                <Badge status={d.status} small />
+          : viewDocs === "grid"
+            ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14, marginBottom: 8 }}>
+                {recentDocs.map(d => (
+                  <PortalMediaCard key={d.id} item={d} onClick={() => onSelect(d.projectId, "documents")} accent={C.blue} />
+                ))}
               </div>
-            ))
+            : recentDocs.map(d => (
+                <div key={d.id} onClick={() => onSelect(d.projectId, "documents")}
+                  style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", marginBottom: 8, display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = C.blue + "40"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
+                  <div style={{ width: 34, height: 34, borderRadius: 7, background: "#13131E", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>📄</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</div>
+                    <div style={{ fontSize: 10, color: C.textMuted }}>{d.projectTitle} · {d.date}</div>
+                  </div>
+                  <Badge status={d.status} small />
+                </div>
+              ))
         }
       </div>
 
@@ -677,7 +724,8 @@ function HomeView({ user, projects, onSelect }) {
 
 // ─── Portal Card Components ───────────────────────────────────────────────────
 function PortalStripCard({ project, onClick }) {
-  const bg = project.portalSettings?.bgImageUrl;
+  const bgVid = project.portalSettings?.bgVideoUrl;
+  const bgImg = project.portalSettings?.bgImageUrl;
   const meta = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
   const toReview = project.posts.filter(a => a.shared && a.status === "in_review").length;
   return (
@@ -685,8 +733,10 @@ function PortalStripCard({ project, onClick }) {
       style={{ position: "relative", height: 190, borderRadius: 14, overflow: "hidden", cursor: "pointer", border: `1px solid ${C.border}`, marginBottom: 12, flexShrink: 0, transition: "transform 0.18s,box-shadow 0.18s" }}
       onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 14px 48px rgba(0,0,0,0.55)"; }}
       onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
-      {bg
-        ? <img src={bg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      {bgVid
+        ? <video key={bgVid} src={bgVid} autoPlay muted loop playsInline style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        : bgImg
+        ? <img src={bgImg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         : <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0A0A18 0%,#1A1A2E 50%,#0E1826 100%)" }} />
       }
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.05) 40%,rgba(0,0,0,0.88) 100%)" }} />
@@ -709,7 +759,8 @@ function PortalStripCard({ project, onClick }) {
 }
 
 function PortalGridCard({ project, onOpen }) {
-  const bg = project.portalSettings?.bgImageUrl;
+  const bgVid = project.portalSettings?.bgVideoUrl;
+  const bgImg = project.portalSettings?.bgImageUrl;
   const meta = LIFECYCLE_META[project.status] || LIFECYCLE_META.post;
   const [hov, setHov] = useState(false);
   const toReview = project.posts.filter(a => a.shared && a.status === "in_review").length;
@@ -717,8 +768,10 @@ function PortalGridCard({ project, onOpen }) {
     <div onClick={() => onOpen("overview")}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{ position: "relative", borderRadius: 14, overflow: "hidden", cursor: "pointer", border: `1px solid ${hov ? meta.color + "55" : C.border}`, transition: "transform 0.18s,border-color 0.18s,box-shadow 0.18s", transform: hov ? "translateY(-5px)" : "none", boxShadow: hov ? "0 18px 56px rgba(0,0,0,0.55)" : "none", aspectRatio: "1" }}>
-      {bg
-        ? <img src={bg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      {bgVid
+        ? <video key={bgVid} src={bgVid} autoPlay muted loop playsInline style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        : bgImg
+        ? <img src={bgImg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
         : <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#0A0A18 0%,#1A1A2E 50%,#0E1826 100%)" }} />
       }
       <div style={{ position: "absolute", inset: 0, background: hov ? "linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.18) 30%,rgba(0,0,0,0.88) 100%)" : "linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,rgba(0,0,0,0.08) 40%,rgba(0,0,0,0.78) 100%)" }} />
@@ -753,9 +806,9 @@ function PortalGridCard({ project, onOpen }) {
 }
 
 // ─── Projects View ────────────────────────────────────────────────────────────
-function ProjectsView({ user, projects, onSelect }) {
+function ProjectsView({ user, projects, onSelect, portalSettings }) {
   const mine = projects.filter(p => p.clientId === user.id || p.client === user.company);
-  const [viewMode, setViewMode] = useViewPref("framex_portal_view", "grid");
+  const [viewMode, setViewMode] = useViewPref("framex_portal_view", portalSettings?.defaultView || "grid");
   if (mine.length === 0) return <Empty icon="◈" msg="No projects shared with you yet." sub="Contact your Motion Adrenaline representative to get started." />;
   return (
     <div>
@@ -1229,44 +1282,64 @@ function PortalProjectDetail({ project, user, onUpdate, onBack, initTab }) {
   const sharedDocs   = Object.values(project.documents).flat().filter(d => d.shared);
   const sharedAssets = project.posts.filter(p => p.shared);
   const openMsgs     = project.clientComments.filter(c => !c.resolved).length;
-  const bg = project.portalSettings?.bgImageUrl;
+  const bgVideo = project.portalSettings?.bgVideoUrl;
+  const bgImage = project.portalSettings?.bgImageUrl;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      {/* ─── Hero Banner ──────────────────────────────────────────────── */}
-      <div style={{ position: "relative", height: 220, flexShrink: 0, overflow: "hidden" }}>
-        {bg
-          ? <img src={bg} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-          : <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg,#060610 0%,#131328 50%,#0A0A1E 100%)" }} />
-        }
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.1) 45%,rgba(0,0,0,0.92) 100%)" }} />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0) 60%)" }} />
-        {/* Back + stats */}
-        <div style={{ position: "absolute", top: 14, left: 20, right: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <button onClick={onBack} style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)", cursor: "pointer", fontSize: 12, padding: "5px 14px", borderRadius: 6, fontWeight: 500 }}>← Back</button>
-          <div style={{ display: "flex", gap: 8 }}>
+      {/* ─── Hero Image ───────────────────────────────────────────────── */}
+      {(bgVideo || bgImage) && (
+        <div style={{ position: "relative", height: 220, flexShrink: 0, overflow: "hidden" }}>
+          {bgVideo
+            ? <video key={bgVideo} src={bgVideo} autoPlay muted loop playsInline style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+            : <img src={bgImage} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          }
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0) 60%,rgba(0,0,0,0.25) 100%)" }} />
+          <button onClick={onBack} style={{ position: "absolute", top: 14, left: 14, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(10px)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", cursor: "pointer", fontSize: 12, padding: "5px 14px", borderRadius: 6, fontWeight: 500 }}>← Back</button>
+        </div>
+      )}
+
+      {/* ─── Project Info Bar ─────────────────────────────────────────── */}
+      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "18px 24px 16px", flexShrink: 0 }}>
+        {!(bgVideo || bgImage) && (
+          <button onClick={onBack} style={{ background: "none", border: "none", color: C.textSec, cursor: "pointer", fontSize: 12, padding: "0 0 12px", display: "flex", alignItems: "center", gap: 5 }}>← Back to Projects</button>
+        )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polygon points="2,1 11,6 2,11" fill={C.blue}/></svg>
+              <span style={{ fontSize: 11, fontWeight: 700, color: C.blue, letterSpacing: "0.1em", textTransform: "uppercase" }}>Project</span>
+            </div>
+            <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 800, color: C.text, lineHeight: 1.15, letterSpacing: "-0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {project.title}
+            </h2>
+            <div style={{ display: "flex", gap: 20, fontSize: 13, color: C.textSec, alignItems: "center" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="5" r="3" stroke={C.textSec} strokeWidth="1.2"/><path d="M1 12c0-2.5 2.5-4 5.5-4s5.5 1.5 5.5 4" stroke={C.textSec} strokeWidth="1.2" strokeLinecap="round"/></svg>
+                {project.client}
+              </span>
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2" width="11" height="10" rx="1.5" stroke={C.textSec} strokeWidth="1.2"/><path d="M1 5h11" stroke={C.textSec} strokeWidth="1.2"/><path d="M4 1v2M9 1v2" stroke={C.textSec} strokeWidth="1.2" strokeLinecap="round"/></svg>
+                {project.startDate || "—"} — {project.deliveryDate || "—"}
+              </span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0, paddingTop: 4 }}>
             {[
-              { label: `${sharedDocs.length} docs`,    color: C.blue },
+              { label: `${sharedDocs.length} docs`, color: C.blue },
               { label: `${sharedAssets.length} assets`, color: C.yellow },
               ...(openMsgs > 0 ? [{ label: `${openMsgs} msgs`, color: C.orange }] : []),
             ].map(s => (
-              <span key={s.label} style={{ background: "rgba(0,0,0,0.4)", backdropFilter: "blur(10px)", border: `1px solid ${s.color}40`, borderRadius: 5, padding: "3px 9px", fontSize: 10, fontWeight: 700, color: s.color }}>{s.label}</span>
+              <span key={s.label} style={{ background: s.color + "18", border: `1px solid ${s.color}40`, borderRadius: 5, padding: "3px 9px", fontSize: 10, fontWeight: 700, color: s.color }}>{s.label}</span>
             ))}
-          </div>
-        </div>
-        {/* Title at bottom */}
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 24px" }}>
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "#fff", textShadow: "0 2px 12px rgba(0,0,0,0.9)", lineHeight: 1.15, letterSpacing: "-0.02em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {project.title}
-              </h2>
-              <div style={{ display: "flex", gap: 14, fontSize: 12, color: "rgba(255,255,255,0.65)" }}>
-                <span>{project.client}</span>
-                <span>Delivery: {project.deliveryDate}</span>
-              </div>
-            </div>
             <LifecyclePill stage={project.status} />
+            {project.frameioUrl && (
+              <a href={project.frameioUrl} target="_blank" rel="noopener noreferrer"
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, background: C.blue, borderRadius: 7, padding: "7px 16px", color: "#fff", fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M7 2H11V6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M11 2L5.5 7.5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/><path d="M5 3H2.5A1.5 1.5 0 001 4.5v6A1.5 1.5 0 002.5 12h6A1.5 1.5 0 0010 10.5V8" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                Review on Frame.io
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -1432,9 +1505,12 @@ export default function ClientPortal({ user, projects, onUpdateProject, onSignOu
           />
         : <>
             <Hero user={user} projects={projects} portalSettings={portalSettings} />
-            <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px" }}>
+            <div style={{ flex: 1, overflowY: "auto", padding: "28px 28px",
+              background: portalSettings.mainBgImageUrl
+                ? `url(${portalSettings.mainBgImageUrl}) ${portalSettings.mainBgImagePosition||"center center"}/cover fixed`
+                : portalSettings.mainBgColor || undefined }}>
               {nav === "home"         && <HomeView         user={user} projects={projects} onSelect={handleSelect} />}
-              {nav === "projects"     && <ProjectsView     user={user} projects={projects} onSelect={handleSelect} />}
+              {nav === "projects"     && <ProjectsView     user={user} projects={projects} onSelect={handleSelect} portalSettings={portalSettings} />}
               {nav === "deliverables" && <DeliverablesView user={user} projects={projects} onUpdate={onUpdateProject} />}
               {nav === "creative"     && <CreativeView     user={user} projects={projects} />}
               {nav === "documents"    && <DocumentsView    user={user} projects={projects} onUpdate={onUpdateProject} />}

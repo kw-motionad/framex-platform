@@ -4,17 +4,17 @@ import ClientPortal from './ClientPortal';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
-  bg:"#08080B",surface:"#0F0F14",card:"#141419",
-  border:"#252530",borderHover:"#383848",
+  bg:"#070810",surface:"#0C0E1C",card:"#101220",
+  border:"#1C2038",borderHover:"#2C3258",
   orange:"#FF5500",orangeLow:"#FF550018",
-  cyan:"#00C2FF",cyanLow:"#00C2FF15",
+  cyan:"#5BB8F6",cyanLow:"#5BB8F615",
   green:"#00E676",greenLow:"#00E67615",
   yellow:"#FFD600",yellowLow:"#FFD60015",
   red:"#FF3D3D",redLow:"#FF3D3D15",
   purple:"#B57BFF",purpleLow:"#B57BFF15",
   teal:"#00FFB8",tealLow:"#00FFB815",
   pink:"#FF6EC7",pinkLow:"#FF6EC715",
-  text:"#EEEEF5",textSec:"#8A8A9A",textMuted:"#484858",
+  text:"#F0F4FF",textSec:"#7B9EC8",textMuted:"#3E5270",
 };
 
 const STATUS_META = {
@@ -527,8 +527,8 @@ function SignIn({onSignIn,logoUrl}){
       <div style={{textAlign:"center",marginBottom:32}}>
         {logoUrl?<img src={logoUrl} alt="Logo" style={{height:52,objectFit:"contain",marginBottom:12}}/>:
           <div style={{display:"inline-flex",alignItems:"center",gap:12,marginBottom:12}}>
-            <div style={{width:42,height:42,background:C.orange,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🎬</div>
-            <div style={{textAlign:"left"}}><div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.04em"}}>FRAME<span style={{color:C.orange}}>X</span></div>
+            <div style={{width:42,height:42,background:C.cyan,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>⚡</div>
+            <div style={{textAlign:"left"}}><div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.04em"}}>FULL<span style={{color:C.cyan}}> FLUX</span></div>
             <div style={{fontSize:9,color:C.textMuted,letterSpacing:"0.12em",textTransform:"uppercase"}}>Production Suite</div></div>
           </div>}
         <p style={{margin:0,fontSize:13,color:C.textMuted}}>Sign in to your workspace</p>
@@ -542,7 +542,7 @@ function SignIn({onSignIn,logoUrl}){
           <button onClick={()=>setShowPass(p=>!p)} style={{position:"absolute",right:10,top:26,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:13}}>{showPass?"🙈":"👁"}</button>
         </div>
         {err&&<div style={{background:C.redLow,border:`1px solid ${C.red}40`,borderRadius:7,padding:"8px 12px",marginBottom:14,fontSize:12,color:C.red}}>{err}</div>}
-        <button onClick={attempt} disabled={loading} style={{width:"100%",background:C.orange,border:"none",color:"#fff",borderRadius:8,padding:"12px",cursor:"pointer",fontSize:14,fontWeight:700}}>{loading?"Signing in…":"Sign In →"}</button>
+        <button onClick={attempt} disabled={loading} style={{width:"100%",background:C.cyan,border:"none",color:"#fff",borderRadius:8,padding:"12px",cursor:"pointer",fontSize:14,fontWeight:700}}>{loading?"Signing in…":"Sign In →"}</button>
       </div>
       <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
         <div style={{fontSize:10,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Demo accounts</div>
@@ -897,7 +897,7 @@ function WhiteGlovePanel({allProjects,onSettings,onClose,onPreviewAsClient,initi
     {id:"documents",sym:"▣",label:"Documents",visible:true},
     {id:"messages",sym:"◉",label:"Messages",visible:true},
   ];
-  const DEFAULTS={accentColor:"#5B7FFF",secondaryColor:"#22D48A",logoUrl:null,theme:"dark",bgImageUrl:null,bgVideoUrl:"",mainBgColor:"",mainBgImageUrl:null,portalHeadline:"",welcomeMessage:"",showStatsCards:true,navItems:DEFAULT_NAV,defaultView:"grid",cardShowDates:true,cardShowProducer:true,cardShowStatus:true};
+  const DEFAULTS={accentColor:"#5B7FFF",secondaryColor:"#22D48A",logoUrl:null,theme:"dark",bgImageUrl:null,bgImagePosition:"center center",bgVideoUrl:"",mainBgColor:"",mainBgImageUrl:null,mainBgImagePosition:"center center",portalHeadline:"",welcomeMessage:"",showStatsCards:true,navItems:DEFAULT_NAV,defaultView:"grid",cardShowDates:true,cardShowProducer:true,cardShowStatus:true};
 
   const loadSt=(key)=>{try{return JSON.parse(localStorage.getItem("framex_wg_settings")||"{}")[key]||{};}catch{return{};}};
 
@@ -1033,10 +1033,24 @@ function WhiteGlovePanel({allProjects,onSettings,onClose,onPreviewAsClient,initi
           {sec==="hero"&&<>
             <div style={row}>
               <span style={lbl}>Background Image</span>
-              <div onClick={()=>pickImg("bgImageUrl")} style={{height:78,background:s.bgImageUrl?`url(${s.bgImageUrl}) center/cover`:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",transition:"border-color 0.15s"}}
-                onMouseEnter={e=>e.currentTarget.style.borderColor=C.cyan}
-                onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-                {!s.bgImageUrl&&<span style={{fontSize:12,color:C.textMuted}}>Click to upload background image</span>}
+              <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                <div onClick={()=>pickImg("bgImageUrl")} style={{flex:1,height:90,background:s.bgImageUrl?`url(${s.bgImageUrl}) ${s.bgImagePosition||"center center"}/cover`:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",transition:"border-color 0.15s",position:"relative"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=C.cyan}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                  {!s.bgImageUrl&&<span style={{fontSize:12,color:C.textMuted}}>Click to upload</span>}
+                  {s.bgImageUrl&&<div style={{position:"absolute",bottom:5,right:7,background:"rgba(0,0,0,0.6)",borderRadius:4,padding:"2px 7px",fontSize:10,color:"rgba(255,255,255,0.6)"}}>click to replace</div>}
+                </div>
+                {s.bgImageUrl&&<div style={{flexShrink:0}}>
+                  <div style={{fontSize:9,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Focus</div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,26px)",gridTemplateRows:"repeat(3,26px)",gap:3}}>
+                    {[["left top","center top","right top"],["left center","center center","right center"],["left bottom","center bottom","right bottom"]].map(row=>row.map(pos=>(
+                      <div key={pos} onClick={()=>upd("bgImagePosition",pos)} title={pos}
+                        style={{borderRadius:5,background:(s.bgImagePosition||"center center")===pos?C.cyan+"28":C.card,border:`1.5px solid ${(s.bgImagePosition||"center center")===pos?C.cyan:C.border}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.12s"}}>
+                        <div style={{width:5,height:5,borderRadius:"50%",background:(s.bgImagePosition||"center center")===pos?C.cyan:"#3A3A5A"}}/>
+                      </div>
+                    )))}
+                  </div>
+                </div>}
               </div>
               {s.bgImageUrl&&<button onClick={()=>upd("bgImageUrl",null)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:10,marginTop:4,padding:0}}>✕ Remove image</button>}
             </div>
@@ -1062,10 +1076,24 @@ function WhiteGlovePanel({allProjects,onSettings,onClose,onPreviewAsClient,initi
             </div>
             <div style={row}>
               <span style={lbl}>Page Background Image</span>
-              <div onClick={()=>pickImg("mainBgImageUrl")} style={{height:78,background:s.mainBgImageUrl?`url(${s.mainBgImageUrl}) center/cover`:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",transition:"border-color 0.15s"}}
-                onMouseEnter={e=>e.currentTarget.style.borderColor=C.cyan}
-                onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-                {!s.mainBgImageUrl&&<span style={{fontSize:12,color:C.textMuted}}>Click to upload page background image</span>}
+              <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
+                <div onClick={()=>pickImg("mainBgImageUrl")} style={{flex:1,height:90,background:s.mainBgImageUrl?`url(${s.mainBgImageUrl}) ${s.mainBgImagePosition||"center center"}/cover`:C.card,border:`1px dashed ${C.border}`,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden",transition:"border-color 0.15s",position:"relative"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=C.cyan}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+                  {!s.mainBgImageUrl&&<span style={{fontSize:12,color:C.textMuted}}>Click to upload</span>}
+                  {s.mainBgImageUrl&&<div style={{position:"absolute",bottom:5,right:7,background:"rgba(0,0,0,0.6)",borderRadius:4,padding:"2px 7px",fontSize:10,color:"rgba(255,255,255,0.6)"}}>click to replace</div>}
+                </div>
+                {s.mainBgImageUrl&&<div style={{flexShrink:0}}>
+                  <div style={{fontSize:9,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Focus</div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(3,26px)",gridTemplateRows:"repeat(3,26px)",gap:3}}>
+                    {[["left top","center top","right top"],["left center","center center","right center"],["left bottom","center bottom","right bottom"]].map(row=>row.map(pos=>(
+                      <div key={pos} onClick={()=>upd("mainBgImagePosition",pos)} title={pos}
+                        style={{borderRadius:5,background:(s.mainBgImagePosition||"center center")===pos?C.cyan+"28":C.card,border:`1.5px solid ${(s.mainBgImagePosition||"center center")===pos?C.cyan:C.border}`,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.12s"}}>
+                        <div style={{width:5,height:5,borderRadius:"50%",background:(s.mainBgImagePosition||"center center")===pos?C.cyan:"#3A3A5A"}}/>
+                      </div>
+                    )))}
+                  </div>
+                </div>}
               </div>
               {s.mainBgImageUrl&&<button onClick={()=>upd("mainBgImageUrl",null)} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:10,marginTop:4,padding:0}}>✕ Remove image</button>}
             </div>
@@ -1414,7 +1442,7 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
 
 // ─── Call Sheets ─────────────────────────────────────────────────────────────
 
-function CallSheetEditor({sheet,crew,talent,onUpdate,onBack,onDelete}){
+function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelete}){
   const upd=(k,v)=>onUpdate({[k]:v});
   const addBlock=()=>onUpdate({schedule:[...(sheet.schedule||[]),{id:`sb${Date.now()}`,time:"",scene:"",location:"",cast:"",notes:""}]});
   const updBlock=(id,k,v)=>onUpdate({schedule:sheet.schedule.map(b=>b.id===id?{...b,[k]:v}:b)});
@@ -1426,15 +1454,115 @@ function CallSheetEditor({sheet,crew,talent,onUpdate,onBack,onDelete}){
     onUpdate({calls:callTime?[...filtered,{personId:pid,ptype,callTime}]:filtered});
   };
   const fld={background:"#0D0D14",border:`1px solid ${C.border}`,borderRadius:6,color:C.text,padding:"6px 9px",fontSize:12,outline:"none",fontFamily:"inherit",boxSizing:"border-box",width:"100%"};
+
+  const [showSend,setShowSend]=useState(false);
+  const [sendEmails,setSendEmails]=useState(()=>[...new Set([...crew.map(c=>c.email),...talent.map(t=>t.agentEmail)].filter(Boolean))]);
+  const [customEmail,setCustomEmail]=useState("");
+  const [sending,setSending]=useState(false);
+  const [sendResult,setSendResult]=useState(null);
+
+  const toggleEmail=(email)=>setSendEmails(prev=>prev.includes(email)?prev.filter(e=>e!==email):[...prev,email]);
+  const addCustom=()=>{if(!customEmail.trim())return;setSendEmails(prev=>[...new Set([...prev,customEmail.trim()])]);setCustomEmail("");};
+
+  const sendSheet=async()=>{
+    if(!sendEmails.length)return;
+    setSending(true);setSendResult(null);
+    const callsWithNames=(sheet.calls||[]).map(c=>{
+      const person=allPeople.find(p=>p.id===c.personId);
+      return{...c,name:person?.name||c.personId};
+    });
+    try{
+      const r=await fetch("/api/send-callsheet",{
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({sheet:{...sheet,calls:callsWithNames},recipients:sendEmails,projectTitle:projectTitle||"Production"}),
+      });
+      const d=await r.json();
+      setSendResult(r.ok?{ok:true}:{ok:false,error:d.error});
+    }catch(e){setSendResult({ok:false,error:e.message});}
+    setSending(false);
+  };
+
   return (
     <div>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20}}>
         <button onClick={onBack} style={{background:"none",border:`1px solid ${C.border}`,color:C.textSec,borderRadius:6,padding:"5px 12px",cursor:"pointer",fontSize:12}}>← Call Sheets</button>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <Btn variant="cyan" onClick={()=>{setShowSend(true);setSendResult(null);}} style={{fontSize:11,padding:"5px 12px"}}>📧 Send</Btn>
           <Btn variant="ghost" onClick={()=>window.print()} style={{fontSize:11,padding:"5px 10px"}}>🖨 Print</Btn>
           <DeleteBtn onConfirm={onDelete}/>
         </div>
       </div>
+
+      {/* Send modal */}
+      {showSend&&<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,width:"100%",maxWidth:480,padding:24}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
+            <span style={{fontSize:15,fontWeight:700,color:C.text}}>📧 Send Call Sheet</span>
+            <button onClick={()=>setShowSend(false)} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:18}}>✕</button>
+          </div>
+          <div style={{fontSize:11,color:C.textMuted,marginBottom:14}}>Select recipients — crew and talent emails are pre-loaded from their records.</div>
+
+          {/* Crew emails */}
+          {crew.filter(c=>c.email).length>0&&<>
+            <div style={{fontSize:10,fontWeight:700,color:C.yellow,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Crew</div>
+            {crew.filter(c=>c.email).map(c=>(
+              <label key={c.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",borderRadius:7,background:"#0F0F18",marginBottom:6,cursor:"pointer"}}>
+                <input type="checkbox" checked={sendEmails.includes(c.email)} onChange={()=>toggleEmail(c.email)} style={{accentColor:C.cyan}}/>
+                <Avatar name={c.name} size={22}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:600,color:C.text}}>{c.name}</div>
+                  <div style={{fontSize:10,color:C.textMuted}}>{c.email}</div>
+                </div>
+              </label>
+            ))}
+          </>}
+
+          {/* Talent agent emails */}
+          {talent.filter(t=>t.agentEmail).length>0&&<>
+            <div style={{fontSize:10,fontWeight:700,color:C.pink,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8,marginTop:12}}>Talent (via Agent)</div>
+            {talent.filter(t=>t.agentEmail).map(t=>(
+              <label key={t.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",borderRadius:7,background:"#0F0F18",marginBottom:6,cursor:"pointer"}}>
+                <input type="checkbox" checked={sendEmails.includes(t.agentEmail)} onChange={()=>toggleEmail(t.agentEmail)} style={{accentColor:C.cyan}}/>
+                <Avatar name={t.name} size={22}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:12,fontWeight:600,color:C.text}}>{t.name} <span style={{color:C.textMuted,fontWeight:400}}>via {t.agent}</span></div>
+                  <div style={{fontSize:10,color:C.textMuted}}>{t.agentEmail}</div>
+                </div>
+              </label>
+            ))}
+          </>}
+
+          {/* Custom email */}
+          <div style={{marginTop:14,marginBottom:16}}>
+            <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Add Email</div>
+            <div style={{display:"flex",gap:8}}>
+              <input value={customEmail} onChange={e=>setCustomEmail(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&addCustom()}
+                placeholder="name@example.com" style={{...fld,flex:1}}/>
+              <Btn variant="ghost" onClick={addCustom} style={{fontSize:11,padding:"6px 12px",flexShrink:0}}>Add</Btn>
+            </div>
+            {sendEmails.filter(e=>![...crew.map(c=>c.email),...talent.map(t=>t.agentEmail)].includes(e)).map(e=>(
+              <div key={e} style={{display:"flex",alignItems:"center",gap:8,marginTop:6,fontSize:11,color:C.textSec}}>
+                <span>✉ {e}</span>
+                <button onClick={()=>setSendEmails(prev=>prev.filter(x=>x!==e))} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:12,padding:0}}>✕</button>
+              </div>
+            ))}
+          </div>
+
+          {sendResult&&(
+            sendResult.ok
+              ?<div style={{background:C.greenLow,border:`1px solid ${C.green}40`,borderRadius:7,padding:"10px 14px",marginBottom:14,fontSize:12,color:C.green}}>✓ Call sheet sent to {sendEmails.length} recipient{sendEmails.length!==1?"s":""}!</div>
+              :<div style={{background:"#1A0A0A",border:`1px solid ${C.red}40`,borderRadius:7,padding:"10px 14px",marginBottom:14,fontSize:12,color:C.red}}>✗ {sendResult.error}</div>
+          )}
+
+          <div style={{display:"flex",gap:10,justifyContent:"flex-end"}}>
+            <Btn variant="ghost" onClick={()=>setShowSend(false)}>Cancel</Btn>
+            <Btn variant="cyan" onClick={sendSheet} disabled={!sendEmails.length||sending} style={{minWidth:120}}>
+              {sending?"Sending…":`Send to ${sendEmails.length}`}
+            </Btn>
+          </div>
+        </div>
+      </div>}
 
       {/* Production info */}
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
@@ -1516,7 +1644,7 @@ function CallSheetEditor({sheet,crew,talent,onUpdate,onBack,onDelete}){
   );
 }
 
-function CallSheetsView({crew,talent,callsheets,onUpdate}){
+function CallSheetsView({crew,talent,callsheets,onUpdate,projectTitle}){
   const [selected,setSelected]=useState(null);
   const create=()=>{
     const id=`cs${Date.now()}`;
@@ -1530,7 +1658,7 @@ function CallSheetsView({crew,talent,callsheets,onUpdate}){
   if(selected){
     const sheet=callsheets.find(s=>s.id===selected);
     if(!sheet){setSelected(null);return null;}
-    return <CallSheetEditor sheet={sheet} crew={crew} talent={talent}
+    return <CallSheetEditor sheet={sheet} crew={crew} talent={talent} projectTitle={projectTitle}
       onUpdate={changes=>updateSheet(selected,changes)}
       onBack={()=>setSelected(null)}
       onDelete={()=>deleteSheet(selected)}/>;
@@ -1581,7 +1709,7 @@ function CallSheetsView({crew,talent,callsheets,onUpdate}){
 
 // ─── Crew & Talent Panel ──────────────────────────────────────────────────────
 
-function CrewPanel({crew,talent,callsheets,onUpdateCrew,onUpdateTalent,onUpdateCallsheets,isClient}){
+function CrewPanel({crew,talent,callsheets,onUpdateCrew,onUpdateTalent,onUpdateCallsheets,isClient,projectTitle}){
   const [addingCrew,setAddingCrew]=useState(false);
   const [addingTalent,setAddingTalent]=useState(false);
   const [nc,setNc]=useState({name:"",role:"",email:"",phone:"",rate:"",dietary:"",notes:""});
@@ -1628,7 +1756,7 @@ function CrewPanel({crew,talent,callsheets,onUpdateCrew,onUpdateTalent,onUpdateC
       {crewTab!=="callsheets"&&<ViewToggle value={viewMode} onChange={setViewMode}/>}
     </div>
 
-    {crewTab==="callsheets"&&<CallSheetsView crew={crew} talent={talent} callsheets={callsheets||[]} onUpdate={onUpdateCallsheets}/>}
+    {crewTab==="callsheets"&&<CallSheetsView crew={crew} talent={talent} callsheets={callsheets||[]} onUpdate={onUpdateCallsheets} projectTitle={projectTitle}/>}
 
     {crewTab!=="callsheets"&&viewMode==="grid"
       ?<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
@@ -2601,7 +2729,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
 
       {tab==="documents"&&<DocumentsPanel docs={project.documents} onUpdate={d=>up("documents",d)} isClient={isClient} canApprove={canApprove}/>}
       {tab==="creative"&&<CreativePanel creative={project.creative} onUpdate={d=>up("creative",d)} isClient={isClient} canApprove={canApprove}/>}
-      {tab==="crew"&&<CrewPanel crew={project.crew} talent={project.talent} callsheets={project.callsheets||[]} onUpdateCrew={c=>up("crew",c)} onUpdateTalent={t=>up("talent",t)} onUpdateCallsheets={cs=>up("callsheets",cs)} isClient={isClient}/>}
+      {tab==="crew"&&<CrewPanel crew={project.crew} talent={project.talent} callsheets={project.callsheets||[]} onUpdateCrew={c=>up("crew",c)} onUpdateTalent={t=>up("talent",t)} onUpdateCallsheets={cs=>up("callsheets",cs)} isClient={isClient} projectTitle={project.title}/>}
       {tab==="producer"&&<ProducerSection producer={project.producer_data||(typeof project.producer==="object"?project.producer:{vendors:[],permits:[],rentals:[],travel:[],productionNotes:"",postNotes:""})} onUpdate={d=>up("producer_data",d)} isClient={isClient}/>}
       {tab==="post"&&<PostPanel posts={project.posts} onUpdate={p=>up("posts",p)} isClient={isClient} canApprove={canApprove}/>}
       {tab==="wrap"&&<WrapPanel wrap={project.wrap} onUpdate={w=>up("wrap",w)} isClient={isClient}/>}
