@@ -6,7 +6,16 @@
       "Bash(npm install *)",
       "Bash(npm run *)",
       "Skill(update-config)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(git add *)",
+      "Bash(npx vercel *)",
+      "Bash(echo \"install exit: $?\")",
+      "Read(//tmp/**)",
+      "Bash(awk '/^function PortalCustomizeModal/,/^\\\\/\\\\/ ─/' /Users/robertwray/projects/framex/framex_full.jsx)",
+      "Bash(vercel --prod)",
+      "Bash(git *)",
+      "Bash(claude --version)",
+      "Bash(~/.npm-global/bin/claude *)"
     ]
   }
 }

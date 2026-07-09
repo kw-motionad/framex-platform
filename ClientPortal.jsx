@@ -248,37 +248,45 @@ function PortalFileCard({item,onPreview,onApprove,onReject,canApprove,fallbackIc
   );
 }
 
-function PortalMediaCard({item,onClick,accent}){
+function PortalMediaCard({item,onClick,accent,onPreview,onApprove,onReject,canApprove}){
   const [hov,setHov]=useState(false);
   const type=detectPreviewType(item.name||"",item.mimeType||"");
   const dur=item.duration;
   const durStr=dur?`${Math.floor(dur/60)}:${String(Math.floor(dur%60)).padStart(2,"0")}`:null;
   const ac=accent||C.blue;
+  const hasActions=onPreview||onApprove||onReject;
   return (
-    <div onClick={onClick} onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+    <div onClick={onClick||onPreview?()=>(onClick||onPreview)(item):undefined}
+      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{borderRadius:10,overflow:"hidden",background:C.card,border:`1px solid ${hov?ac+"60":C.border}`,
         transition:"border-color 0.15s,transform 0.15s,box-shadow 0.15s",
         transform:hov?"translateY(-2px)":"none",boxShadow:hov?"0 8px 28px rgba(0,0,0,0.55)":"none",cursor:"pointer"}}>
-      <div style={{position:"relative",aspectRatio:"16/9",background:"#080810",overflow:"hidden"}}>
+      <div style={{position:"relative",aspectRatio:"16/9",background:"#ffffff",overflow:"hidden"}}>
         {type==="image"&&item.previewUrl
           ?<img src={item.previewUrl} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
           :type==="video"
-          ?<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0D0D20,#1A1A2E)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          ?<div style={{position:"absolute",inset:0,background:"#ffffff",display:"flex",alignItems:"center",justifyContent:"center"}}>
             {item.previewUrl&&<video src={item.previewUrl} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}} muted playsInline preload="metadata"/>}
-            <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.3)"}}/>
-            <div style={{position:"relative",width:40,height:40,borderRadius:"50%",background:"rgba(255,255,255,0.18)",backdropFilter:"blur(8px)",border:"1.5px solid rgba(255,255,255,0.35)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,paddingLeft:2}}>▶</div>
+            <div style={{position:"relative",width:44,height:44,borderRadius:"50%",background:"rgba(0,0,0,0.08)",border:"1.5px solid rgba(0,0,0,0.18)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:"#333",paddingLeft:3}}>▶</div>
           </div>
           :type==="pdf"
-          ?<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#1A0808,#2A1010)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{fontSize:28,fontWeight:900,color:"#FF4444",fontFamily:"monospace"}}>PDF</span>
+          ?<div style={{position:"absolute",inset:0,background:"#ffffff",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:28,fontWeight:900,color:"#E53935",fontFamily:"monospace",letterSpacing:"0.05em"}}>PDF</span>
           </div>
-          :<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0D0D1A,#141428)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{fontSize:36,opacity:0.35}}>🎬</span>
+          :<div style={{position:"absolute",inset:0,background:"#ffffff",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{fontSize:36}}>🎬</span>
           </div>
         }
         {durStr&&<div style={{position:"absolute",bottom:6,right:7,background:"rgba(0,0,0,0.82)",borderRadius:4,padding:"2px 6px",fontSize:11,fontWeight:600,color:"#fff",fontFamily:"monospace",letterSpacing:"0.02em"}}>{durStr}</div>}
-        {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.45)",backdropFilter:"blur(1px)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2}}>
-          <span style={{background:ac,color:"#fff",borderRadius:7,padding:"7px 20px",fontSize:12,fontWeight:700,letterSpacing:"0.01em"}}>Review →</span>
+        {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.48)",backdropFilter:"blur(1px)",display:"flex",alignItems:"center",justifyContent:"center",gap:7,zIndex:2}}>
+          {hasActions
+            ?<>
+              {onPreview&&<button onClick={e=>{e.stopPropagation();onPreview(item);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer"}}>👁 Preview</button>}
+              {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:"rgba(0,230,118,0.15)",border:"1px solid rgba(0,230,118,0.4)",borderRadius:6,padding:"5px 12px",color:C.green,fontSize:11,fontWeight:600,cursor:"pointer"}}>✓</button>}
+              {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:"rgba(255,61,61,0.15)",border:"1px solid rgba(255,61,61,0.4)",borderRadius:6,padding:"5px 12px",color:C.red,fontSize:11,fontWeight:600,cursor:"pointer"}}>✗</button>}
+            </>
+            :<span style={{background:ac,color:"#fff",borderRadius:7,padding:"7px 20px",fontSize:12,fontWeight:700,letterSpacing:"0.01em"}}>Review →</span>
+          }
         </div>}
       </div>
       <div style={{padding:"9px 12px 12px"}}>
@@ -640,7 +648,7 @@ function HomeView({ user, projects, onSelect }) {
         {recentAssets.length === 0
           ? <Empty icon="▶" msg="No deliverables shared yet." sub="The team will upload assets here when ready." />
           : viewDeliverables === "grid"
-            ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14, marginBottom: 28 }}>
+            ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 14, marginBottom: 28 }}>
                 {recentAssets.map(a => (
                   <PortalMediaCard key={a.id} item={a} onClick={() => onSelect(a.projectId, "deliverables")} accent={C.blue} />
                 ))}
@@ -673,7 +681,7 @@ function HomeView({ user, projects, onSelect }) {
         {recentDocs.length === 0
           ? <Empty icon="▣" msg="No documents shared yet." />
           : viewDocs === "grid"
-            ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(220px,1fr))", gap: 14, marginBottom: 8 }}>
+            ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 14, marginBottom: 8 }}>
                 {recentDocs.map(d => (
                   <PortalMediaCard key={d.id} item={d} onClick={() => onSelect(d.projectId, "documents")} accent={C.blue} />
                 ))}
@@ -873,14 +881,14 @@ function DeliverablesView({ user, projects, onUpdate }) {
       <div style={{ flex: playing ? 0 : 1, width: playing ? "320px" : "100%", flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}><ViewToggle value={viewMode} onChange={setViewMode} /></div>
         {viewMode === "grid"
-          ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(110px,1fr))", gap: 10, marginBottom: 4 }}>
+          ? <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: 14, marginBottom: 4 }}>
             {allAssets.map(asset => (
-              <PortalFileCard key={asset.id} item={asset}
+              <PortalMediaCard key={asset.id} item={asset}
                 onPreview={() => { setPlaying(asset); setT(0); setRunning(false); clearInterval(timerRef.current); }}
                 onApprove={asset.status !== "approved" ? () => setStatus(asset.projectId, asset.id, "approved") : undefined}
                 onReject={asset.status !== "changes" ? () => setStatus(asset.projectId, asset.id, "changes") : undefined}
                 canApprove={true}
-                fallbackIcon="🎬" />
+                accent={C.blue} />
             ))}
           </div>
           : <div>
