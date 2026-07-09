@@ -2519,46 +2519,44 @@ function ProjectStripCard({project,onClick,onDelete,isClient}){
   const [confirmDel,setConfirmDel]=useState(false);
   return (
     <div onClick={onClick}
-      style={{position:"relative",height:200,borderRadius:14,overflow:"hidden",cursor:"pointer",
-        border:`1px solid ${C.border}`,marginBottom:12,flexShrink:0,
-        transition:"transform 0.18s,box-shadow 0.18s"}}
-      onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 14px 48px rgba(0,0,0,0.55)";}}
+      style={{position:"relative",height:260,borderRadius:20,overflow:"hidden",cursor:"pointer",
+        border:"1px solid rgba(255,255,255,0.07)",marginBottom:16,flexShrink:0,
+        transition:"transform 0.2s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.2s"}}
+      onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 24px 64px rgba(0,0,0,0.7)";}}
       onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none";}}>
       {bg
         ?<img src={bg} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
-        :<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0A0A18 0%,#1A1A2E 50%,#0E1826 100%)"}}/>
+        :<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0D0D18 0%,#161628 50%,#0A1020 100%)"}}/>
       }
-      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.05) 40%,rgba(0,0,0,0.88) 100%)"}}/>
-      <div style={{position:"absolute",top:14,left:14,right:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{background:meta.color+"25",border:`1px solid ${meta.color}60`,color:meta.color,
-          borderRadius:6,padding:"3px 10px",fontSize:10,fontWeight:700,backdropFilter:"blur(10px)"}}>
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,0.45) 0%,rgba(0,0,0,0) 35%,rgba(0,0,0,0.92) 100%)"}}/>
+      <div style={{position:"absolute",top:18,left:18,right:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{background:"rgba(0,0,0,0.5)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,0.15)",color:"rgba(255,255,255,0.9)",
+          borderRadius:8,padding:"5px 12px",fontSize:11,fontWeight:600,letterSpacing:"-0.01em"}}>
           {meta.icon} {meta.label}
         </span>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          {openComments>0&&<span style={{background:"rgba(255,200,0,0.25)",border:"1px solid rgba(255,200,0,0.5)",color:"#FFD700",borderRadius:5,padding:"2px 8px",fontSize:9,fontWeight:700,backdropFilter:"blur(8px)"}}>
-            {openComments} open
-          </span>}
-          {!isClient&&<span style={{fontSize:11,color:"rgba(255,255,255,0.8)",fontWeight:500,textShadow:"0 1px 4px rgba(0,0,0,0.8)"}}>
-            {project.producer}
+          {openComments>0&&<span style={{background:"rgba(0,0,0,0.5)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:600}}>
+            {openComments} msg
           </span>}
           {!isClient&&onDelete&&(confirmDel
-            ?<span style={{display:"inline-flex",gap:5,alignItems:"center"}} onClick={e=>e.stopPropagation()}>
-              <button onClick={()=>setConfirmDel(false)} style={{background:"rgba(0,0,0,0.5)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.6)",borderRadius:5,padding:"3px 8px",cursor:"pointer",fontSize:10}}>Cancel</button>
-              <button onClick={()=>onDelete(project.id)} style={{background:"rgba(180,30,30,0.55)",backdropFilter:"blur(8px)",border:"1px solid rgba(220,60,60,0.5)",color:"#ff7777",borderRadius:5,padding:"3px 9px",cursor:"pointer",fontSize:10,fontWeight:700}}>Delete Forever</button>
+            ?<span style={{display:"inline-flex",gap:6,alignItems:"center"}} onClick={e=>e.stopPropagation()}>
+              <button onClick={()=>setConfirmDel(false)} style={{background:"rgba(0,0,0,0.6)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.2)",color:"rgba(255,255,255,0.7)",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12}}>Cancel</button>
+              <button onClick={()=>onDelete(project.id)} style={{background:"rgba(180,30,30,0.7)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,69,58,0.5)",color:"#fff",borderRadius:8,padding:"5px 12px",cursor:"pointer",fontSize:12,fontWeight:600}}>Delete</button>
             </span>
-            :<button onClick={e=>{e.stopPropagation();setConfirmDel(true);}} title="Delete project" style={{background:"rgba(0,0,0,0.4)",backdropFilter:"blur(8px)",border:"1px solid rgba(255,255,255,0.15)",color:"rgba(255,100,100,0.75)",borderRadius:5,padding:"3px 7px",cursor:"pointer",fontSize:12,lineHeight:1}}>🗑</button>
+            :<button onClick={e=>{e.stopPropagation();setConfirmDel(true);}} style={{background:"rgba(0,0,0,0.4)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.1)",color:"rgba(255,255,255,0.5)",borderRadius:8,padding:"5px 9px",cursor:"pointer",fontSize:13,lineHeight:1}}>🗑</button>
           )}
         </div>
       </div>
-      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"16px 18px"}}>
-        <h3 style={{margin:"0 0 6px",fontSize:22,fontWeight:800,color:"#fff",
-          textShadow:"0 2px 10px rgba(0,0,0,0.9)",lineHeight:1.15,letterSpacing:"-0.01em"}}>
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"22px 24px"}}>
+        <h3 style={{margin:"0 0 8px",fontSize:26,fontWeight:700,color:"#fff",
+          textShadow:"0 2px 16px rgba(0,0,0,0.9)",lineHeight:1.1,letterSpacing:"-0.03em",
+          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif"}}>
           {project.title}
         </h3>
-        <div style={{display:"flex",alignItems:"center",gap:14,fontSize:11,color:"rgba(255,255,255,0.7)"}}>
-          <span>📅 {project.startDate||"—"} → {project.deliveryDate||"—"}</span>
-          {!isClient&&<span style={{marginLeft:"auto",color:"rgba(255,255,255,0.55)"}}>{project.client}</span>}
-          {!isClient&&<span style={{color:"rgba(255,255,255,0.4)"}}>💰 {fmtCurrency(project.budget)}</span>}
+        <div style={{display:"flex",alignItems:"center",gap:16,fontSize:13,color:"rgba(255,255,255,0.6)",letterSpacing:"-0.01em"}}>
+          <span>{project.startDate||"—"} → {project.deliveryDate||"—"}</span>
+          {!isClient&&<span style={{marginLeft:"auto",color:"rgba(255,255,255,0.5)"}}>{project.client}</span>}
+          {!isClient&&<span style={{color:"rgba(255,255,255,0.35)"}}>{fmtCurrency(project.budget)}</span>}
         </div>
       </div>
     </div>
@@ -2574,49 +2572,52 @@ function ProjectGridCard({project,onOpen,onDelete,isClient}){
   return (
     <div onClick={()=>onOpen("overview")}
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
-      style={{position:"relative",borderRadius:14,overflow:"hidden",cursor:"pointer",
-        border:`1px solid ${hov?meta.color+"55":C.border}`,
-        transition:"transform 0.18s,border-color 0.18s,box-shadow 0.18s",
-        transform:hov?"translateY(-5px)":"none",
-        boxShadow:hov?"0 18px 56px rgba(0,0,0,0.55)":"none",
-        aspectRatio:"1"}}>
+      style={{position:"relative",borderRadius:20,overflow:"hidden",cursor:"pointer",
+        border:`1px solid ${hov?"rgba(255,255,255,0.18)":"rgba(255,255,255,0.07)"}`,
+        transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1),border-color 0.2s,box-shadow 0.25s",
+        transform:hov?"translateY(-6px) scale(1.01)":"none",
+        boxShadow:hov?"0 24px 64px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05)":"0 4px 20px rgba(0,0,0,0.3)",
+        aspectRatio:"4/5"}}>
       {bg
         ?<img src={bg} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
-        :<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#0A0A18 0%,#1A1A2E 50%,#0E1826 100%)"}}/>
+        :<div style={{position:"absolute",inset:0,background:"linear-gradient(145deg,#0D0D1A 0%,#151528 40%,#0A1018 100%)"}}/>
       }
       <div style={{position:"absolute",inset:0,background:hov
-        ?"linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.18) 30%,rgba(0,0,0,0.88) 100%)"
-        :"linear-gradient(to bottom,rgba(0,0,0,0.4) 0%,rgba(0,0,0,0.08) 40%,rgba(0,0,0,0.78) 100%)"}}/>
-      <div style={{position:"absolute",top:10,left:10}}>
-        <span style={{background:meta.color+"25",border:`1px solid ${meta.color}60`,color:meta.color,
-          borderRadius:5,padding:"2px 8px",fontSize:9,fontWeight:700,backdropFilter:"blur(10px)"}}>
+        ?"linear-gradient(to bottom,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.1) 30%,rgba(0,0,0,0.92) 100%)"
+        :"linear-gradient(to bottom,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0) 35%,rgba(0,0,0,0.85) 100%)"}}/>
+      <div style={{position:"absolute",top:14,left:14}}>
+        <span style={{background:"rgba(0,0,0,0.55)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",
+          border:"1px solid rgba(255,255,255,0.15)",color:"rgba(255,255,255,0.9)",
+          borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:600,letterSpacing:"-0.01em"}}>
           {meta.icon} {meta.label}
         </span>
       </div>
-      {openComments>0&&<div style={{position:"absolute",top:10,right:10}}>
-        <span style={{background:"rgba(255,200,0,0.25)",border:"1px solid rgba(255,200,0,0.5)",
-          color:"#FFD700",borderRadius:5,padding:"2px 7px",fontSize:9,fontWeight:700,backdropFilter:"blur(8px)"}}>
-          {openComments}
+      {openComments>0&&<div style={{position:"absolute",top:14,right:14}}>
+        <span style={{background:"rgba(0,0,0,0.55)",backdropFilter:"blur(16px)",
+          border:"1px solid rgba(255,255,255,0.2)",color:"#fff",
+          borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:600}}>
+          {openComments} 💬
         </span>
       </div>}
-      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"12px 14px"}}>
-        <div style={{fontSize:14,fontWeight:700,color:"#fff",
-          textShadow:"0 2px 8px rgba(0,0,0,0.9)",marginBottom:3,
-          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",letterSpacing:"-0.01em"}}>
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"18px 18px 20px"}}>
+        <div style={{fontSize:17,fontWeight:700,color:"#fff",
+          textShadow:"0 2px 12px rgba(0,0,0,0.9)",marginBottom:5,
+          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",letterSpacing:"-0.03em",
+          fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif"}}>
           {project.title}
         </div>
-        <div style={{fontSize:10,color:"rgba(255,255,255,0.6)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+        <div style={{fontSize:12,color:"rgba(255,255,255,0.5)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",letterSpacing:"-0.01em"}}>
           {project.deliveryDate||"—"}{!isClient&&` · ${project.client}`}
         </div>
       </div>
-      {hov&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,background:"rgba(0,0,0,0.45)",backdropFilter:"blur(2px)"}} onClick={e=>{if(confirmDel)e.stopPropagation();}}>
+      {hov&&<div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(4px)",WebkitBackdropFilter:"blur(4px)"}} onClick={e=>{if(confirmDel)e.stopPropagation();}}>
         {confirmDel
           ?<>
-            <div style={{fontSize:13,color:"#ffaaaa",fontWeight:600,textShadow:"0 1px 4px rgba(0,0,0,0.8)",marginBottom:4}}>Delete "{project.title}"?</div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",marginBottom:8}}>This cannot be undone.</div>
+            <div style={{fontSize:14,color:"#fff",fontWeight:600,marginBottom:4,textAlign:"center",padding:"0 20px"}}>Delete "{project.title}"?</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginBottom:12}}>This cannot be undone.</div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={e=>{e.stopPropagation();setConfirmDel(false);}} style={{background:"rgba(0,0,0,0.55)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:7,padding:"7px 18px",color:"rgba(255,255,255,0.8)",fontSize:11,fontWeight:600,cursor:"pointer"}}>Cancel</button>
-              <button onClick={e=>{e.stopPropagation();onDelete&&onDelete(project.id);}} style={{background:"rgba(180,30,30,0.55)",backdropFilter:"blur(12px)",border:"1px solid rgba(220,60,60,0.5)",borderRadius:7,padding:"7px 18px",color:"#ff7777",fontSize:11,fontWeight:700,cursor:"pointer"}}>Delete Forever</button>
+              <button onClick={e=>{e.stopPropagation();setConfirmDel(false);}} style={{background:"rgba(255,255,255,0.1)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:10,padding:"9px 20px",color:"rgba(255,255,255,0.8)",fontSize:13,fontWeight:600,cursor:"pointer"}}>Cancel</button>
+              <button onClick={e=>{e.stopPropagation();onDelete&&onDelete(project.id);}} style={{background:"rgba(255,69,58,0.35)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,69,58,0.5)",borderRadius:10,padding:"9px 20px",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer"}}>Delete</button>
             </div>
           </>
           :[
@@ -2631,15 +2632,15 @@ function ProjectGridCard({project,onOpen,onDelete,isClient}){
             ]),
           ].map(a=>(
             <button key={a.tab} onClick={e=>{e.stopPropagation();onOpen(a.tab);}}
-              style={{background:"rgba(255,255,255,0.12)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:7,padding:"6px 18px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}
-              onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.22)";}}
+              style={{background:"rgba(255,255,255,0.12)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,0.22)",borderRadius:12,padding:"9px 22px",color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8,minWidth:140,justifyContent:"center",letterSpacing:"-0.01em",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif"}}
+              onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.24)";}}
               onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.12)";}}>
               <span>{a.icon}</span>{a.label}
             </button>
           )).concat(!isClient&&onDelete?[
             <button key="delete" onClick={e=>{e.stopPropagation();setConfirmDel(true);}}
-              style={{background:"rgba(255,255,255,0.12)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:7,padding:"6px 18px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}>
-              <span>🗑</span>Delete Project
+              style={{background:"rgba(255,255,255,0.08)",backdropFilter:"blur(16px)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:12,padding:"9px 22px",color:"rgba(255,255,255,0.7)",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8,minWidth:140,justifyContent:"center"}}>
+              <span>🗑</span>Delete
             </button>
           ]:[])
         }
@@ -3035,19 +3036,6 @@ export default function App(){
       </div>
 
       <div style={{flex:1,overflowY:"auto",padding:24}}>
-        {/* Summary stats — internal only */}
-        {!isClient&&<div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:10,marginBottom:22}}>
-          {LIFECYCLE.map(stage=>{
-            const m=LIFECYCLE_META[stage];
-            const count=projects.filter(p=>p.status===stage).length;
-            return <div key={stage} onClick={()=>setFilterStage(filterStage===stage?"all":stage)}
-              style={{background:filterStage===stage?m.color+"20":C.card,border:`1px solid ${filterStage===stage?m.color+"60":C.border}`,borderRadius:8,padding:"10px 12px",cursor:"pointer",transition:"all 0.15s"}}>
-              <div style={{fontSize:16,marginBottom:3}}>{m.icon}</div>
-              <div style={{fontSize:10,color:filterStage===stage?m.color:C.textMuted,marginBottom:2}}>{m.label}</div>
-              <div style={{fontSize:20,fontWeight:700,color:filterStage===stage?m.color:C.text}}>{count}</div>
-            </div>;
-          })}
-        </div>}
 
         {/* Client portal header */}
         {isClient&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 22px",marginBottom:20}}>
@@ -3077,7 +3065,7 @@ export default function App(){
 
         {viewMode==="list"
           ?<div>{visibleProjects.map(p=><ProjectStripCard key={p.id} project={p} onClick={()=>openProject(p.id)} onDelete={deleteProject} isClient={isClient}/>)}</div>
-          :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
+          :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:20}}>
             {visibleProjects.map(p=><ProjectGridCard key={p.id} project={p} onOpen={tab=>openProject(p.id,tab)} onDelete={deleteProject} isClient={isClient}/>)}
           </div>
         }
