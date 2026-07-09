@@ -1622,6 +1622,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>🗺 Location & Parking Maps</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
           {[["locationMap","Location Map",C.cyan],["parkingMap","Parking Map",C.green]].map(([field,label,color])=>{
+            const ref=React.createRef();
             const val=sheet[field];
             return <div key={field}>
               <label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>{label}</label>
