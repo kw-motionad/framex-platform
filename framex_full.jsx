@@ -286,8 +286,8 @@ function FileCard({item,onPreview,onApprove,onReject,canApprove,onDelete,fallbac
       </div>
       {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(2px)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,zIndex:3}}>
         {onPreview&&<button onClick={e=>{e.stopPropagation();onPreview(item);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>👁 Preview</button>}
-        {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:C.greenLow,border:`1px solid ${C.green}50`,borderRadius:6,padding:"5px 14px",color:C.green,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✓ Approve</button>}
-        {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:C.redLow,border:`1px solid ${C.red}50`,borderRadius:6,padding:"5px 14px",color:C.red,fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✗ Changes</button>}
+        {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✓ Approve</button>}
+        {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>✗ Changes</button>}
         {onDelete&&<button onClick={e=>{e.stopPropagation();onDelete(item.id);}} style={{background:"rgba(180,40,40,0.25)",border:"1px solid rgba(220,60,60,0.4)",borderRadius:6,padding:"5px 14px",color:"#ff6666",fontSize:11,fontWeight:600,cursor:"pointer",width:106}}>🗑 Delete</button>}
       </div>}
     </div>
@@ -324,8 +324,8 @@ function MediaCard({item,onPreview,onApprove,onReject,canApprove,onDelete,fallba
         {item.encodingStatus==="encoding"&&<div style={{position:"absolute",top:6,left:6,background:"rgba(0,0,0,0.72)",border:`1px solid ${C.cyan}50`,borderRadius:4,padding:"2px 7px",fontSize:10,color:C.cyan}}>⚙ {item.encodingProgress||0}%</div>}
         {hov&&<div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.5)",backdropFilter:"blur(1px)",display:"flex",alignItems:"center",justifyContent:"center",gap:7,zIndex:3}}>
           {onPreview&&<button onClick={e=>{e.stopPropagation();onPreview(item);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 14px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer"}}>👁 Preview</button>}
-          {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:C.greenLow,border:`1px solid ${C.green}50`,borderRadius:6,padding:"5px 12px",color:C.green,fontSize:11,fontWeight:600,cursor:"pointer"}}>✓</button>}
-          {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:C.redLow,border:`1px solid ${C.red}50`,borderRadius:6,padding:"5px 12px",color:C.red,fontSize:11,fontWeight:600,cursor:"pointer"}}>✗</button>}
+          {canApprove&&item.status!=="approved"&&onApprove&&<button onClick={e=>{e.stopPropagation();onApprove(item.id);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 12px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer"}}>✓</button>}
+          {canApprove&&item.status!=="changes"&&onReject&&<button onClick={e=>{e.stopPropagation();onReject(item.id);}} style={{background:"rgba(255,255,255,0.14)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.28)",borderRadius:6,padding:"5px 12px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer"}}>✗</button>}
           {onDelete&&<button onClick={e=>{e.stopPropagation();onDelete(item.id);}} style={{background:"rgba(180,40,40,0.25)",border:"1px solid rgba(220,60,60,0.4)",borderRadius:6,padding:"5px 10px",color:"#ff6666",fontSize:11,cursor:"pointer"}}>🗑</button>}
         </div>}
       </div>
@@ -1566,22 +1566,83 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
 
       {/* Production info */}
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
-        <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Production Info</div>
+        <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>📋 Production Info</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
           <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Shoot Date</label>
             <input type="date" value={sheet.date||""} onChange={e=>upd("date",e.target.value)} style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>General Call Time</label>
-            <input type="time" value={sheet.generalCall||""} onChange={e=>upd("generalCall",e.target.value)} style={fld}/></div>
-          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Location / Address</label>
-            <input value={sheet.location||""} onChange={e=>upd("location",e.target.value)} placeholder="Studio, address, map link…" style={fld}/></div>
           <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Director</label>
             <input value={sheet.director||""} onChange={e=>upd("director",e.target.value)} style={fld}/></div>
           <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>DP / Cinematographer</label>
             <input value={sheet.dp||""} onChange={e=>upd("dp",e.target.value)} style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Weather</label>
-            <input value={sheet.weather||""} onChange={e=>upd("weather",e.target.value)} placeholder="Sunny, 22°C…" style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Nearest Hospital</label>
+          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Location / Address</label>
+            <input value={sheet.location||""} onChange={e=>upd("location",e.target.value)} placeholder="Studio, address…" style={fld}/></div>
+          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Nearest Hospital</label>
             <input value={sheet.hospital||""} onChange={e=>upd("hospital",e.target.value)} placeholder="Name + address" style={fld}/></div>
+        </div>
+      </div>
+
+      {/* Daily Schedule times */}
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+        <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>⏰ Daily Schedule</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+          {[
+            ["generalCall","Crew Call","🟡"],
+            ["shootingCall","Shooting Call","🎬"],
+            ["estLunch","Est. Lunch","🍽"],
+            ["secondLunch","Second Lunch","🍽"],
+            ["estWrap","Est. Wrap","🔴"],
+          ].map(([k,label,icon])=>(
+            <div key={k}>
+              <label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>{icon} {label}</label>
+              <input type="time" value={sheet[k]||""} onChange={e=>upd(k,e.target.value)} style={fld}/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Weather */}
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+        <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>🌤 Weather</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Condition</label>
+            <input value={sheet.weatherCondition||""} onChange={e=>upd("weatherCondition",e.target.value)} placeholder="Sunny, Cloudy, Rain…" style={fld}/></div>
+          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Temperature</label>
+            <input value={sheet.weatherTemp||""} onChange={e=>upd("weatherTemp",e.target.value)} placeholder="72°F / 22°C" style={fld}/></div>
+          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Weather Notes</label>
+            <input value={sheet.weather||""} onChange={e=>upd("weather",e.target.value)} placeholder="Wind, UV index…" style={fld}/></div>
+          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>🌅 Sunrise</label>
+            <input type="time" value={sheet.sunrise||""} onChange={e=>upd("sunrise",e.target.value)} style={fld}/></div>
+          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>🌇 Sunset</label>
+            <input type="time" value={sheet.sunset||""} onChange={e=>upd("sunset",e.target.value)} style={fld}/></div>
+        </div>
+      </div>
+
+      {/* Location & Parking Maps */}
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+        <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>🗺 Location & Parking Maps</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+          {[["locationMap","Location Map",C.cyan],["parkingMap","Parking Map",C.green]].map(([field,label,color])=>{
+            const ref=React.createRef();
+            const val=sheet[field];
+            return <div key={field}>
+              <label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>{label}</label>
+              {val
+                ? <a href={val.url||"#"} target="_blank" rel="noreferrer"
+                    style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:11,color,background:color+"15",border:`1px solid ${color}30`,borderRadius:5,padding:"5px 10px",textDecoration:"none",maxWidth:"100%"}}>
+                    📎 {val.name}
+                    <button onClick={e=>{e.preventDefault();upd(field,null);}} style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:12,marginLeft:4,padding:0}}>✕</button>
+                  </a>
+                : <label style={{display:"block",background:"transparent",border:`1px dashed ${C.border}`,borderRadius:6,padding:"8px 12px",color:C.textMuted,fontSize:11,cursor:"pointer",textAlign:"center"}}>
+                    📎 Attach {label}…
+                    <input type="file" accept="image/*,.pdf" style={{display:"none"}} onChange={async e=>{
+                      if(!e.target.files[0])return;
+                      const url=await uploadFile(e.target.files[0],`callsheets/maps`);
+                      upd(field,{name:e.target.files[0].name,url});
+                    }}/>
+                  </label>
+              }
+            </div>;
+          })}
         </div>
       </div>
 
@@ -1613,20 +1674,36 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
 
       {/* Call times */}
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
-        <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>Individual Call Times</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <span style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em"}}>👥 Individual Call Times</span>
+          <div style={{display:"flex",gap:10,fontSize:10,color:C.textMuted}}>
+            <span><span style={{color:C.green}}>●</span> Confirmed: {(sheet.calls||[]).filter(c=>c.confirmed).length}</span>
+            <span><span style={{color:C.yellow}}>●</span> Pending: {(sheet.calls||[]).filter(c=>c.callTime&&!c.confirmed).length}</span>
+          </div>
+        </div>
         {allPeople.length===0&&<p style={{color:C.textMuted,fontSize:12}}>Add crew and talent first.</p>}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
           {allPeople.map(person=>{
             const call=getCall(person.id);
+            const toggleConfirm=()=>{
+              onUpdate({calls:(sheet.calls||[]).map(c=>c.personId===person.id?{...c,confirmed:!c.confirmed}:c)});
+            };
             return (
-              <div key={person.id} style={{display:"flex",alignItems:"center",gap:10,background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px"}}>
+              <div key={person.id} style={{display:"flex",alignItems:"center",gap:10,background:"#0F0F18",border:`1px solid ${call?.confirmed?C.green+"50":C.border}`,borderRadius:8,padding:"10px 12px",transition:"border-color 0.2s"}}>
                 <Avatar name={person.name} size={28}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{person.name}</div>
                   <div style={{fontSize:10,color:person.ptype==="talent"?C.pink:C.yellow}}>{person.role||person.ptype}</div>
                 </div>
                 <input type="time" value={call?.callTime||""} onChange={e=>setCall(person.id,person.ptype,e.target.value)}
-                  style={{background:"#0D0D14",border:`1px solid ${call?.callTime?C.cyan+"60":C.border}`,borderRadius:6,color:call?.callTime?C.cyan:C.textMuted,padding:"5px 8px",fontSize:12,fontWeight:call?.callTime?700:400,outline:"none",width:96}}/>
+                  style={{background:"#0D0D14",border:`1px solid ${call?.callTime?C.cyan+"60":C.border}`,borderRadius:6,color:call?.callTime?C.cyan:C.textMuted,padding:"5px 8px",fontSize:12,fontWeight:call?.callTime?700:400,outline:"none",width:90}}/>
+                {call?.callTime&&(
+                  <button onClick={toggleConfirm}
+                    title={call.confirmed?"Confirmed — click to unconfirm":"Mark as confirmed"}
+                    style={{background:call.confirmed?C.greenLow:"#1A1A24",border:`1px solid ${call.confirmed?C.green+"50":C.border}`,color:call.confirmed?C.green:C.textMuted,borderRadius:6,padding:"4px 9px",cursor:"pointer",fontSize:12,fontWeight:700,transition:"all 0.15s"}}>
+                    {call.confirmed?"✓":"?"}
+                  </button>
+                )}
               </div>
             );
           })}
@@ -1872,59 +1949,120 @@ function CrewPanel({crew,talent,callsheets,onUpdateCrew,onUpdateTalent,onUpdateC
 function ProducerSection({producer,onUpdate,isClient}){
   if(isClient) return <div style={{padding:"40px 0",textAlign:"center",color:C.textMuted}}><div style={{fontSize:40,marginBottom:12}}>🔒</div><p>Producer details are internal only.</p></div>;
 
+  const fld={background:"#0D0D14",border:`1px solid ${C.border}`,borderRadius:5,color:C.text,padding:"5px 8px",fontSize:11,outline:"none",fontFamily:"inherit",boxSizing:"border-box",width:"100%"};
   const addItem=(cat,item)=>onUpdate({...producer,[cat]:[...(producer[cat]||[]),item]});
+  const updItem=(cat,id,key,val)=>onUpdate({...producer,[cat]:(producer[cat]||[]).map(x=>x.id===id?{...x,[key]:val}:x)});
+  const delItem=(cat,id)=>onUpdate({...producer,[cat]:(producer[cat]||[]).filter(x=>x.id!==id)});
+  const addFile=async(cat,id,fileKey,file)=>{
+    const url=await uploadFile(file,`producer/${cat}/${id}`);
+    updItem(cat,id,fileKey,[...((producer[cat]||[]).find(x=>x.id===id)?.[fileKey]||[]),{name:file.name,url,date:new Date().toISOString().slice(0,10)}]);
+  };
   const [notes,setNotes]=useState({prod:producer.productionNotes||"",post:producer.postNotes||""});
+
+  const StatusSelect=({val,onChange})=>(
+    <select value={val} onChange={e=>onChange(e.target.value)}
+      style={{...fld,width:"auto",padding:"4px 7px",cursor:"pointer"}}>
+      {["pending","confirmed","approved","cancelled","booked"].map(s=><option key={s} value={s}>{s}</option>)}
+    </select>
+  );
+
+  const FileAttachments=({files,onAdd,color})=>{
+    const ref=useRef();
+    return <div style={{marginTop:8}}>
+      {(files||[]).map((f,i)=>(
+        <a key={i} href={f.url||"#"} target="_blank" rel="noreferrer"
+          style={{display:"inline-flex",alignItems:"center",gap:4,fontSize:10,color,background:color+"15",border:`1px solid ${color}30`,borderRadius:4,padding:"2px 8px",marginRight:5,marginBottom:4,textDecoration:"none"}}>
+          📎 {f.name}
+        </a>
+      ))}
+      <button onClick={()=>ref.current?.click()}
+        style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:10,color:C.textMuted,background:"transparent",border:`1px dashed ${C.border}`,borderRadius:4,padding:"2px 8px",cursor:"pointer"}}>
+        + Attach file
+      </button>
+      <input ref={ref} type="file" style={{display:"none"}} onChange={e=>e.target.files[0]&&onAdd(e.target.files[0])}/>
+    </div>;
+  };
 
   return <div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:20,marginBottom:20}}>
+
       {/* Vendors */}
       <div>
         <div style={{fontSize:11,fontWeight:700,color:C.orange,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>🏭 Vendors</div>
         {(producer.vendors||[]).map(v=>(
-          <div key={v.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 12px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-            <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{v.name}</div>
-            <div style={{fontSize:11,color:C.textMuted}}>{v.type} · {v.cost}</div></div>
-            <Badge status={v.status} small/>
+          <div key={v.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",marginBottom:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
+              <input value={v.name} onChange={e=>updItem("vendors",v.id,"name",e.target.value)} placeholder="Vendor name" style={fld}/>
+              <input value={v.type} onChange={e=>updItem("vendors",v.id,"type",e.target.value)} placeholder="Type (Stage, Camera…)" style={fld}/>
+              <input value={v.cost} onChange={e=>updItem("vendors",v.id,"cost",e.target.value)} placeholder="Cost" style={fld}/>
+              <StatusSelect val={v.status||"pending"} onChange={val=>updItem("vendors",v.id,"status",val)}/>
+            </div>
+            <FileAttachments files={v.files} color={C.orange} onAdd={f=>addFile("vendors",v.id,"files",f)}/>
+            <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}><DeleteBtn small onConfirm={()=>delItem("vendors",v.id)}/></div>
           </div>
         ))}
-        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:6}} onClick={()=>addItem("vendors",{id:`v${Date.now()}`,name:"New Vendor",type:"Stage",cost:"TBD",status:"pending"})}>+ Add Vendor</Btn>
+        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:4}} onClick={()=>addItem("vendors",{id:`v${Date.now()}`,name:"",type:"",cost:"",status:"pending",files:[]})}>+ Add Vendor</Btn>
       </div>
+
       {/* Permits */}
       <div>
         <div style={{fontSize:11,fontWeight:700,color:C.teal,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>📋 Permits</div>
         {(producer.permits||[]).map(p=>(
-          <div key={p.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 12px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-            <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{p.location}</div>
-            <div style={{fontSize:11,color:C.textMuted}}>{p.date}</div></div>
-            <Badge status={p.status} small/>
+          <div key={p.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",marginBottom:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
+              <input value={p.location} onChange={e=>updItem("permits",p.id,"location",e.target.value)} placeholder="Location / address" style={fld}/>
+              <input type="date" value={p.date} onChange={e=>updItem("permits",p.id,"date",e.target.value)} style={fld}/>
+              <input value={p.authority||""} onChange={e=>updItem("permits",p.id,"authority",e.target.value)} placeholder="Issuing authority" style={fld}/>
+              <StatusSelect val={p.status||"pending"} onChange={val=>updItem("permits",p.id,"status",val)}/>
+            </div>
+            <FileAttachments files={p.files} color={C.teal} onAdd={f=>addFile("permits",p.id,"files",f)}/>
+            <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}><DeleteBtn small onConfirm={()=>delItem("permits",p.id)}/></div>
           </div>
         ))}
-        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:6}} onClick={()=>addItem("permits",{id:`p${Date.now()}`,location:"New Location",date:"TBD",status:"pending"})}>+ Add Permit</Btn>
+        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:4}} onClick={()=>addItem("permits",{id:`p${Date.now()}`,location:"",date:"",authority:"",status:"pending",files:[]})}>+ Add Permit</Btn>
       </div>
+
       {/* Rentals */}
       <div>
         <div style={{fontSize:11,fontWeight:700,color:C.purple,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>🎬 Rentals</div>
         {(producer.rentals||[]).map(r=>(
-          <div key={r.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 12px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
-            <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{r.item}</div>
-            <div style={{fontSize:11,color:C.textMuted}}>{r.vendor} · {r.cost}</div></div>
-            <Badge status={r.status} small/>
+          <div key={r.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",marginBottom:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
+              <input value={r.item} onChange={e=>updItem("rentals",r.id,"item",e.target.value)} placeholder="Item description" style={fld}/>
+              <input value={r.vendor} onChange={e=>updItem("rentals",r.id,"vendor",e.target.value)} placeholder="Vendor" style={fld}/>
+              <input value={r.cost} onChange={e=>updItem("rentals",r.id,"cost",e.target.value)} placeholder="Cost" style={fld}/>
+              <StatusSelect val={r.status||"pending"} onChange={val=>updItem("rentals",r.id,"status",val)}/>
+            </div>
+            <FileAttachments files={r.files} color={C.purple} onAdd={f=>addFile("rentals",r.id,"files",f)}/>
+            <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}><DeleteBtn small onConfirm={()=>delItem("rentals",r.id)}/></div>
           </div>
         ))}
-        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:6}} onClick={()=>addItem("rentals",{id:`r${Date.now()}`,item:"New Rental",vendor:"",cost:"TBD",status:"pending"})}>+ Add Rental</Btn>
+        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:4}} onClick={()=>addItem("rentals",{id:`r${Date.now()}`,item:"",vendor:"",cost:"",status:"pending",files:[]})}>+ Add Rental</Btn>
       </div>
+
       {/* Travel */}
       <div>
         <div style={{fontSize:11,fontWeight:700,color:C.yellow,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>✈ Travel</div>
         {(producer.travel||[]).map(t=>(
-          <div key={t.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 12px",marginBottom:6}}>
-            <div style={{fontSize:12,fontWeight:600,color:C.text}}>{t.who} → {t.to}</div>
-            <div style={{fontSize:11,color:C.textMuted}}>{t.dates} · {t.cost}</div>
+          <div key={t.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"10px 12px",marginBottom:8}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
+              <input value={t.who} onChange={e=>updItem("travel",t.id,"who",e.target.value)} placeholder="Traveler name" style={fld}/>
+              <input value={t.to} onChange={e=>updItem("travel",t.id,"to",e.target.value)} placeholder="Destination" style={fld}/>
+              <input value={t.dates} onChange={e=>updItem("travel",t.id,"dates",e.target.value)} placeholder="Dates (e.g. Jul 10–12)" style={fld}/>
+              <input value={t.cost} onChange={e=>updItem("travel",t.id,"cost",e.target.value)} placeholder="Cost" style={fld}/>
+              <input value={t.flight||""} onChange={e=>updItem("travel",t.id,"flight",e.target.value)} placeholder="Flight / booking ref" style={fld}/>
+              <input value={t.hotel||""} onChange={e=>updItem("travel",t.id,"hotel",e.target.value)} placeholder="Hotel" style={fld}/>
+              <div style={{gridColumn:"1/-1"}}><StatusSelect val={t.status||"booked"} onChange={val=>updItem("travel",t.id,"status",val)}/></div>
+            </div>
+            <div style={{fontSize:10,color:C.yellow,fontWeight:600,marginBottom:4}}>📎 Travel docs (memos, booking confirmations)</div>
+            <FileAttachments files={t.files} color={C.yellow} onAdd={f=>addFile("travel",t.id,"files",f)}/>
+            <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}><DeleteBtn small onConfirm={()=>delItem("travel",t.id)}/></div>
           </div>
         ))}
-        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:6}} onClick={()=>addItem("travel",{id:`tr${Date.now()}`,who:"",to:"",dates:"",cost:"TBD",status:"booked"})}>+ Add Travel</Btn>
+        <Btn variant="ghost" style={{fontSize:11,padding:"5px 10px",width:"100%",marginTop:4}} onClick={()=>addItem("travel",{id:`tr${Date.now()}`,who:"",to:"",dates:"",cost:"",flight:"",hotel:"",status:"booked",files:[]})}>+ Add Travel</Btn>
       </div>
     </div>
+
     {/* Notes */}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
       {[["prod","productionNotes","Production Notes",C.orange],["post","postNotes","Post Notes",C.cyan]].map(([k,field,label,color])=>(
@@ -2200,30 +2338,78 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
 
 function ClientComments({comments,onUpdate,currentUser}){
   const [text,setText]=useState("");
+  const [visibility,setVisibility]=useState("all");
+  const isInternal=!ROLES[currentUser.role].isClient;
+
+  const renderText=(t)=>{
+    const parts=t.split(/(@\w+)/g);
+    return parts.map((p,i)=>p.startsWith("@")
+      ?<span key={i} style={{color:C.cyan,fontWeight:600}}>{p}</span>
+      :p
+    );
+  };
+
   const add=()=>{
     if(!text.trim())return;
-    onUpdate([...comments,{id:`cc${Date.now()}`,author:currentUser.name,date:new Date().toISOString().slice(0,10),text,resolved:false}]);
+    onUpdate([...comments,{id:`cc${Date.now()}`,author:currentUser.name,role:currentUser.role,date:new Date().toISOString().slice(0,10),text,resolved:false,visibility}]);
     setText("");
+    setVisibility("all");
   };
+
+  const visible=comments.filter(c=>{
+    if(!c.visibility||c.visibility==="all") return true;
+    if(c.visibility==="internal") return isInternal;
+    return true;
+  });
+
+  const visOpts=[
+    {id:"all",    label:"Everyone", icon:"👁",  color:C.textSec},
+    {id:"internal",label:"Team only",icon:"🔒", color:C.orange},
+  ];
+
   return <div>
     <div style={{marginBottom:14}}>
-      <textarea value={text} onChange={e=>setText(e.target.value)} rows={3} placeholder="Leave a comment or feedback for the team…"
+      <textarea value={text} onChange={e=>setText(e.target.value)} rows={3}
+        placeholder="Leave a comment… use @name to mention someone"
+        onKeyDown={e=>e.key==="Enter"&&e.metaKey&&add()}
         style={{width:"100%",background:"#0D0D14",border:`1px solid ${C.border}`,borderRadius:7,padding:"10px 12px",color:C.text,fontSize:13,outline:"none",resize:"vertical",boxSizing:"border-box"}}/>
-      <div style={{display:"flex",justifyContent:"flex-end",marginTop:8}}><Btn variant="primary" onClick={add}>Post Comment</Btn></div>
-    </div>
-    {comments.length===0&&<p style={{color:C.textMuted,fontSize:13,textAlign:"center",padding:"20px 0"}}>No comments yet.</p>}
-    {[...comments].reverse().map(c=>(
-      <div key={c.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-          <Avatar name={c.author} size={28}/><div><div style={{fontSize:13,fontWeight:600,color:C.text}}>{c.author}</div>
-          <div style={{fontSize:10,color:C.textMuted}}>{c.date}</div></div>
-          {!c.resolved&&<span style={{marginLeft:"auto",fontSize:10,background:C.yellowLow,color:C.yellow,border:`1px solid ${C.yellow}35`,borderRadius:4,padding:"2px 7px"}}>Open</span>}
-          {c.resolved&&<span style={{marginLeft:"auto",fontSize:10,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:4,padding:"2px 7px"}}>Resolved</span>}
-          {!ROLES[currentUser.role].isClient&&<button onClick={()=>onUpdate(comments.map(x=>x.id===c.id?{...x,resolved:!x.resolved}:x))} style={{background:"none",border:`1px solid ${C.border}`,color:c.resolved?C.green:C.textMuted,borderRadius:4,padding:"2px 7px",cursor:"pointer",fontSize:10}}>{c.resolved?"↩ Reopen":"✓ Resolve"}</button>}
-        </div>
-        <p style={{margin:0,fontSize:13,color:C.textSec}}>{c.text}</p>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8,gap:10}}>
+        {isInternal&&(
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <span style={{fontSize:10,color:C.textMuted}}>Visible to:</span>
+            {visOpts.map(v=>(
+              <button key={v.id} onClick={()=>setVisibility(v.id)}
+                style={{display:"flex",alignItems:"center",gap:4,fontSize:10,fontWeight:visibility===v.id?700:400,
+                  background:visibility===v.id?v.color+"18":"transparent",
+                  border:`1px solid ${visibility===v.id?v.color+"50":C.border}`,
+                  color:visibility===v.id?v.color:C.textMuted,
+                  borderRadius:5,padding:"3px 9px",cursor:"pointer",transition:"all 0.12s"}}>
+                {v.icon} {v.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <Btn variant="primary" onClick={add} style={{marginLeft:"auto"}}>Post Comment</Btn>
       </div>
-    ))}
+    </div>
+    {visible.length===0&&<p style={{color:C.textMuted,fontSize:13,textAlign:"center",padding:"20px 0"}}>No comments yet.</p>}
+    {[...visible].reverse().map(c=>{
+      const isInternalOnly=c.visibility==="internal";
+      return (
+        <div key={c.id} style={{background:"#0F0F18",border:`1px solid ${isInternalOnly?C.orange+"30":C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+            <Avatar name={c.author} size={28}/>
+            <div><div style={{fontSize:13,fontWeight:600,color:C.text}}>{c.author}</div>
+            <div style={{fontSize:10,color:C.textMuted}}>{c.date}</div></div>
+            {isInternal&&isInternalOnly&&<span style={{fontSize:9,fontWeight:700,background:C.orangeLow,color:C.orange,border:`1px solid ${C.orange}30`,borderRadius:3,padding:"2px 6px",textTransform:"uppercase",letterSpacing:"0.05em"}}>🔒 Team only</span>}
+            {!c.resolved&&<span style={{marginLeft:"auto",fontSize:10,background:C.yellowLow,color:C.yellow,border:`1px solid ${C.yellow}35`,borderRadius:4,padding:"2px 7px"}}>Open</span>}
+            {c.resolved&&<span style={{marginLeft:"auto",fontSize:10,background:C.greenLow,color:C.green,border:`1px solid ${C.green}35`,borderRadius:4,padding:"2px 7px"}}>Resolved</span>}
+            {isInternal&&<button onClick={()=>onUpdate(comments.map(x=>x.id===c.id?{...x,resolved:!x.resolved}:x))} style={{background:"none",border:`1px solid ${C.border}`,color:c.resolved?C.green:C.textMuted,borderRadius:4,padding:"2px 7px",cursor:"pointer",fontSize:10}}>{c.resolved?"↩ Reopen":"✓ Resolve"}</button>}
+          </div>
+          <p style={{margin:0,fontSize:13,color:C.textSec}}>{renderText(c.text)}</p>
+        </div>
+      );
+    })}
   </div>;
 }
 
@@ -2430,25 +2616,25 @@ function ProjectGridCard({project,onOpen,onDelete,isClient}){
             </div>
           </>
           :[
-            {label:"Open",icon:"→",tab:"overview",color:"rgba(255,255,255,0.9)"},
+            {label:"Open",icon:"→",tab:"overview"},
             ...(isClient?[
-              {label:"Messages",icon:"✉",tab:"comments",color:C.cyan},
-              {label:"Deliverables",icon:"▶",tab:"post",color:C.yellow},
+              {label:"Messages",icon:"✉",tab:"comments"},
+              {label:"Deliverables",icon:"▶",tab:"post"},
             ]:[
-              {label:"Messages",icon:"✉",tab:"comments",color:C.cyan},
-              {label:"Deliverables",icon:"▶",tab:"documents",color:C.blue},
-              {label:"Review",icon:"✨",tab:"post",color:C.yellow},
+              {label:"Messages",icon:"✉",tab:"comments"},
+              {label:"Deliverables",icon:"▶",tab:"documents"},
+              {label:"Review",icon:"✨",tab:"post"},
             ]),
           ].map(a=>(
             <button key={a.tab} onClick={e=>{e.stopPropagation();onOpen(a.tab);}}
-              style={{background:"rgba(0,0,0,0.55)",backdropFilter:"blur(12px)",border:`1px solid ${a.color}50`,borderRadius:7,padding:"6px 18px",color:a.color,fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}
-              onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.15)";e.currentTarget.style.borderColor=a.color;}}
-              onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,0,0,0.55)";e.currentTarget.style.borderColor=a.color+"50";}}>
+              style={{background:"rgba(255,255,255,0.12)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:7,padding:"6px 18px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}
+              onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.22)";}}
+              onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.12)";}}>
               <span>{a.icon}</span>{a.label}
             </button>
           )).concat(!isClient&&onDelete?[
             <button key="delete" onClick={e=>{e.stopPropagation();setConfirmDel(true);}}
-              style={{background:"rgba(80,0,0,0.45)",backdropFilter:"blur(12px)",border:"1px solid rgba(220,60,60,0.35)",borderRadius:7,padding:"6px 18px",color:"rgba(255,120,120,0.85)",fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}>
+              style={{background:"rgba(255,255,255,0.12)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:7,padding:"6px 18px",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:6,minWidth:120,justifyContent:"center"}}>
               <span>🗑</span>Delete Project
             </button>
           ]:[])
