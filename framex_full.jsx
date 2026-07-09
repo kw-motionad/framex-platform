@@ -6,51 +6,52 @@ import ClientPortal from './ClientPortal';
 const C = {
   bg:"#070810",surface:"#0C0E1C",card:"#101220",
   border:"#1C2038",borderHover:"#2C3258",
-  orange:"#FF5500",orangeLow:"#FF550018",
+  orange:"#5B7FFF",orangeLow:"#5B7FFF18",
   cyan:"#5BB8F6",cyanLow:"#5BB8F615",
-  green:"#00E676",greenLow:"#00E67615",
-  yellow:"#FFD600",yellowLow:"#FFD60015",
+  green:"#7B9EC8",greenLow:"#7B9EC815",
+  yellow:"#A8C4E0",yellowLow:"#A8C4E015",
   red:"#FF3D3D",redLow:"#FF3D3D15",
-  purple:"#B57BFF",purpleLow:"#B57BFF15",
-  teal:"#00FFB8",tealLow:"#00FFB815",
-  pink:"#FF6EC7",pinkLow:"#FF6EC715",
+  purple:"#7B9EC8",purpleLow:"#7B9EC815",
+  teal:"#5BB8F6",tealLow:"#5BB8F615",
+  pink:"#A8C4E0",pinkLow:"#A8C4E015",
+  blue:"#5B7FFF",blueLow:"#5B7FFF15",
   text:"#F0F4FF",textSec:"#7B9EC8",textMuted:"#3E5270",
 };
 
 const STATUS_META = {
-  approved:  {label:"Approved",      color:C.green,  bg:C.greenLow},
-  in_review: {label:"In Review",     color:C.yellow, bg:C.yellowLow},
-  pending:   {label:"Pending",       color:C.textSec,bg:"#1E1E28"},
-  changes:   {label:"Changes Req.",  color:C.red,    bg:C.redLow},
-  locked:    {label:"Locked",        color:C.purple, bg:C.purpleLow},
+  approved:  {label:"Approved",      color:"#7B9EC8",  bg:"#7B9EC815"},
+  in_review: {label:"In Review",     color:"#A8C4E0",  bg:"#A8C4E015"},
+  pending:   {label:"Pending",       color:C.textSec,  bg:"#1E1E28"},
+  changes:   {label:"Changes Req.",  color:C.red,      bg:C.redLow},
+  locked:    {label:"Locked",        color:"#7B9EC8",  bg:"#7B9EC815"},
   draft:     {label:"Draft",         color:C.textMuted,bg:"#141419"},
-  signed:    {label:"Signed",        color:C.cyan,   bg:C.cyanLow},
-  sent:      {label:"Sent",          color:C.teal,   bg:C.tealLow},
-  inquiry:   {label:"Inquiry",       color:C.pink,   bg:C.pinkLow},
-  awarded:   {label:"Awarded",       color:C.orange, bg:C.orangeLow},
-  wrap:      {label:"Wrap",          color:C.purple, bg:C.purpleLow},
+  signed:    {label:"Signed",        color:"#5BB8F6",  bg:"#5BB8F615"},
+  sent:      {label:"Sent",          color:"#A8C4E0",  bg:"#A8C4E015"},
+  inquiry:   {label:"Inquiry",       color:"#7B9EC8",  bg:"#7B9EC815"},
+  awarded:   {label:"Awarded",       color:"#5B7FFF",  bg:"#5B7FFF15"},
+  wrap:      {label:"Wrap",          color:"#7B9EC8",  bg:"#7B9EC815"},
   archived:  {label:"Archived",      color:C.textMuted,bg:"#1A1A22"},
 };
 
 const LIFECYCLE = ["inquiry","awarded","pre","prod","vfx3d","post","wrap","archived"];
 const LIFECYCLE_META = {
-  inquiry: {label:"Inquiry",      color:C.pink,   icon:"📬"},
-  awarded: {label:"Awarded",      color:C.orange, icon:"🏆"},
-  pre:     {label:"Pre-Pro",      color:C.purple, icon:"🎭"},
-  prod:    {label:"Production",   color:C.yellow, icon:"🎥"},
-  vfx3d:   {label:"3D VFX",       color:C.teal,   icon:"🧊"},
-  post:    {label:"Post",         color:C.cyan,   icon:"✨"},
-  wrap:    {label:"Wrap",         color:C.green,  icon:"📦"},
+  inquiry: {label:"Inquiry",      color:"#7B9EC8",  icon:"📬"},
+  awarded: {label:"Awarded",      color:"#5B7FFF",  icon:"🏆"},
+  pre:     {label:"Pre-Pro",      color:"#7B9EC8",  icon:"🎭"},
+  prod:    {label:"Production",   color:"#5BB8F6",  icon:"🎥"},
+  vfx3d:   {label:"3D VFX",       color:"#A8C4E0",  icon:"🧊"},
+  post:    {label:"Post",         color:"#5BB8F6",  icon:"✨"},
+  wrap:    {label:"Wrap",         color:"#7B9EC8",  icon:"📦"},
   archived:{label:"Archived",     color:C.textMuted,icon:"🗃"},
 };
 
 const ROLES = {
-  admin:       {label:"Admin",       color:C.orange, canSeeInternal:true,  canApprove:true,  isClient:false},
-  producer:    {label:"Producer",    color:C.yellow, canSeeInternal:true,  canApprove:true,  isClient:false},
-  coordinator: {label:"Coordinator", color:C.cyan,   canSeeInternal:true,  canApprove:false, isClient:false},
-  vfx_artist:  {label:"VFX Artist",  color:C.teal,   canSeeInternal:true,  canApprove:false, isClient:false},
-  accountant:  {label:"Accountant",  color:C.purple, canSeeInternal:true,  canApprove:false, isClient:false},
-  client:      {label:"Client",      color:C.green,  canSeeInternal:false, canApprove:true,  isClient:true},
+  admin:       {label:"Admin",       color:"#5B7FFF", canSeeInternal:true,  canApprove:true,  isClient:false},
+  producer:    {label:"Producer",    color:"#7B9EC8", canSeeInternal:true,  canApprove:true,  isClient:false},
+  coordinator: {label:"Coordinator", color:"#5BB8F6", canSeeInternal:true,  canApprove:false, isClient:false},
+  vfx_artist:  {label:"VFX Artist",  color:"#A8C4E0", canSeeInternal:true,  canApprove:false, isClient:false},
+  accountant:  {label:"Accountant",  color:"#7B9EC8", canSeeInternal:true,  canApprove:false, isClient:false},
+  client:      {label:"Client",      color:"#5BB8F6", canSeeInternal:false, canApprove:true,  isClient:true},
 };
 
 const DEMO_USERS = [
@@ -113,14 +114,14 @@ function Avatar({name="?",size=28}){
 }
 function Btn({onClick,variant="ghost",children,style={},disabled}){
   const s={
-    primary:{background:C.orange,border:"none",color:"#fff",fontWeight:700},
-    cyan:   {background:C.cyanLow,border:`1px solid ${C.cyan}50`,color:C.cyan,fontWeight:600},
-    green:  {background:C.greenLow,border:`1px solid ${C.green}50`,color:C.green,fontWeight:600},
+    primary:{background:"#5B7FFF",border:"none",color:"#fff",fontWeight:700},
+    cyan:   {background:"#5BB8F615",border:"1px solid #5BB8F650",color:"#5BB8F6",fontWeight:600},
+    green:  {background:"#7B9EC815",border:"1px solid #7B9EC850",color:"#A8C4E0",fontWeight:600},
     red:    {background:C.redLow,border:`1px solid ${C.red}50`,color:C.red,fontWeight:600},
     ghost:  {background:"#1E1E2A",border:`1px solid ${C.border}`,color:C.textSec},
-    purple: {background:C.purpleLow,border:`1px solid ${C.purple}50`,color:C.purple,fontWeight:600},
-    teal:   {background:C.tealLow,border:`1px solid ${C.teal}50`,color:C.teal,fontWeight:600},
-    pink:   {background:C.pinkLow,border:`1px solid ${C.pink}50`,color:C.pink,fontWeight:600},
+    purple: {background:"#7B9EC815",border:"1px solid #7B9EC850",color:"#A8C4E0",fontWeight:600},
+    teal:   {background:"#5BB8F615",border:"1px solid #5BB8F650",color:"#5BB8F6",fontWeight:600},
+    pink:   {background:"#7B9EC815",border:"1px solid #7B9EC850",color:"#A8C4E0",fontWeight:600},
   };
   return <button onClick={onClick} disabled={disabled} style={{borderRadius:7,padding:"7px 14px",cursor:disabled?"default":"pointer",fontSize:12,opacity:disabled?0.5:1,...s[variant],...style}}>{children}</button>;
 }
@@ -661,11 +662,11 @@ function UploadModal({project,onClose,onUpload}){
   const fileRef=useRef(null);
 
   const SECS={
-    documents:{label:"Documents",icon:"📁",color:C.cyan,cats:{contracts:"Contracts",budgets:"Budgets",estimates:"Estimates",invoices:"Invoices",schedules:"Schedules"}},
-    creative:{label:"Creative",icon:"🎨",color:C.purple,cats:{pitchDecks:"Pitch Decks",moodBoards:"Mood Boards",locationScouts:"Location Scouts",storyboards:"Storyboards"}},
-    post:{label:"Post / VFX",icon:"✨",color:C.orange,cats:null},
-    video:{label:"Video",icon:"🎬",color:C.teal,cats:null},
-    wrap:{label:"Wrap",icon:"📦",color:C.green,cats:{finalInvoices:"Final Invoices",expenseReports:"Expense Reports",signedContracts:"Signed Contracts",releases:"Releases",deliverables:"Deliverables"}},
+    documents:{label:"Documents",icon:"📁",color:"#5BB8F6",cats:{contracts:"Contracts",budgets:"Budgets",estimates:"Estimates",invoices:"Invoices",schedules:"Schedules"}},
+    creative:{label:"Creative",icon:"🎨",color:"#7B9EC8",cats:{pitchDecks:"Pitch Decks",moodBoards:"Mood Boards",locationScouts:"Location Scouts",storyboards:"Storyboards"}},
+    post:{label:"Post / VFX",icon:"✨",color:"#5B7FFF",cats:null},
+    video:{label:"Video",icon:"🎬",color:"#5BB8F6",cats:null},
+    wrap:{label:"Wrap",icon:"📦",color:"#7B9EC8",cats:{finalInvoices:"Final Invoices",expenseReports:"Expense Reports",signedContracts:"Signed Contracts",releases:"Releases",deliverables:"Deliverables"}},
   };
   const sec=SECS[section];
   const isVideo=section==="video";
