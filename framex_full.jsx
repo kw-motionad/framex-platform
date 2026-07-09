@@ -1,17 +1,18 @@
 import { useState, useRef, useEffect } from "react";
 import Hls from "hls.js";
 import ClientPortal from './ClientPortal';
+import fullFluxLogo from './fullflux-logo.png';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
   bg:"#000000",surface:"#0A0A0F",card:"#111116",
   border:"#1E1E28",borderHover:"#2E2E3E",
-  orange:"#5B7FFF",orangeLow:"#5B7FFF18",
-  cyan:"#5BB8F6",cyanLow:"#5BB8F615",
+  orange:"#7B5FFF",orangeLow:"#7B5FFF18",
+  cyan:"#2B8EFF",cyanLow:"#2B8EFF15",
   green:"#7B9EC8",greenLow:"#7B9EC815",
   yellow:"#A8C4E0",yellowLow:"#A8C4E015",
   red:"#FF453A",redLow:"#FF453A18",
-  purple:"#7B9EC8",purpleLow:"#7B9EC815",
+  purple:"#8B2FFF",purpleLow:"#8B2FFF15",
   teal:"#5BB8F6",tealLow:"#5BB8F615",
   pink:"#A8C4E0",pinkLow:"#A8C4E015",
   blue:"#5B7FFF",blueLow:"#5B7FFF15",
