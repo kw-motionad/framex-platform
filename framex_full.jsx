@@ -4,18 +4,19 @@ import ClientPortal from './ClientPortal';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
-  bg:"#070810",surface:"#0C0E1C",card:"#101220",
-  border:"#1C2038",borderHover:"#2C3258",
+  bg:"#000000",surface:"#0A0A0F",card:"#111116",
+  border:"#1E1E28",borderHover:"#2E2E3E",
   orange:"#5B7FFF",orangeLow:"#5B7FFF18",
   cyan:"#5BB8F6",cyanLow:"#5BB8F615",
   green:"#7B9EC8",greenLow:"#7B9EC815",
   yellow:"#A8C4E0",yellowLow:"#A8C4E015",
-  red:"#FF3D3D",redLow:"#FF3D3D15",
+  red:"#FF453A",redLow:"#FF453A18",
   purple:"#7B9EC8",purpleLow:"#7B9EC815",
   teal:"#5BB8F6",tealLow:"#5BB8F615",
   pink:"#A8C4E0",pinkLow:"#A8C4E015",
   blue:"#5B7FFF",blueLow:"#5B7FFF15",
-  text:"#F0F4FF",textSec:"#7B9EC8",textMuted:"#3E5270",
+  text:"#FFFFFF",textSec:"#8E8E93",textMuted:"#3A3A3C",
+  font:"'-apple-system,BlinkMacSystemFont,\"SF Pro Display\",\"SF Pro Text\",\"Helvetica Neue\",Arial,sans-serif'",
 };
 
 const STATUS_META = {
@@ -114,16 +115,16 @@ function Avatar({name="?",size=28}){
 }
 function Btn({onClick,variant="ghost",children,style={},disabled}){
   const s={
-    primary:{background:"#5B7FFF",border:"none",color:"#fff",fontWeight:700},
-    cyan:   {background:"#5BB8F615",border:"1px solid #5BB8F650",color:"#5BB8F6",fontWeight:600},
-    green:  {background:"#7B9EC815",border:"1px solid #7B9EC850",color:"#A8C4E0",fontWeight:600},
-    red:    {background:C.redLow,border:`1px solid ${C.red}50`,color:C.red,fontWeight:600},
-    ghost:  {background:"#1E1E2A",border:`1px solid ${C.border}`,color:C.textSec},
-    purple: {background:"#7B9EC815",border:"1px solid #7B9EC850",color:"#A8C4E0",fontWeight:600},
-    teal:   {background:"#5BB8F615",border:"1px solid #5BB8F650",color:"#5BB8F6",fontWeight:600},
-    pink:   {background:"#7B9EC815",border:"1px solid #7B9EC850",color:"#A8C4E0",fontWeight:600},
+    primary:{background:"#5B7FFF",border:"none",color:"#fff",fontWeight:600,letterSpacing:"-0.01em"},
+    cyan:   {background:"rgba(91,184,246,0.12)",border:"1px solid rgba(91,184,246,0.25)",color:"#5BB8F6",fontWeight:600},
+    green:  {background:"rgba(123,158,200,0.12)",border:"1px solid rgba(123,158,200,0.25)",color:"#A8C4E0",fontWeight:600},
+    red:    {background:"rgba(255,69,58,0.12)",border:"1px solid rgba(255,69,58,0.3)",color:C.red,fontWeight:600},
+    ghost:  {background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.textSec},
+    purple: {background:"rgba(123,158,200,0.12)",border:"1px solid rgba(123,158,200,0.25)",color:"#A8C4E0",fontWeight:600},
+    teal:   {background:"rgba(91,184,246,0.12)",border:"1px solid rgba(91,184,246,0.25)",color:"#5BB8F6",fontWeight:600},
+    pink:   {background:"rgba(123,158,200,0.12)",border:"1px solid rgba(123,158,200,0.25)",color:"#A8C4E0",fontWeight:600},
   };
-  return <button onClick={onClick} disabled={disabled} style={{borderRadius:7,padding:"7px 14px",cursor:disabled?"default":"pointer",fontSize:12,opacity:disabled?0.5:1,...s[variant],...style}}>{children}</button>;
+  return <button onClick={onClick} disabled={disabled} style={{borderRadius:10,padding:"8px 16px",cursor:disabled?"default":"pointer",fontSize:13,opacity:disabled?0.4:1,fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif",...s[variant],...style}}>{children}</button>;
 }
 
 function DeleteBtn({onConfirm,small}){
@@ -523,34 +524,36 @@ function SignIn({onSignIn,logoUrl}){
     },500);
   };
 
-  return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Inter',system-ui,sans-serif",padding:20}}>
-    <div style={{width:"100%",maxWidth:420}}>
-      <div style={{textAlign:"center",marginBottom:32}}>
-        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:52,objectFit:"contain",marginBottom:12}}/>:
-          <div style={{display:"inline-flex",alignItems:"center",gap:12,marginBottom:12}}>
-            <div style={{width:42,height:42,background:C.cyan,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>⚡</div>
-            <div style={{textAlign:"left"}}><div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.04em"}}>FULL<span style={{color:C.cyan}}> FLUX</span></div>
-            <div style={{fontSize:9,color:C.textMuted,letterSpacing:"0.12em",textTransform:"uppercase"}}>Production Suite</div></div>
+  return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",padding:20}}>
+    <div style={{width:"100%",maxWidth:400}}>
+      <div style={{textAlign:"center",marginBottom:40}}>
+        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:60,objectFit:"contain",marginBottom:16}}/>:
+          <div style={{display:"inline-flex",alignItems:"center",gap:14,marginBottom:16}}>
+            <div style={{width:52,height:52,background:"#5B7FFF",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 8px 32px rgba(91,127,255,0.35)"}}>⚡</div>
+            <div style={{textAlign:"left"}}>
+              <div style={{fontSize:26,fontWeight:700,color:C.text,letterSpacing:"-0.05em",lineHeight:1}}>FULL<span style={{color:"#5BB8F6"}}> FLUX</span></div>
+              <div style={{fontSize:11,color:C.textMuted,letterSpacing:"0.06em",textTransform:"uppercase",marginTop:3}}>Production Suite</div>
+            </div>
           </div>}
-        <p style={{margin:0,fontSize:13,color:C.textMuted}}>Sign in to your workspace</p>
+        <p style={{margin:0,fontSize:15,color:C.textSec,letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
       </div>
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:26,marginBottom:14}}>
+      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(20px)"}}>
         <Input label="Email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@studio.com" type="email"/>
-        <div style={{marginBottom:16,position:"relative"}}>
-          <label style={{fontSize:10,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Password</label>
+        <div style={{marginBottom:20,position:"relative"}}>
+          <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Password</label>
           <input value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&attempt()} type={showPass?"text":"password"} placeholder="••••••••"
-            style={{width:"100%",background:"#0D0D14",border:`1px solid ${err?C.red+"60":C.border}`,borderRadius:6,padding:"8px 38px 8px 10px",color:C.text,fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-          <button onClick={()=>setShowPass(p=>!p)} style={{position:"absolute",right:10,top:26,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:13}}>{showPass?"🙈":"👁"}</button>
+            style={{width:"100%",background:"rgba(255,255,255,0.06)",border:`1px solid ${err?"rgba(255,69,58,0.6)":"rgba(255,255,255,0.1)"}`,borderRadius:10,padding:"12px 40px 12px 14px",color:C.text,fontSize:15,outline:"none",boxSizing:"border-box",letterSpacing:"0.02em"}}/>
+          <button onClick={()=>setShowPass(p=>!p)} style={{position:"absolute",right:12,top:34,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14}}>{showPass?"🙈":"👁"}</button>
         </div>
-        {err&&<div style={{background:C.redLow,border:`1px solid ${C.red}40`,borderRadius:7,padding:"8px 12px",marginBottom:14,fontSize:12,color:C.red}}>{err}</div>}
-        <button onClick={attempt} disabled={loading} style={{width:"100%",background:C.cyan,border:"none",color:"#fff",borderRadius:8,padding:"12px",cursor:"pointer",fontSize:14,fontWeight:700}}>{loading?"Signing in…":"Sign In →"}</button>
+        {err&&<div style={{background:"rgba(255,69,58,0.12)",border:"1px solid rgba(255,69,58,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:C.red}}>{err}</div>}
+        <button onClick={attempt} disabled={loading} style={{width:"100%",background:"#5B7FFF",border:"none",color:"#fff",borderRadius:12,padding:"14px",cursor:"pointer",fontSize:16,fontWeight:600,letterSpacing:"-0.01em",boxShadow:"0 4px 20px rgba(91,127,255,0.4)"}}>{loading?"Signing in…":"Sign In"}</button>
       </div>
-      <div style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:16}}>
-        <div style={{fontSize:10,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Demo accounts</div>
+      <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:18}}>
+        <div style={{fontSize:11,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Demo accounts</div>
         {DEMO_USERS.map(u=>(
-          <button key={u.id} onClick={()=>onSignIn(u)} style={{display:"flex",alignItems:"center",gap:10,background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"8px 12px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:6}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor=ROLES[u.role].color+"60"}
-            onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
+          <button key={u.id} onClick={()=>onSignIn(u)} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 14px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:8,transition:"border-color 0.15s"}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.18)"}
+            onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.07)"}>
             <Avatar name={u.name} size={26}/>
             <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{u.name}</div>
             <div style={{fontSize:10,color:C.textMuted}}>{ROLES[u.role].label}{u.company?` · ${u.company}`:""}</div></div>
@@ -2820,12 +2823,13 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
       </div>
     </div>
     {/* ─── Tab bar ─────────────────────────────────────────────────── */}
-    <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
+    <div style={{background:"rgba(10,10,15,0.8)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
       {tabs.map(t=>(
         <button key={t.id} onClick={()=>setTab(t.id)}
           style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?"#5B7FFF":"transparent"}`,
-            color:tab===t.id?"#fff":C.textSec,padding:"10px 14px",cursor:"pointer",fontSize:12,
-            fontWeight:tab===t.id?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:5}}>
+            color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",padding:"13px 16px",cursor:"pointer",fontSize:14,
+            fontWeight:tab===t.id?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6,
+            letterSpacing:"-0.01em",transition:"color 0.15s",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif"}}>
           {t.icon} {t.label}
         </button>
       ))}
@@ -2982,17 +2986,18 @@ export default function App(){
 
   // Project detail view
   if(selected) return (
-    <div style={{height:"100vh",background:C.bg,fontFamily:"'Inter',system-ui,sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      <div style={{height:50,background:C.surface,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",padding:"0 20px",gap:14,flexShrink:0}}>
+    <div style={{height:"100vh",background:C.bg,fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+      <div style={{height:56,background:"rgba(10,10,15,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",padding:"0 24px",gap:14,flexShrink:0}}>
+        <button onClick={()=>setSelectedId(null)} style={{background:"none",border:"none",color:"#5BB8F6",cursor:"pointer",fontSize:14,padding:"4px 0",display:"flex",alignItems:"center",gap:4,fontFamily:"inherit"}}>‹ Projects</button>
         {logoUrl?<img src={logoUrl} alt="Logo" style={{height:28,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>:
-          <div style={{fontSize:14,fontWeight:800,color:C.text,cursor:"pointer",letterSpacing:"-0.03em"}} onClick={()=>logoRef.current?.click()}>FULL<span style={{color:C.cyan}}> FLUX</span></div>}
+          <div style={{fontSize:15,fontWeight:700,color:C.text,cursor:"pointer",letterSpacing:"-0.04em"}} onClick={()=>logoRef.current?.click()}>FULL<span style={{color:"#5BB8F6"}}> FLUX</span></div>}
         <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
-        <div style={{width:1,height:20,background:C.border}}/>
-        <span style={{fontSize:12,color:C.textSec}}>{selected.title}</span>
+        <div style={{width:1,height:20,background:"rgba(255,255,255,0.08)"}}/>
+        <span style={{fontSize:15,fontWeight:600,color:C.text,letterSpacing:"-0.02em"}}>{selected.title}</span>
         <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
-          <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}35`,borderRadius:4,padding:"2px 8px",fontWeight:600}}>{ROLES[user.role].label}</span>
-          <Avatar name={user.name} size={28}/>
-          <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14}}>⏏</button>
+          <span style={{fontSize:12,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}30`,borderRadius:6,padding:"3px 10px",fontWeight:600}}>{ROLES[user.role].label}</span>
+          <Avatar name={user.name} size={30}/>
+          <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16,padding:"4px"}}>⏏</button>
         </div>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
@@ -3007,25 +3012,25 @@ export default function App(){
 
   // Projects dashboard
   return (
-    <div style={{height:"100vh",background:C.bg,fontFamily:"'Inter',system-ui,sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+    <div style={{height:"100vh",background:C.bg,fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       {/* Top bar */}
-      <div style={{height:54,background:C.surface,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",padding:"0 24px",gap:14,flexShrink:0}}>
+      <div style={{height:60,background:"rgba(10,10,15,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",padding:"0 28px",gap:16,flexShrink:0}}>
         <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
         {logoUrl
-          ?<img src={logoUrl} alt="Logo" style={{height:34,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
-          :<div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>logoRef.current?.click()}>
-            <div style={{width:30,height:30,background:C.cyan,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>⚡</div>
-            <div><div style={{fontSize:13,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>FULL<span style={{color:C.cyan}}> FLUX</span></div>
-            <div style={{fontSize:8,color:C.textMuted,letterSpacing:"0.1em",textTransform:"uppercase"}}>click to add logo</div></div>
+          ?<img src={logoUrl} alt="Logo" style={{height:36,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
+          :<div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>logoRef.current?.click()}>
+            <div style={{width:32,height:32,background:"#5B7FFF",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>⚡</div>
+            <div><div style={{fontSize:15,fontWeight:700,color:C.text,letterSpacing:"-0.04em"}}>FULL<span style={{color:"#5BB8F6"}}> FLUX</span></div>
+            <div style={{fontSize:9,color:C.textMuted,letterSpacing:"0.08em",textTransform:"uppercase",marginTop:1}}>click to add logo</div></div>
           </div>}
-        <div style={{width:1,height:24,background:C.border}}/>
-        <span style={{fontSize:15,fontWeight:700,color:C.text}}>{isClient?"Client Portal":"Project Dashboard"}</span>
+        <div style={{width:1,height:26,background:"rgba(255,255,255,0.08)"}}/>
+        <span style={{fontSize:17,fontWeight:600,color:C.text,letterSpacing:"-0.02em"}}>{isClient?"Client Portal":"Projects"}</span>
         <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
-          {!isClient&&<Btn variant="primary" onClick={()=>setShowNewProject(true)}>+ New Project</Btn>}
-          {(user.role==="admin"||user.role==="producer")&&<Btn variant="ghost" onClick={()=>{setWgProject(null);setShowWG(true);}} style={{fontSize:11,padding:"5px 12px"}}>⚙ White Glove</Btn>}
-          <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}35`,borderRadius:4,padding:"2px 8px",fontWeight:600}}>{ROLES[user.role].label}</span>
-          <Avatar name={user.name} size={30}/>
-          <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16}}>⏏</button>
+          {!isClient&&<Btn variant="primary" onClick={()=>setShowNewProject(true)} style={{fontSize:14,padding:"9px 18px",borderRadius:12}}>+ New Project</Btn>}
+          {(user.role==="admin"||user.role==="producer")&&<Btn variant="ghost" onClick={()=>{setWgProject(null);setShowWG(true);}} style={{fontSize:13,padding:"7px 14px"}}>⚙ White Glove</Btn>}
+          <span style={{fontSize:12,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}30`,borderRadius:6,padding:"3px 10px",fontWeight:600,letterSpacing:"-0.01em"}}>{ROLES[user.role].label}</span>
+          <Avatar name={user.name} size={32}/>
+          <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16,padding:"4px"}}>⏏</button>
         </div>
       </div>
 
