@@ -2822,8 +2822,8 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
     <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
       {tabs.map(t=>(
         <button key={t.id} onClick={()=>setTab(t.id)}
-          style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?C.orange:"transparent"}`,
-            color:tab===t.id?C.orange:C.textSec,padding:"10px 14px",cursor:"pointer",fontSize:12,
+          style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?"#5B7FFF":"transparent"}`,
+            color:tab===t.id?"#fff":C.textSec,padding:"10px 14px",cursor:"pointer",fontSize:12,
             fontWeight:tab===t.id?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:5}}>
           {t.icon} {t.label}
         </button>
@@ -2984,7 +2984,7 @@ export default function App(){
     <div style={{height:"100vh",background:C.bg,fontFamily:"'Inter',system-ui,sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div style={{height:50,background:C.surface,borderBottom:`1px solid ${C.border}`,display:"flex",alignItems:"center",padding:"0 20px",gap:14,flexShrink:0}}>
         {logoUrl?<img src={logoUrl} alt="Logo" style={{height:28,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>:
-          <div style={{fontSize:14,fontWeight:800,color:C.text,cursor:"pointer",letterSpacing:"-0.03em"}} onClick={()=>logoRef.current?.click()}>FRAME<span style={{color:C.orange}}>X</span></div>}
+          <div style={{fontSize:14,fontWeight:800,color:C.text,cursor:"pointer",letterSpacing:"-0.03em"}} onClick={()=>logoRef.current?.click()}>FULL<span style={{color:C.cyan}}> FLUX</span></div>}
         <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
         <div style={{width:1,height:20,background:C.border}}/>
         <span style={{fontSize:12,color:C.textSec}}>{selected.title}</span>
@@ -3013,8 +3013,8 @@ export default function App(){
         {logoUrl
           ?<img src={logoUrl} alt="Logo" style={{height:34,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
           :<div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={()=>logoRef.current?.click()}>
-            <div style={{width:30,height:30,background:C.orange,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>🎬</div>
-            <div><div style={{fontSize:13,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>FRAME<span style={{color:C.orange}}>X</span></div>
+            <div style={{width:30,height:30,background:C.cyan,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15}}>⚡</div>
+            <div><div style={{fontSize:13,fontWeight:800,color:C.text,letterSpacing:"-0.03em"}}>FULL<span style={{color:C.cyan}}> FLUX</span></div>
             <div style={{fontSize:8,color:C.textMuted,letterSpacing:"0.1em",textTransform:"uppercase"}}>click to add logo</div></div>
           </div>}
         <div style={{width:1,height:24,background:C.border}}/>
