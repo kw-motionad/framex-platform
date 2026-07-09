@@ -15,7 +15,7 @@ const C = {
   teal:"#5BB8F6",tealLow:"#5BB8F615",
   pink:"#A8C4E0",pinkLow:"#A8C4E015",
   blue:"#5B7FFF",blueLow:"#5B7FFF15",
-  text:"#FFFFFF",textSec:"#8E8E93",textMuted:"#3A3A3C",
+  text:"#FFFFFF",textSec:"#AEAEB2",textMuted:"#636366",
   font:"'-apple-system,BlinkMacSystemFont,\"SF Pro Display\",\"SF Pro Text\",\"Helvetica Neue\",Arial,sans-serif'",
 };
 
@@ -1572,15 +1572,15 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>📋 Production Info</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Shoot Date</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Shoot Date</label>
             <input type="date" value={sheet.date||""} onChange={e=>upd("date",e.target.value)} style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Director</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Director</label>
             <input value={sheet.director||""} onChange={e=>upd("director",e.target.value)} style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>DP / Cinematographer</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>DP / Cinematographer</label>
             <input value={sheet.dp||""} onChange={e=>upd("dp",e.target.value)} style={fld}/></div>
-          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Location / Address</label>
+          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Location / Address</label>
             <input value={sheet.location||""} onChange={e=>upd("location",e.target.value)} placeholder="Studio, address…" style={fld}/></div>
-          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Nearest Hospital</label>
+          <div style={{gridColumn:"1/-1"}}><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Nearest Hospital</label>
             <input value={sheet.hospital||""} onChange={e=>upd("hospital",e.target.value)} placeholder="Name + address" style={fld}/></div>
         </div>
       </div>
@@ -1597,7 +1597,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
             ["estWrap","Est. Wrap","🔴"],
           ].map(([k,label,icon])=>(
             <div key={k}>
-              <label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>{icon} {label}</label>
+              <label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>{icon} {label}</label>
               <input type="time" value={sheet[k]||""} onChange={e=>upd(k,e.target.value)} style={fld}/>
             </div>
           ))}
@@ -1608,15 +1608,15 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>🌤 Weather</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Condition</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Condition</label>
             <input value={sheet.weatherCondition||""} onChange={e=>upd("weatherCondition",e.target.value)} placeholder="Sunny, Cloudy, Rain…" style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Temperature</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Temperature</label>
             <input value={sheet.weatherTemp||""} onChange={e=>upd("weatherTemp",e.target.value)} placeholder="72°F / 22°C" style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>Weather Notes</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Weather Notes</label>
             <input value={sheet.weather||""} onChange={e=>upd("weather",e.target.value)} placeholder="Wind, UV index…" style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>🌅 Sunrise</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>🌅 Sunrise</label>
             <input type="time" value={sheet.sunrise||""} onChange={e=>upd("sunrise",e.target.value)} style={fld}/></div>
-          <div><label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>🌇 Sunset</label>
+          <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>🌇 Sunset</label>
             <input type="time" value={sheet.sunset||""} onChange={e=>upd("sunset",e.target.value)} style={fld}/></div>
         </div>
       </div>
@@ -1628,7 +1628,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
           {[["locationMap","Location Map",C.cyan],["parkingMap","Parking Map",C.green]].map(([field,label,color])=>{
             const val=sheet[field];
             return <div key={field}>
-              <label style={{fontSize:9,color:C.textMuted,display:"block",marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>{label}</label>
+              <label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>{label}</label>
               {val
                 ? <a href={val.url||"#"} target="_blank" rel="noreferrer"
                     style={{display:"inline-flex",alignItems:"center",gap:5,fontSize:11,color,background:color+"15",border:`1px solid ${color}30`,borderRadius:5,padding:"5px 10px",textDecoration:"none",maxWidth:"100%"}}>
