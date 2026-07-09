@@ -528,8 +528,8 @@ function SignIn({onSignIn,logoUrl}){
   return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",padding:20}}>
     <div style={{width:"100%",maxWidth:400}}>
       <div style={{textAlign:"center",marginBottom:40}}>
-        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:60,objectFit:"contain",marginBottom:16}}/>:
-          <img src={fullFluxLogo} alt='Full Flux' style={{height:36,objectFit:'contain',borderRadius:9}} />}
+        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:80,objectFit:"contain",marginBottom:8}}/>:
+          <img src={fullFluxLogo} alt='Full Flux' style={{height:100,width:100,objectFit:"contain",marginBottom:8}} />}
         <p style={{margin:0,fontSize:15,color:C.textSec,letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
       </div>
       <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(20px)"}}>
@@ -3013,7 +3013,7 @@ export default function App(){
         <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
         {logoUrl
           ?<img src={logoUrl} alt="Logo" style={{height:36,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
-          :<img src={fullFluxLogo} alt='Full Flux' style={{height:36,objectFit:'contain',borderRadius:9,cursor:"pointer"}} onClick={()=>logoRef.current?.click()} />}
+          :<img src={fullFluxLogo} alt='Full Flux' style={{height:40,width:40,objectFit:"contain",borderRadius:10,cursor:"pointer"}} onClick={()=>logoRef.current?.click()} />}
         <div style={{width:1,height:26,background:"rgba(255,255,255,0.08)"}}/>
         <span style={{fontSize:17,fontWeight:600,color:C.text,letterSpacing:"-0.02em"}}>{isClient?"Client Portal":"Projects"}</span>
         <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
