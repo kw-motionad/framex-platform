@@ -116,7 +116,7 @@ function Avatar({name="?",size=28}){
 }
 function Btn({onClick,variant="ghost",children,style={},disabled}){
   const s={
-    primary:{background:"#5B7FFF",border:"none",color:"#fff",fontWeight:600,letterSpacing:"-0.01em"},
+    primary:{background:"linear-gradient(135deg,#2B8EFF 0%,#8B2FFF 100%)",border:"none",color:"#fff",fontWeight:600,letterSpacing:"-0.01em"},
     cyan:   {background:"rgba(91,184,246,0.12)",border:"1px solid rgba(91,184,246,0.25)",color:"#5BB8F6",fontWeight:600},
     green:  {background:"rgba(123,158,200,0.12)",border:"1px solid rgba(123,158,200,0.25)",color:"#A8C4E0",fontWeight:600},
     red:    {background:"rgba(255,69,58,0.12)",border:"1px solid rgba(255,69,58,0.3)",color:C.red,fontWeight:600},
@@ -529,13 +529,7 @@ function SignIn({onSignIn,logoUrl}){
     <div style={{width:"100%",maxWidth:400}}>
       <div style={{textAlign:"center",marginBottom:40}}>
         {logoUrl?<img src={logoUrl} alt="Logo" style={{height:60,objectFit:"contain",marginBottom:16}}/>:
-          <div style={{display:"inline-flex",alignItems:"center",gap:14,marginBottom:16}}>
-            <div style={{width:52,height:52,background:"#5B7FFF",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 8px 32px rgba(91,127,255,0.35)"}}>⚡</div>
-            <div style={{textAlign:"left"}}>
-              <div style={{fontSize:26,fontWeight:700,color:C.text,letterSpacing:"-0.05em",lineHeight:1}}>FULL<span style={{color:"#5BB8F6"}}> FLUX</span></div>
-              <div style={{fontSize:11,color:C.textMuted,letterSpacing:"0.06em",textTransform:"uppercase",marginTop:3}}>Production Suite</div>
-            </div>
-          </div>}
+          <img src={fullFluxLogo} alt='Full Flux' style={{height:36,objectFit:'contain',borderRadius:9}} />}
         <p style={{margin:0,fontSize:15,color:C.textSec,letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
       </div>
       <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(20px)"}}>
@@ -547,7 +541,7 @@ function SignIn({onSignIn,logoUrl}){
           <button onClick={()=>setShowPass(p=>!p)} style={{position:"absolute",right:12,top:34,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14}}>{showPass?"🙈":"👁"}</button>
         </div>
         {err&&<div style={{background:"rgba(255,69,58,0.12)",border:"1px solid rgba(255,69,58,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:C.red}}>{err}</div>}
-        <button onClick={attempt} disabled={loading} style={{width:"100%",background:"#5B7FFF",border:"none",color:"#fff",borderRadius:12,padding:"14px",cursor:"pointer",fontSize:16,fontWeight:600,letterSpacing:"-0.01em",boxShadow:"0 4px 20px rgba(91,127,255,0.4)"}}>{loading?"Signing in…":"Sign In"}</button>
+        <button onClick={attempt} disabled={loading} style={{width:"100%",background:"linear-gradient(135deg,#2B8EFF 0%,#8B2FFF 100%)",border:"none",color:"#fff",borderRadius:12,padding:"14px",cursor:"pointer",fontSize:16,fontWeight:600,letterSpacing:"-0.01em",boxShadow:"0 4px 20px rgba(91,127,255,0.4)"}}>{loading?"Signing in…":"Sign In"}</button>
       </div>
       <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:18}}>
         <div style={{fontSize:11,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Demo accounts</div>
@@ -3019,11 +3013,7 @@ export default function App(){
         <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
         {logoUrl
           ?<img src={logoUrl} alt="Logo" style={{height:36,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
-          :<div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>logoRef.current?.click()}>
-            <div style={{width:32,height:32,background:"#5B7FFF",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>⚡</div>
-            <div><div style={{fontSize:15,fontWeight:700,color:C.text,letterSpacing:"-0.04em"}}>FULL<span style={{color:"#5BB8F6"}}> FLUX</span></div>
-            <div style={{fontSize:9,color:C.textMuted,letterSpacing:"0.08em",textTransform:"uppercase",marginTop:1}}>click to add logo</div></div>
-          </div>}
+          :<img src={fullFluxLogo} alt='Full Flux' style={{height:36,objectFit:'contain',borderRadius:9,cursor:"pointer"}} onClick={()=>logoRef.current?.click()} />}
         <div style={{width:1,height:26,background:"rgba(255,255,255,0.08)"}}/>
         <span style={{fontSize:17,fontWeight:600,color:C.text,letterSpacing:"-0.02em"}}>{isClient?"Client Portal":"Projects"}</span>
         <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
