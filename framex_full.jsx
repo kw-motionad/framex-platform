@@ -2706,23 +2706,23 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
   const canSeeInternal=ROLES[currentUser.role].canSeeInternal;
 
   const internalTabs=[
-    {id:"overview",  label:"Overview",     icon:"◈"},
-    {id:"updates",   label:"Updates",      icon:"◎"},
-    {id:"producer",  label:"Producer",     icon:"🎬"},
-    {id:"creative",  label:"Creative",     icon:"🎨"},
-    {id:"crew",      label:"Crew",         icon:"👥"},
-    {id:"post",      label:"Post / VFX",   icon:"✨"},
-    {id:"wrap",      label:"Wrap",         icon:"📦"},
-    {id:"documents", label:"Deliverables", icon:"▣"},
-    {id:"comments",  label:"Comments",     icon:"💬"},
+    {id:"overview",  label:"Overview",     icon:"◈",    img:null},
+    {id:"updates",   label:"Updates",      icon:"◎",    img:null},
+    {id:"producer",  label:"Producer",     icon:null,   img:"/icon_producer.png"},
+    {id:"creative",  label:"Creative",     icon:null,   img:"/icon_sparkles.png"},
+    {id:"crew",      label:"Crew",         icon:"👥",   img:null},
+    {id:"post",      label:"Post / VFX",   icon:null,   img:"/icon_clapperboard.png"},
+    {id:"wrap",      label:"Wrap",         icon:null,   img:"/icon_archive.png"},
+    {id:"documents", label:"Deliverables", icon:null,   img:"/icon_cube.png"},
+    {id:"comments",  label:"Comments",     icon:null,   img:"/icon_chat.png"},
   ];
   const clientTabs=[
-    {id:"overview",  label:"Overview",     icon:"◈"},
-    {id:"updates",   label:"Updates",      icon:"◎"},
-    {id:"documents", label:"Deliverables", icon:"▣"},
-    {id:"creative",  label:"Creative",     icon:"🎨"},
-    {id:"post",      label:"Review",       icon:"✨"},
-    {id:"comments",  label:"Messages",     icon:"💬"},
+    {id:"overview",  label:"Overview",     icon:"◈",    img:null},
+    {id:"updates",   label:"Updates",      icon:"◎",    img:null},
+    {id:"documents", label:"Deliverables", icon:null,   img:"/icon_cube.png"},
+    {id:"creative",  label:"Creative",     icon:null,   img:"/icon_sparkles.png"},
+    {id:"post",      label:"Review",       icon:null,   img:"/icon_clapperboard.png"},
+    {id:"comments",  label:"Messages",     icon:null,   img:"/icon_chat.png"},
   ];
   const tabs=isClient?clientTabs:internalTabs;
   const [tab,setTab]=useState(initTab||"overview");
@@ -2835,11 +2835,14 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
     <div style={{position:"relative",zIndex:1,background:"rgba(5,2,14,0.7)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(139,47,255,0.2)",padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
       {tabs.map(t=>(
         <button key={t.id} onClick={()=>setTab(t.id)}
-          style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?"#5B7FFF":"transparent"}`,
-            color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",padding:"13px 16px",cursor:"pointer",fontSize:14,
+          style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?"#8B2FFF":"transparent"}`,
+            color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",padding:"10px 16px",cursor:"pointer",fontSize:13,
             fontWeight:tab===t.id?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6,
             letterSpacing:"-0.01em",transition:"color 0.15s",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif"}}>
-          {t.icon} {t.label}
+          {t.img
+            ?<img src={t.img} alt="" style={{width:16,height:16,objectFit:"contain",opacity:tab===t.id?1:0.45,filter:tab===t.id?"none":"grayscale(30%)"}}/>
+            :<span style={{fontSize:12}}>{t.icon}</span>}
+          {t.label}
         </button>
       ))}
     </div>
