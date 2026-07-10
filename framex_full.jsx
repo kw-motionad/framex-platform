@@ -531,15 +531,12 @@ function SignIn({onSignIn,logoUrl}){
     <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0}}>
       <source src={FF_BG_VIDEO} type="video/mp4"/>
     </video>
-    {/* Dark overlay */}
-    <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,0,0,0.85) 0%,rgba(10,0,30,0.75) 100%)",zIndex:1}}/>
-    {/* Logo top-left */}
-    <div style={{position:"absolute",top:24,left:28,zIndex:3}}>
-      <img src={FF_LOGO} alt="Full Flux" style={{height:52,objectFit:"contain"}}/>
-    </div>
+    {/* Light overlay - just enough for readability */}
+    <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,0,0,0.55) 0%,rgba(10,0,30,0.45) 100%)",zIndex:1}}/>
     {/* Login card */}
     <div style={{width:"100%",maxWidth:400,position:"relative",zIndex:2}}>
-      <div style={{textAlign:"center",marginBottom:32}}>
+      <div style={{textAlign:"center",marginBottom:28}}>
+        <img src={FF_LOGO} alt="Full Flux" style={{height:120,objectFit:"contain",marginBottom:16,filter:"drop-shadow(0 8px 32px rgba(139,47,255,0.5))"}}/>
         <p style={{margin:0,fontSize:15,color:"rgba(255,255,255,0.7)",letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
       </div>
       <div style={{background:"rgba(10,0,30,0.6)",border:"1px solid rgba(139,47,255,0.3)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",boxShadow:"0 0 40px rgba(139,47,255,0.15),inset 0 1px 0 rgba(255,255,255,0.07)"}}>
@@ -3025,8 +3022,7 @@ export default function App(){
 
   // Projects dashboard
   return (
-    <div style={{height:"100vh",background:C.bg,fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      {/* Top bar with video bg for admin/producer */}
+    <div style={{height:"100vh",background:"#050210",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div style={{position:"relative",height:64,flexShrink:0,overflow:"hidden"}}>
         {(user.role==="admin"||user.role==="producer")&&<>
           <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0}}>
@@ -3049,7 +3045,15 @@ export default function App(){
         </div>
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:24}}>
+      <div style={{flex:1,overflowY:"auto",padding:24,position:"relative"}}>
+        {/* Video background */}
+        <div style={{position:"fixed",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none"}}>
+          <video autoPlay loop muted playsInline style={{width:"100%",height:"100%",objectFit:"cover",opacity:0.18}}>
+            <source src={FF_BG_VIDEO} type="video/mp4"/>
+          </video>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 50% 0%,rgba(139,47,255,0.08) 0%,transparent 70%)"}}/>
+        </div>
+        <div style={{position:"relative",zIndex:1}}>
 
         {/* Client portal header */}
         {isClient&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 22px",marginBottom:20}}>
@@ -3083,7 +3087,8 @@ export default function App(){
             {visibleProjects.map(p=><ProjectGridCard key={p.id} project={p} onOpen={tab=>openProject(p.id,tab)} onDelete={deleteProject} isClient={isClient}/>)}
           </div>
         }
-      </div>
+      </div>{/* end zIndex:1 wrapper */}
+      </div>{/* end flex:1 wrapper */}
 
       {/* New Project Modal */}
       {showWG&&<WhiteGlovePanel allProjects={projects} initialProject={wgProject} onSettings={(k,st)=>setWgSettings(prev=>({...prev,[k]:st}))} onClose={()=>setShowWG(false)} onPreviewAsClient={handlePreviewAsClient} onProjectUpdate={updateProject}/>}
