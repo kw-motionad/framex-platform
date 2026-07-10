@@ -2761,18 +2761,25 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
   const bg=project.portalSettings?.bgImageUrl;
   const heroMeta=LIFECYCLE_META[project.status]||LIFECYCLE_META.inquiry;
 
-  return <div style={{display:"flex",flexDirection:"column",height:"100%",overflow:"hidden"}}>
+  return <div style={{display:"flex",flexDirection:"column",height:"100%",overflow:"hidden",position:"relative"}}>
+    {/* ─── Full page video background ──────────────────────────────── */}
+    <div style={{position:"absolute",inset:0,zIndex:0,overflow:"hidden",pointerEvents:"none"}}>
+      <video autoPlay loop muted playsInline style={{width:"100%",height:"100%",objectFit:"cover"}}>
+        <source src={FF_BG_VIDEO} type="video/mp4"/>
+      </video>
+      {/* Full opacity at top (hero), fades to near-black below the hero */}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.3) 30%,rgba(5,2,14,0.88) 55%,rgba(5,2,14,0.97) 70%,rgba(5,2,14,1) 100%)"}}/>
+    </div>
+
     {/* ─── Hero Banner ─────────────────────────────────────────────── */}
-    <div style={{position:"relative",height:240,flexShrink:0,overflow:"visible"}}>
-      {/* Background — clipped separately so dropdown can escape hero bounds */}
-      <div style={{position:"absolute",inset:0,overflow:"hidden",borderRadius:"inherit"}}>
-        {bg
-          ?<img src={bg} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
-          :<div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,#060610 0%,#131328 50%,#0A0A1E 100%)"}}/>
-        }
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.1) 45%,rgba(0,0,0,0.92) 100%)"}}/>
-        <div style={{position:"absolute",inset:0,background:"linear-gradient(to right,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 60%)"}}/>
-      </div>
+    <div style={{position:"relative",zIndex:1,height:240,flexShrink:0,overflow:"visible"}}>
+      {/* Optional custom bg image override */}
+      {bg&&<div style={{position:"absolute",inset:0,overflow:"hidden"}}>
+        <img src={bg} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
+        <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.85) 100%)"}}/>
+      </div>}
+      {/* Side fade for text legibility */}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(to right,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0) 60%)",pointerEvents:"none"}}/>
       {/* Top bar: back + actions */}
       <div style={{position:"absolute",top:0,left:0,right:0,padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <button onClick={onBack} style={{background:"rgba(0,0,0,0.4)",backdropFilter:"blur(10px)",border:"1px solid rgba(255,255,255,0.15)",color:"rgba(255,255,255,0.85)",cursor:"pointer",fontSize:12,padding:"5px 14px",borderRadius:6,fontWeight:500}}>← All Projects</button>
@@ -2825,7 +2832,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
       </div>
     </div>
     {/* ─── Tab bar ─────────────────────────────────────────────────── */}
-    <div style={{background:"rgba(10,10,15,0.8)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
+    <div style={{position:"relative",zIndex:1,background:"rgba(5,2,14,0.7)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(139,47,255,0.2)",padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
       {tabs.map(t=>(
         <button key={t.id} onClick={()=>setTab(t.id)}
           style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?"#5B7FFF":"transparent"}`,
@@ -2837,7 +2844,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
       ))}
     </div>
 
-    <div style={{flex:1,overflowY:"auto",padding:"20px 24px"}}>
+    <div style={{flex:1,overflowY:"auto",padding:"20px 24px",position:"relative",zIndex:1}}>
       {tab==="overview"&&<div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:20,alignItems:"start"}}>
         {/* Left column */}
         <div>
