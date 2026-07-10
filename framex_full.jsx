@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import Hls from "hls.js";
 import ClientPortal from './ClientPortal';
-import fullFluxLogo from './fullflux-logo.png';
+const FF_LOGO = "/ff_final_logo.png";
+const FF_BG_VIDEO = "/ff_launch_background.mp4";
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
-  bg:"#000000",surface:"#0A0A0F",card:"#111116",
-  border:"#1E1E28",borderHover:"#2E2E3E",
+  bg:"#000000",surface:"#0A0A0F",card:"#0D0A18",
+  border:"rgba(139,47,255,0.2)",borderHover:"rgba(43,142,255,0.4)",
   orange:"#7B5FFF",orangeLow:"#7B5FFF18",
   cyan:"#2B8EFF",cyanLow:"#2B8EFF15",
   green:"#7B9EC8",greenLow:"#7B9EC815",
@@ -525,14 +526,23 @@ function SignIn({onSignIn,logoUrl}){
     },500);
   };
 
-  return <div style={{minHeight:"100vh",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",padding:20}}>
-    <div style={{width:"100%",maxWidth:400}}>
-      <div style={{textAlign:"center",marginBottom:40}}>
-        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:80,objectFit:"contain",marginBottom:8}}/>:
-          <img src={fullFluxLogo} alt='Full Flux' style={{height:100,width:100,objectFit:"contain",marginBottom:8}} />}
-        <p style={{margin:0,fontSize:15,color:C.textSec,letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
+  return <div style={{minHeight:"100vh",position:"relative",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",padding:20,overflow:"hidden"}}>
+    {/* Video background */}
+    <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0}}>
+      <source src={FF_BG_VIDEO} type="video/mp4"/>
+    </video>
+    {/* Dark overlay */}
+    <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(0,0,0,0.85) 0%,rgba(10,0,30,0.75) 100%)",zIndex:1}}/>
+    {/* Logo top-left */}
+    <div style={{position:"absolute",top:24,left:28,zIndex:3}}>
+      <img src={FF_LOGO} alt="Full Flux" style={{height:52,objectFit:"contain"}}/>
+    </div>
+    {/* Login card */}
+    <div style={{width:"100%",maxWidth:400,position:"relative",zIndex:2}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <p style={{margin:0,fontSize:15,color:"rgba(255,255,255,0.7)",letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
       </div>
-      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(20px)"}}>
+      <div style={{background:"rgba(10,0,30,0.6)",border:"1px solid rgba(139,47,255,0.3)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",boxShadow:"0 0 40px rgba(139,47,255,0.15),inset 0 1px 0 rgba(255,255,255,0.07)"}}>
         <Input label="Email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@studio.com" type="email"/>
         <div style={{marginBottom:20,position:"relative"}}>
           <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Password</label>
@@ -541,13 +551,13 @@ function SignIn({onSignIn,logoUrl}){
           <button onClick={()=>setShowPass(p=>!p)} style={{position:"absolute",right:12,top:34,background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:14}}>{showPass?"🙈":"👁"}</button>
         </div>
         {err&&<div style={{background:"rgba(255,69,58,0.12)",border:"1px solid rgba(255,69,58,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:C.red}}>{err}</div>}
-        <button onClick={attempt} disabled={loading} style={{width:"100%",background:"linear-gradient(135deg,#2B8EFF 0%,#8B2FFF 100%)",border:"none",color:"#fff",borderRadius:12,padding:"14px",cursor:"pointer",fontSize:16,fontWeight:600,letterSpacing:"-0.01em",boxShadow:"0 4px 20px rgba(91,127,255,0.4)"}}>{loading?"Signing in…":"Sign In"}</button>
+        <button onClick={attempt} disabled={loading} style={{width:"100%",background:"linear-gradient(135deg,#2B8EFF 0%,#8B2FFF 100%)",border:"none",color:"#fff",borderRadius:12,padding:"14px",cursor:"pointer",fontSize:16,fontWeight:600,letterSpacing:"-0.01em",boxShadow:"0 4px 24px rgba(139,47,255,0.5)"}}>{loading?"Signing in…":"Sign In"}</button>
       </div>
-      <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:14,padding:18}}>
+      <div style={{background:"rgba(10,0,30,0.5)",border:"1px solid rgba(139,47,255,0.2)",borderRadius:14,padding:18,backdropFilter:"blur(20px)"}}>
         <div style={{fontSize:11,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Demo accounts</div>
         {DEMO_USERS.map(u=>(
           <button key={u.id} onClick={()=>onSignIn(u)} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 14px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:8,transition:"border-color 0.15s"}}
-            onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.18)"}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(139,47,255,0.5)"}
             onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.07)"}>
             <Avatar name={u.name} size={26}/>
             <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{u.name}</div>
@@ -2982,17 +2992,25 @@ export default function App(){
   // Project detail view
   if(selected) return (
     <div style={{height:"100vh",background:C.bg,fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      <div style={{height:56,background:"rgba(10,10,15,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",padding:"0 24px",gap:14,flexShrink:0}}>
-        <button onClick={()=>setSelectedId(null)} style={{background:"none",border:"none",color:"#5BB8F6",cursor:"pointer",fontSize:14,padding:"4px 0",display:"flex",alignItems:"center",gap:4,fontFamily:"inherit"}}>‹ Projects</button>
-        {logoUrl?<img src={logoUrl} alt="Logo" style={{height:28,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>:
-          <div style={{fontSize:15,fontWeight:700,color:C.text,cursor:"pointer",letterSpacing:"-0.04em"}} onClick={()=>logoRef.current?.click()}>FULL<span style={{color:"#5BB8F6"}}> FLUX</span></div>}
-        <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
-        <div style={{width:1,height:20,background:"rgba(255,255,255,0.08)"}}/>
-        <span style={{fontSize:15,fontWeight:600,color:C.text,letterSpacing:"-0.02em"}}>{selected.title}</span>
-        <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
-          <span style={{fontSize:12,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}30`,borderRadius:6,padding:"3px 10px",fontWeight:600}}>{ROLES[user.role].label}</span>
-          <Avatar name={user.name} size={30}/>
-          <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16,padding:"4px"}}>⏏</button>
+      <div style={{position:"relative",height:56,flexShrink:0,overflow:"hidden"}}>
+        {(user.role==="admin"||user.role==="producer")&&<>
+          <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0}}>
+            <source src={FF_BG_VIDEO} type="video/mp4"/>
+          </video>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,rgba(0,0,0,0.92) 0%,rgba(10,0,30,0.7) 50%,rgba(0,0,0,0.92) 100%)",zIndex:1}}/>
+        </>}
+        <div style={{position:"relative",zIndex:2,height:"100%",background:(user.role==="admin"||user.role==="producer")?"transparent":"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(139,47,255,0.25)",display:"flex",alignItems:"center",padding:"0 24px",gap:14}}>
+          <img src={logoUrl||FF_LOGO} alt="Full Flux" style={{height:38,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
+          <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
+          <div style={{width:1,height:20,background:"rgba(255,255,255,0.1)"}}/>
+          <button onClick={()=>setSelectedId(null)} style={{background:"none",border:"none",color:"#2B8EFF",cursor:"pointer",fontSize:13,padding:"4px 0",display:"flex",alignItems:"center",gap:4,fontFamily:"inherit"}}>‹ Projects</button>
+          <div style={{width:1,height:16,background:"rgba(255,255,255,0.1)"}}/>
+          <span style={{fontSize:14,fontWeight:600,color:"#fff",letterSpacing:"-0.02em"}}>{selected.title}</span>
+          <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
+            <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}30`,borderRadius:6,padding:"3px 10px",fontWeight:600}}>{ROLES[user.role].label}</span>
+            <Avatar name={user.name} size={28}/>
+            <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:15,padding:"4px"}}>⏏</button>
+          </div>
         </div>
       </div>
       <div style={{flex:1,overflow:"hidden"}}>
@@ -3008,20 +3026,26 @@ export default function App(){
   // Projects dashboard
   return (
     <div style={{height:"100vh",background:C.bg,fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text','Helvetica Neue',sans-serif",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      {/* Top bar */}
-      <div style={{height:60,background:"rgba(10,10,15,0.85)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.06)",display:"flex",alignItems:"center",padding:"0 28px",gap:16,flexShrink:0}}>
-        <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
-        {logoUrl
-          ?<img src={logoUrl} alt="Logo" style={{height:36,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
-          :<img src={fullFluxLogo} alt='Full Flux' style={{height:40,width:40,objectFit:"contain",borderRadius:10,cursor:"pointer"}} onClick={()=>logoRef.current?.click()} />}
-        <div style={{width:1,height:26,background:"rgba(255,255,255,0.08)"}}/>
-        <span style={{fontSize:17,fontWeight:600,color:C.text,letterSpacing:"-0.02em"}}>{isClient?"Client Portal":"Projects"}</span>
-        <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
-          {!isClient&&<Btn variant="primary" onClick={()=>setShowNewProject(true)} style={{fontSize:14,padding:"9px 18px",borderRadius:12}}>+ New Project</Btn>}
-          {(user.role==="admin"||user.role==="producer")&&<Btn variant="ghost" onClick={()=>{setWgProject(null);setShowWG(true);}} style={{fontSize:13,padding:"7px 14px"}}>⚙ White Glove</Btn>}
-          <span style={{fontSize:12,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}30`,borderRadius:6,padding:"3px 10px",fontWeight:600,letterSpacing:"-0.01em"}}>{ROLES[user.role].label}</span>
-          <Avatar name={user.name} size={32}/>
-          <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16,padding:"4px"}}>⏏</button>
+      {/* Top bar with video bg for admin/producer */}
+      <div style={{position:"relative",height:64,flexShrink:0,overflow:"hidden"}}>
+        {(user.role==="admin"||user.role==="producer")&&<>
+          <video autoPlay loop muted playsInline style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",zIndex:0}}>
+            <source src={FF_BG_VIDEO} type="video/mp4"/>
+          </video>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(90deg,rgba(0,0,0,0.92) 0%,rgba(10,0,30,0.75) 50%,rgba(0,0,0,0.92) 100%)",zIndex:1}}/>
+        </>}
+        <div style={{position:"relative",zIndex:2,height:"100%",background:(user.role==="admin"||user.role==="producer")?"transparent":"rgba(10,10,15,0.95)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(139,47,255,0.2)",display:"flex",alignItems:"center",padding:"0 24px",gap:16}}>
+          <input ref={logoRef} type="file" accept="image/*" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>setLogoUrl(ev.target.result);r.readAsDataURL(f);}}}/>
+          <img src={logoUrl||FF_LOGO} alt="Full Flux" style={{height:44,objectFit:"contain",cursor:"pointer"}} onClick={()=>logoRef.current?.click()}/>
+          <div style={{width:1,height:26,background:"rgba(255,255,255,0.1)"}}/>
+          <span style={{fontSize:16,fontWeight:600,color:"#fff",letterSpacing:"-0.02em"}}>{isClient?"Client Portal":"Projects"}</span>
+          <div style={{marginLeft:"auto",display:"flex",gap:10,alignItems:"center"}}>
+            {!isClient&&<Btn variant="primary" onClick={()=>setShowNewProject(true)} style={{fontSize:13,padding:"8px 16px",borderRadius:10}}>+ New Project</Btn>}
+            {(user.role==="admin"||user.role==="producer")&&<Btn variant="ghost" onClick={()=>{setWgProject(null);setShowWG(true);}} style={{fontSize:12,padding:"6px 12px"}}>⚙ White Glove</Btn>}
+            <span style={{fontSize:11,color:ROLES[user.role].color,background:ROLES[user.role].color+"18",border:`1px solid ${ROLES[user.role].color}30`,borderRadius:6,padding:"3px 10px",fontWeight:600}}>{ROLES[user.role].label}</span>
+            <Avatar name={user.name} size={30}/>
+            <button onClick={()=>setUser(null)} title="Sign out" style={{background:"none",border:"none",color:C.textMuted,cursor:"pointer",fontSize:16,padding:"4px"}}>⏏</button>
+          </div>
         </div>
       </div>
 
