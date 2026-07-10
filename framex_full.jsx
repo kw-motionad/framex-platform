@@ -2574,10 +2574,10 @@ function ProjectGridCard({project,onOpen,onDelete,isClient}){
     <div onClick={()=>onOpen("overview")}
       onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
       style={{position:"relative",borderRadius:20,overflow:"hidden",cursor:"pointer",
-        border:`1px solid ${hov?"rgba(255,255,255,0.18)":"rgba(255,255,255,0.07)"}`,
+        border:"none",outline:`1.5px solid ${hov?"#8B2FFF":"rgba(139,47,255,0.4)"}`,
         transition:"transform 0.25s cubic-bezier(0.34,1.56,0.64,1),border-color 0.2s,box-shadow 0.25s",
         transform:hov?"translateY(-6px) scale(1.01)":"none",
-        boxShadow:hov?"0 24px 64px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05)":"0 4px 20px rgba(0,0,0,0.3)",
+        boxShadow:hov?"0 24px 64px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.05),0 0 24px rgba(139,47,255,0.3),0 0 60px rgba(43,142,255,0.1)":"0 4px 20px rgba(0,0,0,0.3),0 0 12px rgba(139,47,255,0.15)",
         aspectRatio:"4/5"}}>
       {bg
         ?<img src={bg} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover"}}/>
