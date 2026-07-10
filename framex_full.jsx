@@ -556,10 +556,9 @@ function SignIn({onSignIn,logoUrl}){
           <button key={u.id} onClick={()=>onSignIn(u)} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 14px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:8,transition:"border-color 0.15s"}}
             onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(139,47,255,0.5)"}
             onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.07)"}>
-            <Avatar name={u.name} size={26}/>
-            <div style={{flex:1}}><div style={{fontSize:12,fontWeight:600,color:C.text}}>{u.name}</div>
-            <div style={{fontSize:10,color:C.textMuted}}>{ROLES[u.role].label}{u.company?` · ${u.company}`:""}</div></div>
-            <span style={{fontSize:10,color:ROLES[u.role].color,fontWeight:600}}>{ROLES[u.role].label}</span>
+            <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text}}>{u.name}</div>
+            <div style={{fontSize:11,color:C.textMuted}}>{ROLES[u.role].label}{u.company?` · ${u.company}`:""}</div></div>
+            <span style={{fontSize:11,color:ROLES[u.role].color,fontWeight:600}}>{ROLES[u.role].label}</span>
           </button>
         ))}
       </div>
