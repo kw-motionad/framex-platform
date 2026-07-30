@@ -2238,7 +2238,7 @@ function PostPanel({posts,onUpdate,isClient,canApprove}){
     }finally{setUploading(n=>n-1);}
   };
 
-  return <div style={{display:"flex",gap:20,minHeight:0}}>
+  return <div style={{display:"flex",gap:22,minHeight:0}}>
     {/* Asset list */}
     <div style={{flex:playing?0:1,width:playing?"300px":"100%",flexShrink:0}}>
       {!isClient&&<DropZone onFiles={fs=>fs.forEach(addPost)} accept="video/*,image/*,.pdf" label="Drop video or image files here" color={C.cyan}/>}
@@ -2678,7 +2678,7 @@ function ProjectActivityFeed({project}){
   return (
     <div>
       {events.map((ev,i)=>(
-        <div key={i} style={{display:"flex",gap:14,padding:"12px 0",borderBottom:`1px solid ${C.border}25`}}>
+        <div key={i} style={{display:"flex",gap:14,padding:"14px 0",borderBottom:`1px solid ${C.border}20`}}>
           <div style={{width:34,height:34,borderRadius:"50%",background:ev.color+"20",border:`1px solid ${ev.color}40`,
             display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:15}}>
             {ev.icon}
@@ -2812,8 +2812,8 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
       <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"18px 24px 16px"}}>
         <div style={{display:"flex",alignItems:"flex-end",justifyContent:"space-between",gap:12}}>
           <div style={{flex:1,minWidth:0}}>
-            <h2 style={{margin:"0 0 6px",fontSize:26,fontWeight:800,color:"#fff",
-              textShadow:"0 2px 12px rgba(0,0,0,0.9)",lineHeight:1.15,letterSpacing:"-0.02em",
+            <h2 style={{margin:"0 0 8px",fontSize:28,fontWeight:800,color:"#fff",
+              textShadow:"0 2px 16px rgba(0,0,0,0.95)",lineHeight:1.1,letterSpacing:"-0.03em",
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
               {project.title}
             </h2>
@@ -2831,13 +2831,13 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
       </div>
     </div>
     {/* ─── Tab bar ─────────────────────────────────────────────────── */}
-    <div style={{position:"relative",zIndex:1,background:"rgba(5,2,14,0.7)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderBottom:"1px solid rgba(139,47,255,0.2)",padding:"0 24px",flexShrink:0,display:"flex",gap:0,overflowX:"auto"}}>
+    <div style={{position:"relative",zIndex:1,background:"rgba(5,2,14,0.8)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(139,47,255,0.18)",padding:"0 28px",flexShrink:0,display:"flex",gap:2,overflowX:"auto"}}>
       {tabs.map(t=>(
         <button key={t.id} onClick={()=>setTab(t.id)}
-          style={{background:"none",border:"none",borderBottom:`2px solid ${tab===t.id?"#8B2FFF":"transparent"}`,
-            color:tab===t.id?"#fff":"rgba(255,255,255,0.4)",padding:"10px 16px",cursor:"pointer",fontSize:13,
-            fontWeight:tab===t.id?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6,
-            letterSpacing:"-0.01em",transition:"color 0.15s",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif"}}>
+          style={{background:"none",border:"none",borderBottom:`2.5px solid ${tab===t.id?"#8B2FFF":"transparent"}`,
+            color:tab===t.id?"#fff":"rgba(255,255,255,0.38)",padding:"11px 18px",cursor:"pointer",fontSize:12,
+            fontWeight:tab===t.id?600:400,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:7,
+            letterSpacing:"0em",transition:"color 0.15s",fontFamily:"-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif"}}>
           {t.img
             ?<img src={t.img} alt="" style={{width:16,height:16,objectFit:"contain",opacity:tab===t.id?1:0.45,filter:tab===t.id?"none":"grayscale(30%)"}}/>
             :<span style={{fontSize:12}}>{t.icon}</span>}
@@ -2846,55 +2846,56 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
       ))}
     </div>
 
-    <div style={{flex:1,overflowY:"auto",padding:"20px 24px",position:"relative",zIndex:1}}>
-      {tab==="overview"&&<div style={{display:"grid",gridTemplateColumns:"1fr 280px",gap:20,alignItems:"start"}}>
+    <div style={{flex:1,overflowY:"auto",padding:"24px 28px",position:"relative",zIndex:1}}>
+      {tab==="overview"&&<div style={{display:"grid",gridTemplateColumns:"1fr 260px",gap:22,alignItems:"start"}}>
         {/* Left column */}
         <div>
           {/* Visual timeline */}
           <ProjectTimeline project={project}/>
           {/* Stats row */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,marginBottom:24}}>
             {[
               {label:"Stage",val:LIFECYCLE_META[project.status]?.label,color:LIFECYCLE_META[project.status]?.color||C.text,icon:LIFECYCLE_META[project.status]?.icon},
               {label:"Delivery",val:project.deliveryDate,color:C.text,icon:"🎯"},
               ...(isClient?[]:[{label:"Budget",val:fmtCurrency(project.budget),color:C.green,icon:"💰"}]),
             ].map(s=>(
-              <div key={s.label} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
-                <div style={{fontSize:10,color:C.textMuted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>{s.label}</div>
-                <div style={{fontSize:15,fontWeight:700,color:s.color,display:"flex",alignItems:"center",gap:6}}>{s.icon&&<span>{s.icon}</span>}{s.val}</div>
+              <div key={s.label} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 20px",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${s.color}60,transparent)`}}/>
+                <div style={{fontSize:10,color:C.textMuted,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.09em",fontWeight:600}}>{s.label}</div>
+                <div style={{fontSize:17,fontWeight:700,color:s.color,display:"flex",alignItems:"center",gap:7}}>{s.icon&&<span style={{fontSize:16}}>{s.icon}</span>}{s.val||"—"}</div>
               </div>
             ))}
           </div>
           {/* Documents + Creative counts */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
-            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
-              <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.07em"}}>Documents</div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 20px"}}>
+              <div style={{fontSize:10,fontWeight:700,color:C.textMuted,marginBottom:14,textTransform:"uppercase",letterSpacing:"0.09em",display:"flex",alignItems:"center",gap:6}}>📁 Documents</div>
               {Object.entries(project.documents||{}).map(([cat,items])=>(
-                <div key={cat} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:`1px solid ${C.border}28`}}>
+                <div key={cat} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${C.border}20`}}>
                   <span style={{fontSize:12,color:C.textSec,textTransform:"capitalize"}}>{cat}</span>
-                  <span style={{fontSize:12,fontWeight:600,color:C.text}}>{items.length}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:items.length>0?C.text:C.textMuted,background:items.length>0?"#1E1E2A":"transparent",padding:"1px 8px",borderRadius:4}}>{items.length}</span>
                 </div>
               ))}
             </div>
-            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
-              <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.07em"}}>Creative</div>
+            <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 20px"}}>
+              <div style={{fontSize:10,fontWeight:700,color:C.textMuted,marginBottom:14,textTransform:"uppercase",letterSpacing:"0.09em",display:"flex",alignItems:"center",gap:6}}>🎨 Creative</div>
               {Object.entries(project.creative||{}).map(([cat,items])=>(
-                <div key={cat} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderBottom:`1px solid ${C.border}28`}}>
+                <div key={cat} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${C.border}20`}}>
                   <span style={{fontSize:12,color:C.textSec,textTransform:"capitalize"}}>{cat.replace(/([A-Z])/g," $1")}</span>
-                  <span style={{fontSize:12,fontWeight:600,color:C.text}}>{items.length}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:items.length>0?C.text:C.textMuted,background:items.length>0?"#1E1E2A":"transparent",padding:"1px 8px",borderRadius:4}}>{items.length}</span>
                 </div>
               ))}
             </div>
           </div>
           {canSeeInternal&&project.internalNotes&&(
-            <div style={{background:"#0A0A12",border:`1px solid ${C.orange}30`,borderRadius:10,padding:"12px 16px"}}>
+            <div style={{background:"#0C0A10",border:`1px solid ${C.orange}25`,borderRadius:12,padding:"16px 18px",marginTop:4}}>
               <div style={{fontSize:10,color:C.orange,fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.07em"}}>🔒 Internal Notes</div>
               <p style={{margin:0,fontSize:13,color:C.textSec}}>{project.internalNotes}</p>
             </div>
           )}
         </div>
         {/* Right: Quick Actions */}
-        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"18px 16px",display:"flex",flexDirection:"column",gap:10}}>
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:14,padding:"20px 18px",display:"flex",flexDirection:"column",gap:8}}>
           <div style={{fontSize:11,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>Quick Actions</div>
           {[
             {label:"Send Message",icon:"✉",color:C.cyan,onClick:()=>setTab("comments")},
