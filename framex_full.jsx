@@ -108,7 +108,7 @@ function Badge({status,small}){
 }
 function LifecyclePill({stage}){
   const m=LIFECYCLE_META[stage]||LIFECYCLE_META.inquiry;
-  return <span style={{background:m.color+"18",color:m.color,border:`1px solid ${m.color}35`,borderRadius:4,padding:"2px 8px",fontSize:10,fontWeight:600,letterSpacing:"0.06em",textTransform:"uppercase"}}>{m.icon} {m.label}</span>;
+  return <span style={{background:m.color+"15",color:m.color,border:`1px solid ${m.color}30`,borderRadius:6,padding:"3px 10px",fontSize:10,fontWeight:700,letterSpacing:"0.05em",textTransform:"uppercase"}}>{m.icon} {m.label}</span>;
 }
 function Avatar({name="?",size=28}){
   const initials=name.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -168,12 +168,12 @@ function DropZone({onFiles,accept,label,color=C.orange,compact=false}){
 
 function Modal({title,onClose,children,wide}){
   return <div style={{position:"fixed",inset:0,background:"#000000DD",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,width:"100%",maxWidth:wide?860:500,maxHeight:"90vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
+    <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,width:"100%",maxWidth:wide?880:520,maxHeight:"90vh",display:"flex",flexDirection:"column",overflow:"hidden",boxShadow:"0 24px 80px rgba(0,0,0,0.7)"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 24px",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
         <span style={{fontSize:15,fontWeight:700,color:C.text}}>{title}</span>
         <button onClick={onClose} style={{background:"none",border:"none",color:C.textSec,cursor:"pointer",fontSize:18}}>✕</button>
       </div>
-      <div style={{overflowY:"auto",padding:20,flex:1}}>{children}</div>
+      <div style={{overflowY:"auto",padding:"20px 24px",flex:1}}>{children}</div>
     </div>
   </div>;
 }
@@ -539,7 +539,7 @@ function SignIn({onSignIn,logoUrl}){
         <img src={FF_LOGO} alt="Full Flux" style={{height:120,objectFit:"contain",marginBottom:16,filter:"drop-shadow(0 8px 32px rgba(139,47,255,0.5))"}}/>
         <p style={{margin:0,fontSize:15,color:"rgba(255,255,255,0.7)",letterSpacing:"-0.01em"}}>Sign in to your workspace</p>
       </div>
-      <div style={{background:"rgba(10,0,30,0.6)",border:"1px solid rgba(139,47,255,0.3)",borderRadius:18,padding:28,marginBottom:16,backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",boxShadow:"0 0 40px rgba(139,47,255,0.15),inset 0 1px 0 rgba(255,255,255,0.07)"}}>
+      <div style={{background:"rgba(8,0,24,0.72)",border:"1px solid rgba(139,47,255,0.28)",borderRadius:20,padding:32,marginBottom:16,backdropFilter:"blur(28px)",WebkitBackdropFilter:"blur(28px)",boxShadow:"0 0 48px rgba(139,47,255,0.18),inset 0 1px 0 rgba(255,255,255,0.08)"}}>
         <Input label="Email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@studio.com" type="email"/>
         <div style={{marginBottom:20,position:"relative"}}>
           <label style={{fontSize:11,color:C.textMuted,display:"block",marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Password</label>
@@ -550,10 +550,10 @@ function SignIn({onSignIn,logoUrl}){
         {err&&<div style={{background:"rgba(255,69,58,0.12)",border:"1px solid rgba(255,69,58,0.3)",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13,color:C.red}}>{err}</div>}
         <button onClick={attempt} disabled={loading} style={{width:"100%",background:"linear-gradient(135deg,#2B8EFF 0%,#8B2FFF 100%)",border:"none",color:"#fff",borderRadius:12,padding:"14px",cursor:"pointer",fontSize:16,fontWeight:600,letterSpacing:"-0.01em",boxShadow:"0 4px 24px rgba(139,47,255,0.5)"}}>{loading?"Signing in…":"Sign In"}</button>
       </div>
-      <div style={{background:"rgba(10,0,30,0.5)",border:"1px solid rgba(139,47,255,0.2)",borderRadius:14,padding:18,backdropFilter:"blur(20px)"}}>
+      <div style={{background:"rgba(8,0,24,0.65)",border:"1px solid rgba(139,47,255,0.18)",borderRadius:16,padding:20,backdropFilter:"blur(24px)"}}>
         <div style={{fontSize:11,color:C.textMuted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Demo accounts</div>
         {DEMO_USERS.map(u=>(
-          <button key={u.id} onClick={()=>onSignIn(u)} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 14px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:8,transition:"border-color 0.15s"}}
+          <button key={u.id} onClick={()=>onSignIn(u)} style={{display:"flex",alignItems:"center",gap:12,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:11,padding:"11px 16px",cursor:"pointer",textAlign:"left",width:"100%",marginBottom:8,transition:"all 0.15s"}}
             onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(139,47,255,0.5)"}
             onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(255,255,255,0.07)"}>
             <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text}}>{u.name}</div>
@@ -570,7 +570,7 @@ function SignIn({onSignIn,logoUrl}){
 
 function LifecycleBar({current,onChange,canEdit}){
   const idx=LIFECYCLE.indexOf(current);
-  return <div style={{display:"flex",alignItems:"center",gap:0,background:"#0F0F18",borderRadius:8,padding:"10px 14px",marginBottom:20,overflowX:"auto"}}>
+  return <div style={{display:"flex",alignItems:"center",gap:0,background:"#0C0C16",borderRadius:10,padding:"12px 18px",marginBottom:24,overflowX:"auto",border:`1px solid ${C.border}`}}>
     {LIFECYCLE.map((stage,i)=>{
       const m=LIFECYCLE_META[stage];
       const active=i===idx; const past=i<idx;
@@ -636,7 +636,7 @@ function VideoPlayer({asset,style={}}){
   return(
     <div style={{position:"relative",...style}}>
       <video ref={videoRef} src={hlsUrl?undefined:asset?.previewUrl} controls
-        style={{width:"100%",maxHeight:340,borderRadius:8,background:"#000",display:"block"}}/>
+        style={{width:"100%",maxHeight:360,borderRadius:12,background:"#000",display:"block"}}/>
       {levels.length>1&&(
         <div style={{position:"absolute",top:10,right:10,background:"rgba(0,0,0,0.82)",borderRadius:6,border:"1px solid rgba(255,255,255,0.15)"}}>
           <select value={lvl} onChange={e=>{const l=Number(e.target.value);setLvl(l);if(hlsRef.current)hlsRef.current.currentLevel=l;}}
@@ -755,7 +755,7 @@ function UploadModal({project,onClose,onUpload}){
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               {Object.entries(SECS).map(([key,s])=>(
                 <button key={key} onClick={()=>changeSection(key)}
-                  style={{background:section===key?s.color+"20":C.surface,border:`1px solid ${section===key?s.color+"50":C.border}`,color:section===key?s.color:C.textSec,borderRadius:8,padding:"7px 14px",cursor:"pointer",fontSize:12,fontWeight:section===key?700:400,transition:"all 0.15s"}}>
+                  style={{background:section===key?s.color+"18":C.surface,border:`1px solid ${section===key?s.color+"45":C.border}`,color:section===key?s.color:C.textSec,borderRadius:8,padding:"8px 16px",cursor:"pointer",fontSize:12,fontWeight:section===key?700:500,transition:"all 0.15s"}}>
                   {s.icon} {s.label}
                 </button>
               ))}
@@ -1272,22 +1272,22 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
   return <div>
     {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
     <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:24}}>
       {visibleCats.map(cat=>{
         const items=docs[cat.id]||[];
-        return <div key={cat.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
-          <div style={{fontSize:16,marginBottom:4}}>{cat.icon}</div>
-          <div style={{fontSize:10,color:C.textMuted,marginBottom:2}}>{cat.label}</div>
-          <div style={{fontSize:20,fontWeight:700,color:cat.color}}>{items.length}</div>
+        return <div key={cat.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 16px"}}>
+          <div style={{fontSize:18,marginBottom:6}}>{cat.icon}</div>
+          <div style={{fontSize:10,color:C.textMuted,marginBottom:4,textTransform:"uppercase",letterSpacing:"0.06em"}}>{cat.label}</div>
+          <div style={{fontSize:22,fontWeight:700,color:cat.color}}>{items.length}</div>
         </div>;
       })}
     </div>
 
     {visibleCats.map(cat=>{
       const items=(docs[cat.id]||[]).filter(d=>isClient?d.shared:true);
-      return <div key={cat.id} style={{marginBottom:22}}>
+      return <div key={cat.id} style={{marginBottom:28}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-          <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.08em"}}>{cat.icon} {cat.label}</span>
+          <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.07em",display:"flex",alignItems:"center",gap:6}}>{cat.icon} {cat.label}</span>
           {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addDoc(cat.id,f))} accept="*" label={`Drop ${cat.label.toLowerCase()}`} color={cat.color} compact/>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"8px 0"}}>No {cat.label.toLowerCase()} yet.</p>}
@@ -1306,7 +1306,7 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
           :<div>
             {items.map(doc=>(
               <div key={doc.id} onClick={()=>setPreviewEntry({...doc,_cat:cat.id})}
-                style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:12,cursor:"pointer",transition:"border-color 0.15s"}}
+                style={{background:"#0D0D16",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:14,cursor:"pointer",transition:"all 0.15s"}}
                 onMouseEnter={e=>e.currentTarget.style.borderColor=C.border+"99"}
                 onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
                 <FileIcon name={doc.name} mimeType={doc.mimeType||""} previewUrl={doc.previewUrl} size={36} fallback={cat.icon}/>
@@ -1393,9 +1393,9 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
 
     {cats.map(cat=>{
       const items=(creative[cat.id]||[]).filter(i=>isClient?i.shared:true);
-      return <div key={cat.id} style={{marginBottom:22}}>
+      return <div key={cat.id} style={{marginBottom:28}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-          <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.08em"}}>{cat.icon} {cat.label}</span>
+          <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.07em",display:"flex",alignItems:"center",gap:6}}>{cat.icon} {cat.label}</span>
           {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addItem(cat.id,f))} accept="*" label={`Add ${cat.label}`} color={cat.color} compact/>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"6px 0 12px"}}>No {cat.label.toLowerCase()} yet.</p>}
@@ -1414,7 +1414,7 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
           :<div>
             {items.map(item=>{
               const ck=`${cat.id}_${item.id}`;
-              return <div key={item.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+              return <div key={item.id} style={{background:"#0D0D16",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px",marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
                   <FileIcon name={item.name} mimeType={item.mimeType||""} previewUrl={item.previewUrl} size={28} fallback={cat.icon}/>
                   <span style={{fontSize:12,fontWeight:600,color:C.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",cursor:item.previewUrl?"pointer":"default"}} onClick={()=>item.previewUrl&&setPreviewEntry(item)}>{item.name}</span>
@@ -1570,7 +1570,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       </div>}
 
       {/* Production info */}
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>📋 Production Info</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
           <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Shoot Date</label>
@@ -1587,7 +1587,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       </div>
 
       {/* Daily Schedule times */}
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>⏰ Daily Schedule</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
           {[
@@ -1606,7 +1606,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       </div>
 
       {/* Weather */}
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>🌤 Weather</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
           <div><label style={{fontSize:11,fontWeight:500,color:C.textSec,display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Condition</label>
@@ -1623,7 +1623,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       </div>
 
       {/* Location & Parking Maps */}
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
         <div style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:14}}>🗺 Location & Parking Maps</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
           {[["locationMap","Location Map",C.cyan],["parkingMap","Parking Map",C.green]].map(([field,label,color])=>{
@@ -1651,7 +1651,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       </div>
 
       {/* Schedule */}
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
           <span style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em"}}>Shoot Schedule</span>
           <Btn variant="ghost" onClick={addBlock} style={{fontSize:11,padding:"4px 10px"}}>+ Add Scene</Btn>
@@ -1677,7 +1677,7 @@ function CallSheetEditor({sheet,crew,talent,projectTitle,onUpdate,onBack,onDelet
       </div>
 
       {/* Call times */}
-      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 20px",marginBottom:14}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 22px",marginBottom:16}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
           <span style={{fontSize:10,fontWeight:700,color:C.textSec,textTransform:"uppercase",letterSpacing:"0.1em"}}>👥 Individual Call Times</span>
           <div style={{display:"flex",gap:10,fontSize:10,color:C.textMuted}}>
@@ -1889,7 +1889,7 @@ function CrewPanel({crew,talent,callsheets,onUpdateCrew,onUpdateTalent,onUpdateC
             <Btn variant="ghost" onClick={()=>setAddingCrew(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
           </div>
           {crew.map(c=>(
-            <div key={c.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+            <div key={c.id} style={{background:"#0D0D16",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px",marginBottom:10}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                 <Avatar name={c.name} size={32}/>
                 <div><div style={{fontSize:13,fontWeight:600,color:C.text}}>{c.name}</div>
@@ -1920,7 +1920,7 @@ function CrewPanel({crew,talent,callsheets,onUpdateCrew,onUpdateTalent,onUpdateC
             <Btn variant="ghost" onClick={()=>setAddingTalent(true)} style={{fontSize:11,padding:"5px 10px"}}>+ Add</Btn>
           </div>
           {talent.map(t=>(
-            <div key={t.id} style={{background:"#0F0F18",border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px",marginBottom:8}}>
+            <div key={t.id} style={{background:"#0D0D16",border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px",marginBottom:10}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
                 <Avatar name={t.name} size={32}/>
                 <div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:C.text}}>{t.name}</div>
@@ -2108,7 +2108,7 @@ function WrapPanel({wrap,onUpdate,isClient}){
   return <div>
     {uploading>0&&<div style={{background:C.cyan+"15",border:`1px solid ${C.cyan}30`,borderRadius:6,padding:"7px 14px",marginBottom:14,fontSize:11,color:C.cyan}}>⬆ Uploading {uploading} file{uploading>1?"s":""}…</div>}
     <div style={{display:"flex",justifyContent:"flex-end",marginBottom:10}}><ViewToggle value={viewMode} onChange={setViewMode}/></div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,marginBottom:20}}>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:12,marginBottom:24}}>
       {visible.map(cat=>{
         const items=wrap[cat.id]||[];
         return <div key={cat.id} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:8,padding:"12px 14px"}}>
@@ -2123,7 +2123,7 @@ function WrapPanel({wrap,onUpdate,isClient}){
       const items=wrap[cat.id]||[];
       return <div key={cat.id} style={{marginBottom:18}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-          <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.08em"}}>{cat.icon} {cat.label}</span>
+          <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.07em",display:"flex",alignItems:"center",gap:6}}>{cat.icon} {cat.label}</span>
           {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addItem(cat.id,f))} accept="*" label={`Add ${cat.label.toLowerCase()}`} color={cat.color} compact/>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12}}>No {cat.label.toLowerCase()} yet.</p>}
@@ -2866,7 +2866,7 @@ function ProjectDetail({project,onUpdate,currentUser,onBack,onDelete,onPreviewAs
             ))}
           </div>
           {/* Documents + Creative counts */}
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
             <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"14px 16px"}}>
               <div style={{fontSize:11,fontWeight:700,color:C.textSec,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.07em"}}>Documents</div>
               {Object.entries(project.documents||{}).map(([cat,items])=>(
@@ -3065,7 +3065,7 @@ export default function App(){
         <div style={{position:"relative",zIndex:1}}>
 
         {/* Client portal header */}
-        {isClient&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"18px 22px",marginBottom:20}}>
+        {isClient&&<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"22px 26px",marginBottom:24}}>
           <div style={{display:"flex",gap:14,alignItems:"center"}}>
             <Avatar name={user.name} size={44}/>
             <div><div style={{fontSize:18,fontWeight:700,color:C.text}}>{user.name}</div>
