@@ -1346,14 +1346,48 @@ function DocumentsPanel({docs,onUpdate,isClient,canApprove}){
   </div>;
 }
 
+// ─── AI board generation (fal.ai, via /api/generate-image) ─────────────────────
+
+function AIGenerateInline({cat,onGenerated}){
+  const [open,setOpen]=useState(false);
+  const [prompt,setPrompt]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [err,setErr]=useState("");
+
+  const generate=async()=>{
+    if(!prompt.trim()||busy)return;
+    setBusy(true);setErr("");
+    try{
+      const r=await fetch("/api/generate-image",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,folder:`creative/${cat.id}`})});
+      let d;
+      try{d=await r.json();}catch{throw new Error(`Generation failed (${r.status})`);}
+      if(!r.ok)throw new Error(d.error||"Generation failed");
+      onGenerated({id:`cr${Date.now()}`,name:`AI — ${prompt.slice(0,40)}`,status:"pending",shared:false,uploader:"AI",mimeType:"image/jpeg",previewUrl:d.fileUrl,aiPrompt:prompt});
+      setPrompt("");setOpen(false);
+    }catch(e){setErr(e.message);}
+    finally{setBusy(false);}
+  };
+
+  if(!open)return <button onClick={()=>setOpen(true)} style={{display:"flex",alignItems:"center",gap:5,background:cat.color+"15",border:`1px solid ${cat.color}40`,color:cat.color,borderRadius:7,padding:"6px 12px",cursor:"pointer",fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>✨ Generate with AI</button>;
+
+  return <div style={{display:"flex",alignItems:"center",gap:6,background:C.card,border:`1px solid ${cat.color}40`,borderRadius:8,padding:"6px 8px",flexWrap:"wrap"}}>
+    <input autoFocus value={prompt} onChange={e=>setPrompt(e.target.value)} onKeyDown={e=>e.key==="Enter"&&generate()} disabled={busy}
+      placeholder={`Describe the ${cat.label.toLowerCase().replace(/s$/,"")}…`}
+      style={{width:220,background:"#0A0A14",border:`1px solid ${C.border}`,borderRadius:5,padding:"6px 9px",color:C.text,fontSize:11,outline:"none"}}/>
+    <button onClick={generate} disabled={busy||!prompt.trim()} style={{background:cat.color,border:"none",color:"#000",borderRadius:5,padding:"6px 11px",cursor:busy?"default":"pointer",fontSize:11,fontWeight:700,opacity:busy||!prompt.trim()?0.5:1,whiteSpace:"nowrap"}}>{busy?"Generating…":"Generate"}</button>
+    <button onClick={()=>{setOpen(false);setErr("");}} disabled={busy} style={{background:"none",border:`1px solid ${C.border}`,color:C.textMuted,borderRadius:5,padding:"6px 9px",cursor:"pointer",fontSize:11}}>✕</button>
+    {err&&<span style={{fontSize:10,color:C.red,width:"100%"}}>{err}</span>}
+  </div>;
+}
+
 // ─── Creative Panel ───────────────────────────────────────────────────────────
 
 function CreativePanel({creative,onUpdate,isClient,canApprove}){
   const cats=[
     {id:"pitchDecks",label:"Pitch Decks",icon:"🎯",color:C.orange},
-    {id:"moodBoards",label:"Mood Boards",icon:"🎨",color:C.purple},
+    {id:"moodBoards",label:"Mood Boards",icon:"🎨",color:C.purple,aiEnabled:true},
     {id:"locationScouts",label:"Location Scouts",icon:"📍",color:C.teal},
-    {id:"storyboards",label:"Storyboards",icon:"📋",color:C.cyan},
+    {id:"storyboards",label:"Storyboards",icon:"📋",color:C.cyan,aiEnabled:true},
   ];
   const [uploading,setUploading]=useState(0);
   const addItem=async(cat,file)=>{
@@ -1396,7 +1430,10 @@ function CreativePanel({creative,onUpdate,isClient,canApprove}){
       return <div key={cat.id} style={{marginBottom:28}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontSize:11,fontWeight:700,color:cat.color,textTransform:"uppercase",letterSpacing:"0.07em",display:"flex",alignItems:"center",gap:6}}>{cat.icon} {cat.label}</span>
-          {!isClient&&<DropZone onFiles={fs=>fs.forEach(f=>addItem(cat.id,f))} accept="*" label={`Add ${cat.label}`} color={cat.color} compact/>}
+          {!isClient&&<div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end"}}>
+            {cat.aiEnabled&&<AIGenerateInline cat={cat} onGenerated={item=>onUpdate({...creative,[cat.id]:[...(creative[cat.id]||[]),item]})}/>}
+            <DropZone onFiles={fs=>fs.forEach(f=>addItem(cat.id,f))} accept="*" label={`Add ${cat.label}`} color={cat.color} compact/>
+          </div>}
         </div>
         {items.length===0&&<p style={{color:C.textMuted,fontSize:12,padding:"6px 0 12px"}}>No {cat.label.toLowerCase()} yet.</p>}
         {viewMode==="grid"
